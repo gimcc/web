@@ -35,12 +35,12 @@
 
 - [x] [**INFRA-001 搭建 Monorepo 脚手架与 pnpm workspaces**](INFRA-001.md) `P0`
 - [x] [**INFRA-002 配置开发工具链**](INFRA-002.md) `P0`
-- [ ] [**INFRA-003 配置 Storybook 组件开发环境**](INFRA-003.md) `P1`
-- [ ] [**FEAT-003 服务器列表配置与 Mock 开发系统**](FEAT-003.md) `P1`
+- [x] [**INFRA-003 配置 Storybook 组件开发环境**](INFRA-003.md) `P1`
+- [x] [**FEAT-003 服务器列表配置与 Mock 开发系统**](FEAT-003.md) `P1`
 
 ### 阶段 2 — 认证与连接
 
-- [ ] [**FEAT-004 实现登录/注册页面与认证流程**](FEAT-004.md) `P1`
+- [x] [**FEAT-004 实现登录/注册页面与认证流程**](FEAT-004.md) `P1`
 - [ ] [**FEAT-005 实现 Matrix 客户端连接与 sync 桥接**](FEAT-005.md) `P1`
 - [ ] [**FEAT-002 添加隐藏 Server Name 功能**](FEAT-002.md) `P1`
 
