@@ -1,5 +1,15 @@
 # 变更日志
 
+## 2026-03-16 20:30 [done]
+
+INFRA-003 + FEAT-003 + FEAT-004 完成。
+
+**INFRA-003**：在 packages/ui 中初始化 shadcn/ui（Base UI 原语）+ Tailwind CSS 4.2 + Storybook 8（仅业务组件）。创建 cn() 工具函数、OKLCH 色彩主题、亮色/暗色切换。Avatar 示例业务组件及 Story。monorepo 双 components.json 配置。
+
+**FEAT-003**：创建 apps/web/public/config.json 运行时配置（homeservers 结构化配置、mockMode 等）。在 packages/types 中定义 AppConfig/HomeserversConfig 类型，packages/config 中实现 Zod 运行时校验的配置加载模块。PLAN-001 新增第 5 节「Mock 开发系统」并重新编号后续章节。
+
+**FEAT-004**：安装 React Router 7、Zustand 5、matrix-js-sdk。实现 hash/history 双模式路由、AuthGuard、ConfigProvider。在 packages/matrix-client 中实现认证服务（login/register + session 持久化）、Mock 认证服务、Zustand auth store。创建登录页面（服务器选择器 + 用户名密码）、注册页面、首页占位。
+
 ## 2026-03-16 18:00 [done]
 
 INFRA-001 + INFRA-002 完成。搭建 monorepo 脚手架（pnpm workspaces，5 个包：apps/web、packages/config、types、matrix-client、ui），配置开发工具链（TypeScript 5.9 strict、ESLint 9 + @antfu/eslint-config 7.7、Vite 6 dev server 端口 5000）。所有包间依赖正确链接，`pnpm lint`、`pnpm typecheck`、`pnpm dev` 均通过验证。

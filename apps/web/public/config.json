@@ -2,10 +2,10 @@
   "routerMode": "hash",
   "basePath": "/",
   "homeservers": {
-    "default": "matrix.org",
+    "default": "im.apfu.w.ee",
     "servers": [
-      { "name": "matrix.org", "url": "https://matrix.org" },
-      { "name": "gg.im", "url": "https://gg.im" }
+      { "name": "im.apfu.w.ee", "url": "https://im.apfu.w.ee" },
+      { "name": "matrix.org", "url": "https://matrix.org" }
     ],
     "allowCustom": true,
     "showSelector": true

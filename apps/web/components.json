@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "new-york",
+  "tsx": true,
+  "rsc": false,
+  "tailwind": {
+    "config": "",
+    "css": "../../packages/ui/src/styles/globals.css",
+    "baseColor": "neutral",
+    "cssVariables": true
+  },
+  "iconLibrary": "lucide",
+  "aliases": {
+    "components": "@/components",
+    "ui": "@matrix-web/ui/components",
+    "utils": "@matrix-web/ui/lib/utils",
+    "hooks": "@matrix-web/ui/hooks",
+    "lib": "@matrix-web/ui/lib"
+  }
+}

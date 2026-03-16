@@ -1,6 +1,6 @@
 # INFRA-003 配置 Storybook 组件开发环境
 
-- **status**: pending
+- **status**: completed
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

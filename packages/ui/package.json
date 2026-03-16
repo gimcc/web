@@ -7,15 +7,39 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
-    }
+    },
+    "./components/*": "./src/components/*/index.ts",
+    "./lib/*": "./src/lib/*.ts",
+    "./hooks/*": "./src/hooks/*.ts",
+    "./styles/*": "./src/styles/*.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "clean": "rm -rf dist *.tsbuildinfo"
+    "clean": "rm -rf dist *.tsbuildinfo",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
+    "@base-ui-components/react": "1.0.0-rc.0",
     "@matrix-web/config": "workspace:*",
-    "@matrix-web/types": "workspace:*"
+    "@matrix-web/types": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.577.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "^4.2.1",
+    "tw-animate-css": "^1.4.0"
+  },
+  "devDependencies": {
+    "@storybook/addon-essentials": "^8.6.14",
+    "@storybook/addon-themes": "^10.2.19",
+    "@storybook/react": "^10.2.19",
+    "@storybook/react-vite": "^10.2.19",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "storybook": "^10.2.19"
   }
 }

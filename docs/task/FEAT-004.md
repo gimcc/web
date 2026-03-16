@@ -1,6 +1,6 @@
 # FEAT-004 实现登录/注册页面与认证流程
 
-- **status**: pending
+- **status**: completed
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

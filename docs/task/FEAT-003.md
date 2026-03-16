@@ -1,6 +1,6 @@
 # FEAT-003 服务器列表配置与 Mock 开发系统
 
-- **status**: pending
+- **status**: completed
 - **priority**: P1
 - **owner**: claude-agent
 - **createdAt**: 2026-03-16 17:00

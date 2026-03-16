@@ -111,10 +111,10 @@ matrix-web/
   "routerMode": "hash",           // "hash" | "history"
   "basePath": "/",                // 子路径部署
   "homeservers": {
-    "default": "matrix.org",      // 默认选中的 server name（对应 servers[].name）
+    "default": "im.apfu.w.ee",    // 默认选中的 server name（对应 servers[].name）
     "servers": [
-      { "name": "matrix.org", "url": "https://matrix.org" },
-      { "name": "gg.im", "url": "https://gg.im" }
+      { "name": "im.apfu.w.ee", "url": "https://im.apfu.w.ee" },
+      { "name": "matrix.org", "url": "https://matrix.org" }
     ],
     "allowCustom": true,          // 允许用户手动输入自定义服务器地址
     "showSelector": true           // 在登录页/设置页显示服务器切换 UI
@@ -137,7 +137,41 @@ matrix-web/
 
 ---
 
-## 5. 端到端加密 (E2EE)
+## 5. Mock 开发系统
+
+在无真实 Matrix 服务器的情况下进行前端开发和调试。
+
+### 5.1 激活方式
+
+- `config.json` 中设置 `"mockMode": true`
+- URL 参数 `?mock=1`（覆盖 config.json 设置）
+
+### 5.2 Mock Provider 架构
+
+```
+MatrixClientProvider (接口)
+├── RealMatrixClientProvider  — 连接真实 homeserver
+└── MockMatrixClientProvider  — 返回预设数据，模拟 sync 事件
+```
+
+- 所有组件通过 `MatrixClientProvider` 接口获取数据，不直接依赖 matrix-js-sdk
+- Mock 实现提供：预置房间列表、消息历史、用户信息、在线状态
+- Mock 支持模拟事件流：新消息、输入指示器、在线状态变更
+
+### 5.3 与 Storybook 集成
+
+- Storybook story 中使用 `MockMatrixClientProvider` 包装组件
+- 每个 story 可提供不同的 mock 数据集（空房间、大量消息、离线状态等）
+
+### 5.4 Mock 认证
+
+- Mock 模式下任意用户名密码均可登录
+- 返回预设 session（userId: `@mock-user:localhost`, deviceId: `MOCK_DEVICE`）
+- 跳过真实 homeserver 连接
+
+---
+
+## 6. 端到端加密 (E2EE)
 
 - matrix-js-sdk 通过 `matrix-sdk-crypto-wasm`（Rust/WASM）处理所有加密
 - 密钥存储在 IndexedDB
@@ -146,9 +180,9 @@ matrix-web/
 
 ---
 
-## 6. 本地安全
+## 7. 本地安全
 
-### 6.1 两层密钥架构（DEK + KEK）
+### 7.1 两层密钥架构（DEK + KEK）
 
 IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护层。
 
@@ -183,7 +217,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 - 密码变更只需重新加密 DEK（秒级），无需重新加密数据库
 - 渐进式安全：可随时启用/禁用锁屏密码
 
-### 6.2 启动流程
+### 7.2 启动流程
 
 ```
 应用启动
@@ -197,13 +231,13 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
   MatrixClient 初始化 → sync
 ```
 
-### 6.3 锁定触发（仅在设置了锁屏密码时生效）
+### 7.3 锁定触发（仅在设置了锁屏密码时生效）
 
 - 用户手动锁定（快捷键或按钮）
 - 空闲超时（可配置，默认 5 分钟）
 - 锁定时：清除内存中的 DEK 明文 → 显示锁屏
 
-### 6.4 锁屏密码操作
+### 7.4 锁屏密码操作
 
 **设置：** 生成 salt → 密码 + salt → PBKDF2 → KEK → 加密 DEK → 写入 localStorage
 
@@ -213,7 +247,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 
 **忘记密码：** 清除 localStorage + IndexedDB → 重新登录 → 服务器同步 → E2EE 密钥通过 key backup 恢复
 
-### 6.5 胁迫密码（Duress Password）
+### 7.5 胁迫密码（Duress Password）
 
 用户在被胁迫解锁时，输入预设的胁迫密码，表面正常解锁，实际静默擦除全部本地数据。
 
@@ -246,7 +280,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 | duress verify hash | localStorage | PBKDF2 派生，仅启用后存在 |
 | duress salt | localStorage | 与正常密码使用不同 salt |
 
-### 6.6 与 Matrix E2EE 的关系
+### 7.6 与 Matrix E2EE 的关系
 
 - Matrix E2EE（Megolm）— 保护**传输中**的消息
 - DEK 加密 — 保护**本地存储**的密钥和消息（始终生效）
@@ -255,9 +289,9 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 
 ---
 
-## 7. 消息系统
+## 8. 消息系统
 
-### 7.1 消息类型
+### 8.1 消息类型
 
 | Matrix msgtype | 本项目类型 | 说明 | 阶段 |
 |----------------|-----------|------|------|
@@ -269,7 +303,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 | `m.emote` | `TextMessage` (subtype) | `/me` 动作消息 | 3 |
 | `m.notice` | `SystemMessage` | 系统通知 | 3 |
 
-### 7.2 图片消息
+### 8.2 图片消息
 
 | 功能 | 设计 |
 |------|------|
@@ -281,7 +315,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 | 批量发送 | 一次选择/粘贴多张，逐一上传 |
 | E2EE | SDK 透明处理加密附件 |
 
-### 7.3 视频消息
+### 8.3 视频消息
 
 | 功能 | 设计 |
 |------|------|
@@ -291,7 +325,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 | 格式 | `video/mp4`、`video/webm`、`video/ogg` |
 | 大文件 | 上传进度条 + 可取消 |
 
-### 7.4 文件消息
+### 8.4 文件消息
 
 | 功能 | 设计 |
 |------|------|
@@ -300,11 +334,11 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 | 预览 | PDF 可 Lightbox 内嵌预览，其他仅下载 |
 | 大小限制 | 遵循 Homeserver `m.upload.size` 限制 |
 
-### 7.5 语音消息（阶段 5）
+### 8.5 语音消息（阶段 5）
 
 波形图 + 播放控件。录制：MediaRecorder API → Opus/WebM。播放：Web Audio API。
 
-### 7.6 统一上传流程
+### 8.6 统一上传流程
 
 ```
 选择文件（文件选择器 / 粘贴 / 拖拽）
@@ -325,7 +359,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
    └─ 失败重试：保留本地 Blob，支持重发
 ```
 
-### 7.7 mxc:// URI 处理
+### 8.7 mxc:// URI 处理
 
 - 下载：`/_matrix/media/v3/download/{serverName}/{mediaId}`
 - 缩略图：`/_matrix/media/v3/thumbnail/{serverName}/{mediaId}?width=W&height=H&method=scale`
@@ -333,9 +367,9 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 
 ---
 
-## 8. 消息输入框
+## 9. 消息输入框
 
-### 8.1 命令系统
+### 9.1 命令系统
 
 输入 `/` 触发命令面板，注册表模式可扩展。
 
@@ -355,7 +389,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 
 命令接口：`{ name, description, args, execute }`
 
-### 8.2 粘贴板图片
+### 9.2 粘贴板图片
 
 | 场景 | 行为 |
 |------|------|
@@ -364,7 +398,7 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 
 流程：检测 → 本地 Blob URL 预览 → 可添加说明/移除/调整顺序 → 上传 → 发送 `m.image`
 
-### 8.3 其他能力
+### 9.3 其他能力
 
 - 多行输入（Shift+Enter 换行，Enter 发送）
 - Markdown 实时预览（可选）
@@ -373,13 +407,13 @@ IndexedDB 数据**始终加密存储**；锁屏密码提供额外的访问保护
 
 ---
 
-## 9. 用户 ID 显示与输入简化
+## 10. 用户 ID 显示与输入简化
 
-### 9.1 概述
+### 10.1 概述
 
 Matrix 用户 ID 格式为 `@localpart:servername`（如 `@aa:gg.im`）。当客户端连接单一 homeserver 时，`:servername` 部分是冗余信息。通过 `hideServerName` 配置，UI 显示和用户输入两端均可省略 server name。
 
-### 9.2 显示规则
+### 10.2 显示规则
 
 当 `config.json` 中 `hideServerName: true` 时：
 
@@ -396,7 +430,7 @@ Matrix 用户 ID 格式为 `@localpart:servername`（如 `@aa:gg.im`）。当客
 - 成员头像 tooltip
 - 在线状态面板
 
-### 9.3 输入简化
+### 10.3 输入简化
 
 | 场景 | 用户输入 | 系统行为 |
 |------|----------|----------|
@@ -410,7 +444,7 @@ Matrix 用户 ID 格式为 `@localpart:servername`（如 `@aa:gg.im`）。当客
 - 有 `:` 的输入 → 视为完整 ID，原样使用
 - 搜索同时匹配 localpart 和 displayName，不区分大小写
 
-### 9.4 工具函数
+### 10.4 工具函数
 
 `packages/matrix-client` 提供统一格式化函数：
 
@@ -432,73 +466,9 @@ function parseUserId(userId: string): { localpart: string; serverName: string }
 
 所有 UI 组件通过这些函数统一处理显示和输入，禁止组件内部直接拼接/截取 user ID。
 
-### 9.5 实施阶段
+### 10.5 实施阶段
 
 归入**阶段 2**（登录后即可获取 server name）和**阶段 3**（消息展示和输入时生效）。
-
----
-
-## 10. Mock 开发系统
-
-### 10.1 目标
-
-在无真实 Matrix 服务器的情况下，前端可快速开发、调试和预览所有 UI 效果。通过 `config.json` 的 `mockMode: true` 启用。
-
-### 10.2 架构
-
-采用 **Mock Provider + Storybook** 组合：
-
-- **Mock Provider**（页面级）：在 `packages/matrix-client` 中实现 `MockMatrixClient`，与真实 `MatrixClient` 共享接口，应用启动时根据 `mockMode` 注入
-- **Storybook**（组件级）：在 `packages/ui` 中配置，每个组件用 mock props 驱动独立预览
-
-### 10.3 Mock 数据层
-
-```
-packages/matrix-client/src/mock/
-├── data/
-│   ├── users.ts          # 模拟用户（3 本服 + 3 外服，覆盖 hideServerName）
-│   ├── rooms.ts          # 模拟房间（1v1 × 2、群聊 × 2、加密群聊 × 1）
-│   ├── messages.ts       # 各类型消息样本（text/image/file/video/voice/system）
-│   └── media.ts          # 媒体占位 URL（public/mock/ 下的本地图片/视频）
-├── mock-client.ts        # MockMatrixClient — 实现与真实 client 相同接口
-├── mock-sync.ts          # 模拟 sync 事件流（setInterval 推送新消息、typing）
-└── index.ts
-```
-
-### 10.4 MockMatrixClient 能力
-
-| 方法 | Mock 行为 |
-|------|-----------|
-| `login()` | 直接返回成功，存入 mock session |
-| `sync()` | `setInterval` 模拟事件推送（新消息、typing、在线状态） |
-| `sendMessage()` | 乐观更新 + 延迟模拟 sending → sent → delivered → read 状态流转 |
-| `uploadMedia()` | 模拟进度条（0→100%）+ 返回本地 blob URL |
-| `getMembers()` | 返回预设用户列表 |
-| `getRooms()` | 返回预设房间列表 |
-| `getMessages()` | 返回预设消息（支持分页模拟） |
-
-### 10.5 Mock 数据设计要点
-
-- **用户**：至少 6 个（`@alice:gg.im`、`@bob:gg.im`、`@charlie:gg.im` + `@dave:other.org`、`@eve:matrix.org`、`@frank:ext.net`）
-- **消息**：每种类型至少 3 条，覆盖所有状态（sending/sent/delivered/read/failed）
-- **时间线**：模拟历史分页加载（向上滚动触发）和新消息实时推送
-- **媒体**：`public/mock/` 下放置占位图片、视频、文件，替代 `mxc://` URI
-- **网络延迟**：可配置延迟（默认 300ms），模拟真实网络体验
-
-### 10.6 Storybook
-
-配置在 `packages/ui/`，为每个 chat 组件提供 stories：
-- message-bubble（所有子类型）
-- message-input（含命令面板）
-- room-list-item
-- member-avatar
-- upload-progress
-- lightbox
-- 锁屏页面
-
-### 10.7 实施阶段
-
-归入**阶段 1**（与脚手架一同搭建）。
 
 ---
 
