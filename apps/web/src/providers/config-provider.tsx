@@ -12,7 +12,7 @@ export function ConfigProvider({ children }: { children: ReactNode }) {
   })
 
   useEffect(() => {
-    loadConfig()
+    loadConfig(`${import.meta.env.BASE_URL}config.json`)
       .then(config => setState({ config, isLoading: false, error: null }))
       .catch((err: unknown) => {
         const message = err instanceof Error ? err.message : 'Failed to load config'

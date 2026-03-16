@@ -25,7 +25,7 @@ export type AppConfig = z.infer<typeof appConfigSchema>
 
 let cachedConfig: AppConfig | null = null
 
-export async function loadConfig(path = '/config.json'): Promise<AppConfig> {
+export async function loadConfig(path: string): Promise<AppConfig> {
   if (cachedConfig) {
     return cachedConfig
   }

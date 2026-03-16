@@ -11,7 +11,7 @@
     "./components/*": "./src/components/*/index.ts",
     "./lib/*": "./src/lib/*.ts",
     "./hooks/*": "./src/hooks/*.ts",
-    "./styles/*": "./src/styles/*.css"
+    "./styles/*.css": "./src/styles/*.css"
   },
   "scripts": {
     "typecheck": "tsc --noEmit",

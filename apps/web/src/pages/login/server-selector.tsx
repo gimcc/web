@@ -29,6 +29,7 @@ export function ServerSelector({ config, value, onChange }: ServerSelectorProps)
     const selected = e.target.value
     if (selected === '__custom__') {
       setIsCustom(true)
+      onChange('')
     }
     else {
       setIsCustom(false)
