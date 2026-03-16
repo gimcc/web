@@ -1,6 +1,6 @@
 # INFRA-003 配置 Storybook 组件开发环境
 
-- **status**: completed
+- **status**: superseded
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30
@@ -27,3 +27,4 @@
 ## 笔记
 
 - 参考 PLAN-001 第 10.6 节
+- **已废弃**：packages/ui 已移除，UI 组件直接在 apps/web 中管理，Storybook 配置待按需重新引入

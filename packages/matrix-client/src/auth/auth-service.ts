@@ -55,6 +55,10 @@ export async function login(credentials: AuthCredentials): Promise<AuthSession> 
     credentials.password,
   )
 
+  if (!response.user_id || !response.access_token || !response.device_id) {
+    throw new Error('Unexpected login response: missing required fields')
+  }
+
   const session: AuthSession = {
     userId: response.user_id,
     accessToken: response.access_token,

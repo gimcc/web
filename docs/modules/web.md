@@ -29,10 +29,13 @@
 
 ## 内部依赖
 
-- `@matrix-web/ui` — 共享 UI 组件
 - `@matrix-web/matrix-client` — Matrix SDK 封装与状态
 - `@matrix-web/types` — 共享类型定义
 - `@matrix-web/config` — 基础配置
+
+## UI 组件
+
+UI 组件直接存放在 `apps/web/src/components/ui/` 中，使用 Base UI 原语 + shadcn/ui 模式。无独立 UI 包，避免不必要的抽象层。
 
 ## 目录结构（规划）
 
@@ -100,7 +103,7 @@ apps/web/
 
 ## 设计原则
 
-- **薄应用层**：业务逻辑在 `matrix-client`，UI 组件在 `ui`，应用层仅做组装和路由
+- **薄应用层**：业务逻辑在 `matrix-client`，UI 组件在 `apps/web/src/components/ui/`，应用层负责组装、路由和 UI
 - **懒加载**：页面级组件使用 `React.lazy` + `Suspense`
 - **乐观更新**：消息发送使用 `useOptimistic` 实现即时响应
 - **虚拟滚动**：消息列表使用 TanStack Virtual，支持反向滚动和可变高度

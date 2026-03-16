@@ -1,6 +1,7 @@
 # PLAN-002 配置 Storybook 与 shadcn/ui 组件开发环境
 
-- **status**: completed
+- **status**: superseded
+- **supersededBy**: UI components moved to apps/web, packages/ui removed
 - **createdAt**: 2026-03-16 20:00
 - **approvedAt**: 2026-03-16 20:30
 - **relatedTask**: INFRA-003

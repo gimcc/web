@@ -17,7 +17,7 @@ Matrix Web —— 基于 Matrix 协议的浏览器端聊天 IM 客户端。采�
 | Lint/格式化 | ESLint 10 + @antfu/eslint-config 7.7 |
 | 客户端状态 | Zustand 5.0 |
 | 服务端状态 | TanStack Query 5.90 |
-| UI 组件 | shadcn/ui（Base UI 原语） |
+| UI 组件 | shadcn/ui（Base UI 原语），内置于 apps/web |
 | CSS | Tailwind CSS 4.2 |
 | 虚拟滚动 | TanStack Virtual 3.13 |
 | 测试 | Vitest 4.1 + Playwright 1.58 + MSW 2.12 |
@@ -30,7 +30,6 @@ matrix-web/
 ├── apps/
 │   └── web/                  # 主 React 聊天客户端
 ├── packages/
-│   ├── ui/                   # shadcn/ui 定制组件
 │   ├── matrix-client/        # matrix-js-sdk 封装与状态
 │   ├── types/                # 共享 TypeScript 类型
 │   └── config/               # 基础配置
@@ -45,12 +44,7 @@ matrix-web/
 
 ```
 apps/web
-├── @matrix-web/ui
 ├── @matrix-web/matrix-client
-├── @matrix-web/types
-└── @matrix-web/config
-
-packages/ui
 ├── @matrix-web/types
 └── @matrix-web/config
 
@@ -65,14 +59,13 @@ packages/config
 └── (无内部依赖)
 ```
 
-**依赖方向：** `config` ← `types` ← `matrix-client` / `ui` ← `web`
+**依赖方向：** `config` ← `types` ← `matrix-client` ← `web`
 
 ## 模块职责
 
 | 模块 | 职责 | React 依赖 | 详细文档 |
 |------|------|------------|----------|
-| `apps/web` | 页面路由、组装、PWA | 是 | [modules/web.md](modules/web.md) |
-| `packages/ui` | 共享 UI 组件、设计系统 | 是（peer） | [modules/ui.md](modules/ui.md) |
+| `apps/web` | 页面路由、组装、UI 组件、PWA | 是 | [modules/web.md](modules/web.md) |
 | `packages/matrix-client` | SDK 封装、状态管理、事件桥接、本地加密 | 否 | [modules/matrix-client.md](modules/matrix-client.md) |
 | `packages/types` | 共享类型、Zod schema | 否 | [modules/types.md](modules/types.md) |
 | `packages/config` | tsconfig、eslint、vitest、tailwind 配置 | 否 | [modules/config.md](modules/config.md) |

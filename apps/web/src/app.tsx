@@ -16,7 +16,7 @@ function AppRouterInner() {
 
     const urlMock = import.meta.env.DEV
       && new URLSearchParams(window.location.search).get('mock') === '1'
-    setMockMode(config.mockMode || urlMock)
+    setMockMode(import.meta.env.DEV && (config.mockMode || urlMock))
     restoreSession()
   }, [config, restoreSession, setMockMode])
 

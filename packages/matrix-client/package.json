@@ -15,10 +15,12 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
-    "@matrix-web/config": "workspace:*",
     "@matrix-web/types": "workspace:*",
     "matrix-js-sdk": "^41.1.0",
     "zod": "^4.3.6",
     "zustand": "^5.0.12"
+  },
+  "devDependencies": {
+    "@matrix-web/config": "workspace:*"
   }
 }
