@@ -13,8 +13,7 @@
     "lint:fix": "eslint . --fix",
     "typecheck": "pnpm -r run typecheck",
     "test": "pnpm -r run test",
-    "clean": "pnpm -r run clean",
-    "storybook": "pnpm --filter @matrix-web/ui storybook"
+    "clean": "pnpm -r run clean"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^7.7.2",

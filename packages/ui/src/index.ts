@@ -1,6 +1,0 @@
-export { Avatar } from './components/avatar/avatar'
-export type { AvatarProps } from './components/avatar/avatar'
-export { Button } from './components/button/button'
-export type { ButtonProps } from './components/button/button'
-export { buttonVariants } from './components/button/button-variants'
-export { cn } from './lib/utils'
