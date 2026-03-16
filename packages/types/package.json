@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist *.tsbuildinfo"
   },
-  "dependencies": {
+  "devDependencies": {
     "@matrix-web/config": "workspace:*"
   }
 }

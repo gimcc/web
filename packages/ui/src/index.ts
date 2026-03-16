@@ -1,4 +1,6 @@
 export { Avatar } from './components/avatar/avatar'
 export type { AvatarProps } from './components/avatar/avatar'
-// @matrix-web/ui — shared UI components
+export { Button } from './components/button/button'
+export type { ButtonProps } from './components/button/button'
+export { buttonVariants } from './components/button/button-variants'
 export { cn } from './lib/utils'
