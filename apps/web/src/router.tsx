@@ -1,7 +1,7 @@
 import type { AppConfig } from '@matrix-web/config'
 import { createBrowserRouter, createHashRouter, Navigate } from 'react-router'
 import { AuthGuard } from './components/auth-guard'
-import { HomePage } from './pages/home/home-page'
+import { ChatLayout } from './pages/chat/chat-layout'
 import { LoginPage } from './pages/login/login-page'
 import { RegisterPage } from './pages/register/register-page'
 
@@ -18,7 +18,7 @@ const routes = [
     path: '/',
     element: (
       <AuthGuard>
-        <HomePage />
+        <ChatLayout />
       </AuthGuard>
     ),
   },

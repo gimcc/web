@@ -1,5 +1,35 @@
 # 变更日志
 
+## 2026-03-16 22:00 [done]
+
+FEAT-006 完成。实现房间列表与侧边栏：
+
+- `apps/web/src/components/sidebar.tsx`：侧边栏组件（响应式布局，移动端可折叠覆盖层，连接状态指示器，用户信息 + 登出按钮）
+- `apps/web/src/components/room-list.tsx`：房间列表组件（搜索过滤，按最近活跃排序）
+- `apps/web/src/components/room-list-item.tsx`：房间列表项（头像、房间名、最后消息预览、时间戳、未读计数 badge，1v1 与群聊区分）
+- `apps/web/src/components/ui/input.tsx`：通用输入框组件
+- `apps/web/src/pages/chat/chat-layout.tsx`：聊天页面布局（侧边栏 + 主内容区，选中房间头部 + 消息/输入占位）
+- 路由更新：首页从占位页切换为 ChatLayout
+- 修复：`zod/v4` → `zod` 解决 TypeScript 类型解析失败问题
+
+## 2026-03-16 21:30 [done]
+
+FEAT-005 完成。实现 Matrix 客户端连接与 sync 桥接层：
+
+- `packages/matrix-client/src/client/client-manager.ts`：MatrixClient 生命周期管理（createClient → startClient → stopClient），连接状态追踪
+- `packages/matrix-client/src/client/mock-client.ts`：Mock 模式客户端（5 个预设房间，模拟连接延迟和定期 sync）
+- `packages/matrix-client/src/sync/sync-bridge.ts`：SDK EventEmitter → Zustand stores 桥接（Timeline、Name、Membership、Receipt、MyMembership 事件）
+- `packages/matrix-client/src/stores/connection-store.ts`：连接状态 store（disconnected/connecting/syncing/reconnecting/error）
+- `packages/matrix-client/src/stores/rooms-store.ts`：房间列表 store（RoomSummary Map，支持 upsert/remove/unread 更新）
+- `packages/matrix-client/src/query/query-keys.ts`：TanStack Query key 常量和缓存失效辅助函数
+- `apps/web/src/hooks/use-matrix-client.ts`：MatrixClient 生命周期 hook（桥接 Query 失效回调）
+- `apps/web/src/providers/query-provider.tsx`：TanStack QueryClientProvider 封装
+- 安装 `@tanstack/query-core`（matrix-client）和 `@tanstack/react-query`（web）
+
+## 2026-03-16 21:00 [done]
+
+FEAT-002 完成。隐藏 Server Name 功能文档已全部就绪：PLAN-001 第 10 节「用户 ID 显示与输入简化」定义了显示规则（本 homeserver 用户省略 server name，外部用户始终完整显示）和输入简化规则（自动补全 server name）。config.json 文档含 `hideServerName` 配置项。matrix-client 模块文档含 `utils/user-id.ts` 工具函数（formatUserId、resolveUserId、parseUserId）。types 模块文档含 AppConfig 类型定义。
+
 ## 2026-03-16 20:30 [done]
 
 INFRA-003 + FEAT-003 + FEAT-004 完成。

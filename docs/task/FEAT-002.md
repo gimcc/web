@@ -1,6 +1,6 @@
 # FEAT-002 添加隐藏 Server Name 功能
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
 - **owner**: claude-agent
 - **createdAt**: 2026-03-16 16:30

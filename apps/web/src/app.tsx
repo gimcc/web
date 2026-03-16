@@ -2,6 +2,7 @@ import { useAuthStore } from '@matrix-web/matrix-client'
 import { useEffect, useMemo } from 'react'
 import { RouterProvider } from 'react-router'
 import { ConfigProvider } from './providers/config-provider'
+import { QueryProvider } from './providers/query-provider'
 import { useConfig } from './providers/use-config'
 import { createRouter } from './router'
 
@@ -55,8 +56,10 @@ function AppRouterInner() {
 
 export function App() {
   return (
-    <ConfigProvider>
-      <AppRouterInner />
-    </ConfigProvider>
+    <QueryProvider>
+      <ConfigProvider>
+        <AppRouterInner />
+      </ConfigProvider>
+    </QueryProvider>
   )
 }
