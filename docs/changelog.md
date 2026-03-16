@@ -1,5 +1,9 @@
 # 变更日志
 
+## 2026-03-16 18:00 [done]
+
+INFRA-001 + INFRA-002 完成。搭建 monorepo 脚手架（pnpm workspaces，5 个包：apps/web、packages/config、types、matrix-client、ui），配置开发工具链（TypeScript 5.9 strict、ESLint 9 + @antfu/eslint-config 7.7、Vite 6 dev server 端口 5000）。所有包间依赖正确链接，`pnpm lint`、`pnpm typecheck`、`pnpm dev` 均通过验证。
+
 ## 2026-03-16 17:30 [progress]
 
 根据 PLAN-001 生成完整任务列表。共 22 个任务（INFRA-001~003 + FEAT-002~021），按 6 个实施阶段分组。阶段 1（P0）：脚手架、工具链、Storybook、Mock；阶段 2（P1）：认证、sync 桥接、隐藏 Server Name；阶段 3（P1）：房间列表、时间线、消息收发、多媒体、命令、粘贴板；阶段 4/4.5（P1）：E2EE、锁屏、胁迫密码；阶段 5（P2）：表情、线程、语音、输入指示器；阶段 6（P2）：PWA、推送。

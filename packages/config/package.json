@@ -1,0 +1,16 @@
+{
+  "name": "@matrix-web/config",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    "./tsconfig.base": "./tsconfig.base.json",
+    "./tsconfig.react": "./tsconfig.react.json",
+    "./tsconfig.lib": "./tsconfig.lib.json",
+    "./eslint": "./eslint.config.mjs",
+    "./vitest": "./vitest.config.ts"
+  },
+  "scripts": {
+    "clean": "rm -rf dist *.tsbuildinfo"
+  }
+}

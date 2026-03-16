@@ -1,0 +1,16 @@
+{
+  "routerMode": "hash",
+  "basePath": "/",
+  "homeservers": {
+    "default": "matrix.org",
+    "servers": [
+      { "name": "matrix.org", "url": "https://matrix.org" },
+      { "name": "gg.im", "url": "https://gg.im" }
+    ],
+    "allowCustom": true,
+    "showSelector": true
+  },
+  "lockIdleTimeout": 300,
+  "hideServerName": true,
+  "mockMode": false
+}

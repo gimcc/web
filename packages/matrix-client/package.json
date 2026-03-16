@@ -1,0 +1,21 @@
+{
+  "name": "@matrix-web/matrix-client",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "clean": "rm -rf dist *.tsbuildinfo"
+  },
+  "dependencies": {
+    "@matrix-web/config": "workspace:*",
+    "@matrix-web/types": "workspace:*"
+  }
+}
