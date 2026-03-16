@@ -1,8 +1,8 @@
 # INFRA-001 搭建 Monorepo 脚手架与 pnpm workspaces
 
-- **status**: pending
+- **status**: done
 - **priority**: P0
-- **owner**: (未分配)
+- **owner**: -
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述

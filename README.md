@@ -2,6 +2,15 @@
 
 Browser-based chat client built on the [Matrix](https://matrix.org/) protocol.
 
+## Development
+
+```bash
+pnpm install
+pnpm dev        # http://localhost:5000
+```
+
+External access: https://gim.apfu.w.ee/
+
 ## Tech Stack
 
 | Concern | Choice |

@@ -1,8 +1,8 @@
 # INFRA-002 配置开发工具链
 
-- **status**: pending
+- **status**: done
 - **priority**: P0
-- **owner**: (未分配)
+- **owner**: -
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述

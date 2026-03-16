@@ -1,0 +1,9 @@
+{
+  "extends": "@matrix-web/config/tsconfig.react",
+  "compilerOptions": {
+    "rootDir": "src",
+    "noEmit": true,
+    "outDir": "dist"
+  },
+  "include": ["src"]
+}

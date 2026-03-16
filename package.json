@@ -1,0 +1,26 @@
+{
+  "name": "@matrix-web/root",
+  "type": "module",
+  "private": true,
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @matrix-web/web dev",
+    "build": "pnpm -r run build",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "typecheck": "pnpm -r run typecheck",
+    "test": "pnpm -r run test",
+    "clean": "pnpm -r run clean"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^7.7.2",
+    "@eslint-react/eslint-plugin": "^2.13.0",
+    "eslint": "^9.28.0",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.5.2",
+    "typescript": "^5.8.3"
+  }
+}
