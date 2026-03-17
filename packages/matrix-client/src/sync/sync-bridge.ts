@@ -86,11 +86,15 @@ export function createSyncBridge(
     onQueryInvalidation?.('room.list')
   }
 
-  // My membership changes (join/leave)
+  // My membership changes (join/invite/leave)
   function onMyMembership(room: Room, membership: string): void {
     if (membership === 'leave' || membership === 'ban') {
       useRoomsStore.getState().removeRoom(room.roomId)
       onQueryInvalidation?.('room.leave', room.roomId)
+    }
+    else if (membership === 'invite') {
+      updateRoomFromEvent(client, room)
+      onQueryInvalidation?.('room.invite', room.roomId)
     }
     else {
       syncRoomList(client)

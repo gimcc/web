@@ -13,6 +13,7 @@ function createMockRooms(): RoomSummary[] {
       avatarUrl: null,
       isEncrypted: false,
       isDirect: false,
+      membership: 'join',
       memberCount: 42,
       lastMessage: {
         senderId: '@alice:localhost',
@@ -31,6 +32,7 @@ function createMockRooms(): RoomSummary[] {
       avatarUrl: null,
       isEncrypted: false,
       isDirect: false,
+      membership: 'join',
       memberCount: 28,
       lastMessage: {
         senderId: '@bob:localhost',
@@ -49,6 +51,7 @@ function createMockRooms(): RoomSummary[] {
       avatarUrl: null,
       isEncrypted: true,
       isDirect: true,
+      membership: 'join',
       memberCount: 2,
       lastMessage: {
         senderId: '@alice:localhost',
@@ -67,6 +70,7 @@ function createMockRooms(): RoomSummary[] {
       avatarUrl: null,
       isEncrypted: true,
       isDirect: true,
+      membership: 'join',
       memberCount: 2,
       lastMessage: {
         senderId: '@mock-user:localhost',
@@ -85,6 +89,7 @@ function createMockRooms(): RoomSummary[] {
       avatarUrl: null,
       isEncrypted: false,
       isDirect: false,
+      membership: 'join',
       memberCount: 15,
       lastMessage: {
         senderId: '@charlie:localhost',

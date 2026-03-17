@@ -1,0 +1,170 @@
+import type { RoomSummary } from '@matrix-web/matrix-client'
+import { getMatrixClient, useRoomsStore } from '@matrix-web/matrix-client'
+import { Bell, Check, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { cn } from '../lib/utils'
+import { Avatar } from './ui/avatar'
+
+function useInviteRooms(): RoomSummary[] {
+  const rooms = useRoomsStore(s => s.rooms)
+  return useMemo(
+    () => [...rooms.values()].filter(r => r.membership === 'invite'),
+    [rooms],
+  )
+}
+
+function InviteItem({ room }: { room: RoomSummary }) {
+  const [loading, setLoading] = useState<'accept' | 'reject' | null>(null)
+  const [error, setError] = useState<string | null>(null)
+
+  const handleAccept = useCallback(async () => {
+    const client = getMatrixClient()
+    if (!client)
+      return
+    setLoading('accept')
+    setError(null)
+    try {
+      await client.joinRoom(room.roomId)
+    }
+    catch (err) {
+      setLoading(null)
+      setError(err instanceof Error ? err.message : 'Failed to accept')
+    }
+  }, [room.roomId])
+
+  const handleReject = useCallback(async () => {
+    const client = getMatrixClient()
+    if (!client)
+      return
+    setLoading('reject')
+    setError(null)
+    try {
+      await client.leave(room.roomId)
+    }
+    catch (err) {
+      setLoading(null)
+      setError(err instanceof Error ? err.message : 'Failed to reject')
+    }
+  }, [room.roomId])
+
+  return (
+    <div className="px-3 py-2.5">
+      <div className="flex items-center gap-3">
+        <Avatar name={room.name} src={room.avatarUrl ?? undefined} size="sm" />
+        <div className="min-w-0 flex-1">
+          <p className="truncate text-sm font-medium text-foreground">{room.name}</p>
+          <p className="text-xs text-muted-foreground">
+            {room.isDirect ? 'Direct message invite' : 'Room invite'}
+          </p>
+        </div>
+        <div className="flex shrink-0 gap-1">
+          <button
+            type="button"
+            disabled={loading !== null}
+            onClick={handleAccept}
+            className={cn(
+              'rounded-md p-1.5 transition-colors',
+              'text-green-600 hover:bg-green-100 dark:text-green-400 dark:hover:bg-green-900/30',
+              loading === 'accept' && 'animate-pulse',
+              loading !== null && 'opacity-50',
+            )}
+            aria-label="Accept invite"
+          >
+            <Check className="h-4 w-4" />
+          </button>
+          <button
+            type="button"
+            disabled={loading !== null}
+            onClick={handleReject}
+            className={cn(
+              'rounded-md p-1.5 transition-colors',
+              'text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30',
+              loading === 'reject' && 'animate-pulse',
+              loading !== null && 'opacity-50',
+            )}
+            aria-label="Reject invite"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+      {error && (
+        <p className="mt-1 text-xs text-destructive">{error}</p>
+      )}
+    </div>
+  )
+}
+
+export function InviteBell() {
+  const invites = useInviteRooms()
+  const [open, setOpen] = useState(false)
+  const panelRef = useRef<HTMLDivElement>(null)
+
+  // Close on outside click or Escape key
+  useEffect(() => {
+    if (!open)
+      return
+    function handleClick(e: MouseEvent) {
+      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
+        setOpen(false)
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        setOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClick)
+    document.addEventListener('keydown', handleKeyDown)
+    return () => {
+      document.removeEventListener('mousedown', handleClick)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
+  }, [open])
+
+  return (
+    <div className="relative" ref={panelRef}>
+      <button
+        type="button"
+        onClick={() => setOpen(prev => !prev)}
+        className="relative rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+        aria-label="Invitations"
+      >
+        <Bell className="h-5 w-5" />
+        {invites.length > 0 && (
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-white">
+            {invites.length > 99 ? '99+' : invites.length}
+          </span>
+        )}
+      </button>
+
+      {open && (
+        <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-border bg-background shadow-lg">
+          <div className="border-b border-border px-3 py-2">
+            <p className="text-sm font-medium text-foreground">
+              Invitations
+              {invites.length > 0 && (
+                <span className="ml-1.5 text-xs text-muted-foreground">
+                  (
+                  {invites.length}
+                  )
+                </span>
+              )}
+            </p>
+          </div>
+          <div className="max-h-64 overflow-y-auto">
+            {invites.length === 0
+              ? (
+                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
+                    No pending invitations
+                  </p>
+                )
+              : invites.map(room => (
+                  <InviteItem key={room.roomId} room={room} />
+                ))}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}

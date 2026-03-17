@@ -62,7 +62,7 @@ export function RoomList() {
   const [searchQuery, setSearchQuery] = useState('')
 
   const { directRooms, groupRooms } = useMemo(() => {
-    const list = [...rooms.values()]
+    const list = [...rooms.values()].filter(room => room.membership !== 'invite')
 
     // Filter by search
     const filtered = searchQuery.trim()

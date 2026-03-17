@@ -7,6 +7,7 @@ export interface RoomSummary {
   avatarUrl: string | null
   isDirect: boolean
   isEncrypted: boolean
+  membership: 'join' | 'invite'
   memberCount: number
   lastMessage: LastMessagePreview | null
   unreadCount: number
