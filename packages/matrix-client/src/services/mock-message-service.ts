@@ -191,6 +191,6 @@ export async function uploadMockFile(roomId: string, file: File, caption?: strin
   await new Promise<void>(resolve => setTimeout(resolve, 800))
 
   const confirmedId = generateMockEventId()
+  // Keep blob URL alive in mock mode — no server URL to replace it with
   useMessagesStore.getState().confirmMessage(roomId, tempId, confirmedId)
-  URL.revokeObjectURL(localUrl)
 }

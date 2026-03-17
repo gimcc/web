@@ -44,7 +44,7 @@ export interface MessagesState {
   appendMessages: (roomId: string, messages: TimelineMessage[]) => void
   prependMessages: (roomId: string, messages: TimelineMessage[], hasMore: boolean, token?: string) => void
   addOptimisticMessage: (message: TimelineMessage) => void
-  confirmMessage: (roomId: string, tempEventId: string, confirmedEventId: string) => void
+  confirmMessage: (roomId: string, tempEventId: string, confirmedEventId: string, updates?: Partial<TimelineMessage>) => void
   failMessage: (roomId: string, eventId: string) => void
   removeMessage: (roomId: string, eventId: string) => void
   getTimeline: (roomId: string) => TimelineMessage[]
@@ -102,7 +102,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     set({ timelines })
   },
 
-  confirmMessage: (roomId, tempEventId, confirmedEventId) => {
+  confirmMessage: (roomId, tempEventId, confirmedEventId, updates) => {
     const timelines = new Map(get().timelines)
     const existing = timelines.get(roomId)
     if (!existing)
@@ -112,7 +112,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
       roomId,
       existing.map(m =>
         m.eventId === tempEventId
-          ? { ...m, eventId: confirmedEventId, status: 'sent' as const }
+          ? { ...m, ...updates, eventId: confirmedEventId, status: 'sent' as const }
           : m,
       ),
     )

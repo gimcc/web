@@ -116,10 +116,13 @@ export async function uploadAndSendFile(options: UploadOptions): Promise<UploadR
 
     const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
 
-    // Clean up blob URL
+    // Update message URL to mxc before revoking blob URL
+    const httpUrl = mxcToHttpUrl(mxcUrl, client.baseUrl)
+    useMessagesStore.getState().confirmMessage(roomId, tempEventId, response.event_id, { url: httpUrl })
+
+    // Clean up blob URL after message URL has been updated
     URL.revokeObjectURL(localUrl)
 
-    useMessagesStore.getState().confirmMessage(roomId, tempEventId, response.event_id)
     return { mxcUrl, eventId: response.event_id }
   }
   catch {
