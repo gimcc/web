@@ -1,7 +1,9 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
-import { LogOut, Menu, X } from 'lucide-react'
+import { LogOut, Menu, Settings, X } from 'lucide-react'
+import { useState } from 'react'
 import { cn } from '../lib/utils'
 import { RoomList } from './room-list'
+import { SettingsDialog } from './settings/settings-dialog'
 
 interface SidebarProps {
   isOpen: boolean
@@ -32,6 +34,7 @@ function ConnectionIndicator() {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const session = useAuthStore(s => s.session)
   const logout = useAuthStore(s => s.logout)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   return (
     <>
@@ -79,17 +82,30 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               </p>
               <ConnectionIndicator />
             </div>
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
+
+      {/* Settings dialog */}
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
     </>
   )
 }

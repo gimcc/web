@@ -2,6 +2,27 @@
 
 ## 2026-03-17 [done]
 
+FEAT-022 完成。实现统一设置 UI。
+
+**设置对话框**：侧边栏底部新增齿轮图标按钮，点击打开模态设置对话框。左侧 Tab 导航，右侧内容区域，支持 Escape 键关闭。
+
+**5 个设置面板**：
+- 账户：用户 ID、Homeserver、连接状态徽章、Mock 模式标记、登出按钮
+- 安全：集成已有的锁屏密码设置（PasswordSettings）和胁迫密码设置（DuressPasswordSettings）
+- 加密：E2EE 状态概览（Crypto Module、Cross-Signing、Key Backup）、集成密钥备份设置（KeyBackupSetup）
+- 外观：亮色/暗色/跟随系统三种主题切换，持久化到 localStorage，监听系统偏好变化
+- 关于：应用版本（从 package.json 注入）、协议、框架信息
+
+**技术细节**：
+- `apps/web/src/components/settings/settings-dialog.tsx`：对话框主框架
+- `apps/web/src/components/settings/panels/`：5 个面板组件
+- Vite `define` 注入 `__APP_VERSION__`，类型声明在 `vite-env.d.ts`
+- 无额外路由，无新依赖
+
+---
+
+## 2026-03-17 [done]
+
 阶段 3 — 核心聊天全部完成（FEAT-007 ~ FEAT-011）。
 
 **FEAT-007**：使用 TanStack Virtual 3.13 实现消息时间线虚拟滚动。支持可变高度消息、自动滚动到底部、历史消息分页加载、"新消息"滚动到底部按钮。组件：`message-timeline.tsx`。
