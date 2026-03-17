@@ -12,11 +12,20 @@ import { Input } from '../ui/input'
 
 type FormMode = 'idle' | 'set' | 'change' | 'remove'
 
-export function PasswordSettings({ lockIdleTimeout }: { lockIdleTimeout: number }) {
+const TIMEOUT_OPTIONS = [
+  { value: 300, label: '5 minutes' },
+  { value: 1800, label: '30 minutes' },
+  { value: 3600, label: '1 hour' },
+  { value: 14400, label: '4 hours' },
+] as const
+
+export function PasswordSettings() {
   const hasPassword = useLockStore(s => s.hasPassword)
   const dek = useLockStore(s => s.dek)
   const lock = useLockStore(s => s.lock)
   const setHasPassword = useLockStore(s => s.setHasPassword)
+  const idleTimeout = useLockStore(s => s.idleTimeout)
+  const setIdleTimeout = useLockStore(s => s.setIdleTimeout)
 
   const [mode, setMode] = useState<FormMode>('idle')
   const [currentPassword, setCurrentPassword] = useState('')
@@ -109,13 +118,6 @@ export function PasswordSettings({ lockIdleTimeout }: { lockIdleTimeout: number 
     }
   }
 
-  const formatTimeout = (seconds: number) => {
-    if (seconds < 60)
-      return `${seconds} seconds`
-    const minutes = Math.floor(seconds / 60)
-    return minutes === 1 ? '1 minute' : `${minutes} minutes`
-  }
-
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
@@ -130,13 +132,21 @@ export function PasswordSettings({ lockIdleTimeout }: { lockIdleTimeout: number 
       )}
 
       {hasPassword && (
-        <p className="text-xs text-muted-foreground">
-          Auto-lock after
-          {' '}
-          {formatTimeout(lockIdleTimeout)}
-          {' '}
-          of inactivity
-        </p>
+        <div className="flex items-center gap-2">
+          <label htmlFor="idle-timeout" className="text-xs text-muted-foreground whitespace-nowrap">
+            Auto-lock after
+          </label>
+          <select
+            id="idle-timeout"
+            value={idleTimeout}
+            onChange={e => setIdleTimeout(Number(e.target.value))}
+            className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
+          >
+            {TIMEOUT_OPTIONS.map(opt => (
+              <option key={opt.value} value={opt.value}>{opt.label}</option>
+            ))}
+          </select>
+        </div>
       )}
 
       {mode === 'idle' && (

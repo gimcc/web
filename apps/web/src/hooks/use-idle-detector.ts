@@ -12,6 +12,10 @@ export function useIdleDetector(
   const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   useEffect(() => {
+    // timeout <= 0 means disabled
+    if (timeout <= 0)
+      return
+
     function resetTimer(): void {
       if (isIdleRef.current) {
         isIdleRef.current = false

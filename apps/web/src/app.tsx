@@ -8,8 +8,9 @@ import {
   useAuthStore,
   useLockStore,
 } from '@matrix-web/matrix-client'
-import { useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { RouterProvider } from 'react-router'
+import { useIdleDetector } from './hooks/use-idle-detector'
 import { LockScreen } from './pages/lock/lock-screen'
 import { ConfigProvider } from './providers/config-provider'
 import { QueryProvider } from './providers/query-provider'
@@ -48,11 +49,35 @@ async function initializeDek(): Promise<void> {
   lockStore.setHasPassword(false)
 }
 
+function useAutoLock() {
+  const hasPassword = useLockStore(s => s.hasPassword)
+  const isLocked = useLockStore(s => s.isLocked)
+  const idleTimeout = useLockStore(s => s.idleTimeout)
+  const lock = useLockStore(s => s.lock)
+
+  const enabled = hasPassword && !isLocked && idleTimeout > 0
+  const timeoutMs = idleTimeout * 1000
+
+  const handleIdle = useCallback(() => {
+    const { hasPassword: hp, isLocked: il } = useLockStore.getState()
+    if (hp && !il)
+      lock()
+  }, [lock])
+
+  const handleActive = useCallback(() => {
+    // no-op: lock is permanent until password entry
+  }, [])
+
+  useIdleDetector(handleIdle, handleActive, enabled ? timeoutMs : 0)
+}
+
 function AppRouterInner() {
   const { config, isLoading, error } = useConfig()
   const restoreSession = useAuthStore(s => s.restoreSession)
   const setMockMode = useAuthStore(s => s.setMockMode)
   const isLocked = useLockStore(s => s.isLocked)
+
+  useAutoLock()
 
   useEffect(() => {
     if (!config)
