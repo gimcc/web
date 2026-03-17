@@ -1,4 +1,5 @@
 import { Shield, ShieldCheck } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
 
 export type EncryptionStatus = 'encrypted' | 'verified' | 'unencrypted'
@@ -9,6 +10,8 @@ interface EncryptionBadgeProps {
 }
 
 export function EncryptionBadge({ status, className }: EncryptionBadgeProps) {
+  const { t } = useTranslation()
+
   if (status === 'unencrypted')
     return null
 
@@ -16,7 +19,7 @@ export function EncryptionBadge({ status, className }: EncryptionBadgeProps) {
     return (
       <ShieldCheck
         className={cn('size-3.5 shrink-0 text-green-500', className)}
-        aria-label="Encrypted and verified"
+        aria-label={t('encryption_badge.verified')}
       />
     )
   }
@@ -24,7 +27,7 @@ export function EncryptionBadge({ status, className }: EncryptionBadgeProps) {
   return (
     <Shield
       className={cn('size-3.5 shrink-0 text-yellow-500', className)}
-      aria-label="Encrypted but unverified"
+      aria-label={t('encryption_badge.unverified')}
     />
   )
 }

@@ -2,6 +2,7 @@ import type { RoomSummary } from '@matrix-web/matrix-client'
 import { getMatrixClient, useRoomsStore } from '@matrix-web/matrix-client'
 import { Bell, Check, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { Avatar } from './ui/avatar'
 
@@ -14,6 +15,7 @@ function useInviteRooms(): RoomSummary[] {
 }
 
 function InviteItem({ room }: { room: RoomSummary }) {
+  const { t } = useTranslation()
   const [loading, setLoading] = useState<'accept' | 'reject' | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -28,9 +30,9 @@ function InviteItem({ room }: { room: RoomSummary }) {
     }
     catch (err) {
       setLoading(null)
-      setError(err instanceof Error ? err.message : 'Failed to accept')
+      setError(err instanceof Error ? err.message : t('invite.error_accept'))
     }
-  }, [room.roomId])
+  }, [room.roomId, t])
 
   const handleReject = useCallback(async () => {
     const client = getMatrixClient()
@@ -43,9 +45,9 @@ function InviteItem({ room }: { room: RoomSummary }) {
     }
     catch (err) {
       setLoading(null)
-      setError(err instanceof Error ? err.message : 'Failed to reject')
+      setError(err instanceof Error ? err.message : t('invite.error_reject'))
     }
-  }, [room.roomId])
+  }, [room.roomId, t])
 
   return (
     <div className="px-3 py-2.5">
@@ -54,7 +56,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-foreground">{room.name}</p>
           <p className="text-xs text-muted-foreground">
-            {room.isDirect ? 'Direct message invite' : 'Room invite'}
+            {room.isDirect ? t('invite.dm_invite') : t('invite.room_invite')}
           </p>
         </div>
         <div className="flex shrink-0 gap-1">
@@ -68,7 +70,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
               loading === 'accept' && 'animate-pulse',
               loading !== null && 'opacity-50',
             )}
-            aria-label="Accept invite"
+            aria-label={t('invite.accept_label')}
           >
             <Check className="h-4 w-4" />
           </button>
@@ -82,7 +84,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
               loading === 'reject' && 'animate-pulse',
               loading !== null && 'opacity-50',
             )}
-            aria-label="Reject invite"
+            aria-label={t('invite.reject_label')}
           >
             <X className="h-4 w-4" />
           </button>
@@ -96,6 +98,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
 }
 
 export function InviteBell() {
+  const { t } = useTranslation()
   const invites = useInviteRooms()
   const [open, setOpen] = useState(false)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -128,7 +131,7 @@ export function InviteBell() {
         type="button"
         onClick={() => setOpen(prev => !prev)}
         className="relative rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-        aria-label="Invitations"
+        aria-label={t('invite.invitations')}
       >
         <Bell className="h-5 w-5" />
         {invites.length > 0 && (
@@ -142,7 +145,7 @@ export function InviteBell() {
         <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-border bg-background shadow-lg">
           <div className="border-b border-border px-3 py-2">
             <p className="text-sm font-medium text-foreground">
-              Invitations
+              {t('invite.invitations')}
               {invites.length > 0 && (
                 <span className="ml-1.5 text-xs text-muted-foreground">
                   (
@@ -156,7 +159,7 @@ export function InviteBell() {
             {invites.length === 0
               ? (
                   <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                    No pending invitations
+                    {t('invite.no_pending')}
                   </p>
                 )
               : invites.map(room => (

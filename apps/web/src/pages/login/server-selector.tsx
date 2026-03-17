@@ -1,5 +1,6 @@
 import type { HomeserversConfig } from '@matrix-web/types'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 export interface ServerSelectorProps {
   config: HomeserversConfig
@@ -18,6 +19,7 @@ function isValidServerUrl(value: string): boolean {
 }
 
 export function ServerSelector({ config, value, onChange }: ServerSelectorProps) {
+  const { t } = useTranslation()
   const [customUrl, setCustomUrl] = useState('')
   const [isCustom, setIsCustom] = useState(false)
 
@@ -48,7 +50,7 @@ export function ServerSelector({ config, value, onChange }: ServerSelectorProps)
   return (
     <div className="flex flex-col gap-2">
       <label className="text-sm font-medium text-foreground" htmlFor="server-select">
-        Server
+        {t('auth_server.server')}
       </label>
       <select
         id="server-select"
@@ -62,13 +64,13 @@ export function ServerSelector({ config, value, onChange }: ServerSelectorProps)
           </option>
         ))}
         {config.allowCustom && (
-          <option value="__custom__">Custom server...</option>
+          <option value="__custom__">{t('auth_server.custom_server')}</option>
         )}
       </select>
       {isCustom && (
         <input
           type="url"
-          placeholder="https://your-server.org"
+          placeholder={t('auth.custom_server_placeholder')}
           className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
           value={customUrl}
           onChange={handleCustomChange}

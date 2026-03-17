@@ -1,4 +1,5 @@
 import { getMatrixClient, useTypingStore } from '@matrix-web/matrix-client'
+import { useTranslation } from 'react-i18next'
 
 interface TypingIndicatorProps {
   roomId: string
@@ -17,17 +18,8 @@ function getDisplayName(roomId: string, userId: string): string {
   return member?.name ?? userId
 }
 
-function formatTypingText(names: string[]): string {
-  if (names.length === 0)
-    return ''
-  if (names.length === 1)
-    return `${names[0]} is typing`
-  if (names.length === 2)
-    return `${names[0]} and ${names[1]} are typing`
-  return `${names[0]}, ${names[1]} and others are typing`
-}
-
 export function TypingIndicator({ roomId }: TypingIndicatorProps) {
+  const { t } = useTranslation()
   const typingUsers = useTypingStore(s => s.typingByRoom.get(roomId))
 
   const client = getMatrixClient()
@@ -39,7 +31,11 @@ export function TypingIndicator({ roomId }: TypingIndicatorProps) {
     return null
 
   const names = filtered.map(uid => getDisplayName(roomId, uid))
-  const text = formatTypingText(names)
+  const text = filtered.length === 1
+    ? t('typing.single', { name: names[0] })
+    : filtered.length === 2
+      ? t('typing.two', { name1: names[0], name2: names[1] })
+      : t('typing.multiple', { name1: names[0], name2: names[1] })
 
   return (
     <div className="flex items-center gap-1.5 px-4 py-1 text-xs text-muted-foreground">

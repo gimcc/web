@@ -11,6 +11,7 @@ import {
 } from '@matrix-web/matrix-client'
 import { Paperclip, Send } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { filterCommands, findCommand, parseCommandInput } from '../lib/commands'
 import { renderMarkdown } from '../lib/markdown'
 import { CommandPanel } from './command-panel'
@@ -23,6 +24,7 @@ interface MessageInputProps {
 let uploadIdCounter = 0
 
 export function MessageInput({ roomId }: MessageInputProps) {
+  const { t } = useTranslation()
   const mockMode = useAuthStore(s => s.mockMode)
   const session = useAuthStore(s => s.session)
 
@@ -93,7 +95,7 @@ export function MessageInput({ roomId }: MessageInputProps) {
       catch {
         // Remove only completed uploads, keep failed ones for retry
         setPendingUploads(prev => prev.filter(u => !completedIds.includes(u.id)))
-        setCommandError('Failed to upload file. You can retry.')
+        setCommandError(t('chat.upload_failed'))
         return
       }
 
@@ -126,12 +128,12 @@ export function MessageInput({ roomId }: MessageInputProps) {
           })
 
           if (!result.success) {
-            setCommandError(result.error ?? 'Command failed')
+            setCommandError(result.error ?? t('chat.command_failed'))
             return
           }
         }
         else {
-          setCommandError(`Unknown command: ${parsed.command}`)
+          setCommandError(t('chat.unknown_command', { command: parsed.command }))
           return
         }
       }
@@ -158,7 +160,7 @@ export function MessageInput({ roomId }: MessageInputProps) {
     finally {
       setIsSending(false)
     }
-  }, [text, pendingUploads, mockMode, roomId, serverName])
+  }, [text, pendingUploads, mockMode, roomId, serverName, t])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     // Command panel navigation
@@ -292,7 +294,7 @@ export function MessageInput({ roomId }: MessageInputProps) {
       {/* Drag overlay */}
       {isDragging && (
         <div className="flex items-center justify-center border-2 border-dashed border-primary bg-primary/5 px-4 py-3">
-          <p className="text-sm text-primary">Drop files here to upload</p>
+          <p className="text-sm text-primary">{t('chat.drop_files')}</p>
         </div>
       )}
 
@@ -317,7 +319,7 @@ export function MessageInput({ roomId }: MessageInputProps) {
           type="button"
           onClick={handleFileSelect}
           className="mb-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          aria-label="Attach file"
+          aria-label={t('chat.attach_file')}
         >
           <Paperclip className="h-5 w-5" />
         </button>
@@ -340,7 +342,7 @@ export function MessageInput({ roomId }: MessageInputProps) {
           }}
           onKeyDown={handleKeyDown}
           onPaste={handlePaste}
-          placeholder="Type a message..."
+          placeholder={t('chat.message_placeholder')}
           rows={1}
           disabled={isSending}
           className="max-h-[200px] min-h-[36px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
@@ -352,7 +354,7 @@ export function MessageInput({ roomId }: MessageInputProps) {
           onClick={() => void sendCurrentMessage()}
           disabled={isSending || (text.trim() === '' && pendingUploads.length === 0)}
           className="mb-0.5 shrink-0 rounded-md bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-          aria-label="Send message"
+          aria-label={t('chat.send_message')}
         >
           <Send className="h-5 w-5" />
         </button>

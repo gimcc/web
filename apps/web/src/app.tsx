@@ -9,6 +9,7 @@ import {
   useLockStore,
 } from '@matrix-web/matrix-client'
 import { useCallback, useEffect, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { RouterProvider } from 'react-router'
 import { useIdleDetector } from './hooks/use-idle-detector'
 import { useThemeInit } from './hooks/use-theme'
@@ -75,6 +76,7 @@ function AppRouterInner() {
   const restoreSession = useAuthStore(s => s.restoreSession)
   const setMockMode = useAuthStore(s => s.setMockMode)
   const isLocked = useLockStore(s => s.isLocked)
+  const { t } = useTranslation()
 
   useAutoLock()
   useThemeInit()
@@ -101,7 +103,7 @@ function AppRouterInner() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t('app.loading')}</p>
       </div>
     )
   }
@@ -110,9 +112,7 @@ function AppRouterInner() {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <p className="text-destructive">
-          Failed to load configuration:
-          {' '}
-          {error}
+          {t('app.error.config', { error })}
         </p>
       </div>
     )

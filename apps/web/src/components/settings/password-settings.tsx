@@ -7,19 +7,21 @@ import {
 } from '@matrix-web/matrix-client'
 import { Lock, ShieldCheck, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
 import { Input } from '../ui/input'
 
 type FormMode = 'idle' | 'set' | 'change' | 'remove'
 
 const TIMEOUT_OPTIONS = [
-  { value: 300, label: '5 minutes' },
-  { value: 1800, label: '30 minutes' },
-  { value: 3600, label: '1 hour' },
-  { value: 14400, label: '4 hours' },
+  { value: 300, labelKey: 'password.timeout_5m' },
+  { value: 1800, labelKey: 'password.timeout_30m' },
+  { value: 3600, labelKey: 'password.timeout_1h' },
+  { value: 14400, labelKey: 'password.timeout_4h' },
 ] as const
 
 export function PasswordSettings() {
+  const { t } = useTranslation()
   const hasPassword = useLockStore(s => s.hasPassword)
   const dek = useLockStore(s => s.dek)
   const lock = useLockStore(s => s.lock)
@@ -46,15 +48,15 @@ export function PasswordSettings() {
   const handleSetPassword = async (e: FormEvent) => {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('password.error_mismatch'))
       return
     }
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t('password.error_too_short'))
       return
     }
     if (!dek) {
-      setError('DEK not available. Please try again later.')
+      setError(t('password.error_dek_unavailable'))
       return
     }
 
@@ -63,11 +65,11 @@ export function PasswordSettings() {
     try {
       await setDekPassword(dek, newPassword)
       setHasPassword(true)
-      setSuccess('Password has been set successfully')
+      setSuccess(t('password.success_set'))
       resetForm()
     }
     catch {
-      setError('Failed to set password')
+      setError(t('password.error_set_failed'))
     }
     finally {
       setIsLoading(false)
@@ -77,11 +79,11 @@ export function PasswordSettings() {
   const handleChangePassword = async (e: FormEvent) => {
     e.preventDefault()
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match')
+      setError(t('password.error_mismatch'))
       return
     }
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters')
+      setError(t('password.error_too_short'))
       return
     }
 
@@ -89,11 +91,11 @@ export function PasswordSettings() {
     setIsLoading(true)
     try {
       await changePassword(currentPassword, newPassword)
-      setSuccess('Password has been changed successfully')
+      setSuccess(t('password.success_changed'))
       resetForm()
     }
     catch {
-      setError('Current password is incorrect')
+      setError(t('password.error_current_incorrect'))
     }
     finally {
       setIsLoading(false)
@@ -107,11 +109,11 @@ export function PasswordSettings() {
     try {
       await removePassword(currentPassword)
       setHasPassword(false)
-      setSuccess('Password has been removed')
+      setSuccess(t('password.success_removed'))
       resetForm()
     }
     catch {
-      setError('Password is incorrect')
+      setError(t('password.error_incorrect'))
     }
     finally {
       setIsLoading(false)
@@ -122,7 +124,7 @@ export function PasswordSettings() {
     <div className="space-y-4">
       <div className="flex items-center gap-2">
         <ShieldCheck className="h-5 w-5 text-muted-foreground" />
-        <h3 className="text-sm font-medium text-foreground">Lock Screen Password</h3>
+        <h3 className="text-sm font-medium text-foreground">{t('password.title')}</h3>
       </div>
 
       {success && (
@@ -134,7 +136,7 @@ export function PasswordSettings() {
       {hasPassword && (
         <div className="flex items-center gap-2">
           <label htmlFor="idle-timeout" className="text-xs text-muted-foreground whitespace-nowrap">
-            Auto-lock after
+            {t('password.timeout_label')}
           </label>
           <select
             id="idle-timeout"
@@ -143,7 +145,7 @@ export function PasswordSettings() {
             className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground"
           >
             {TIMEOUT_OPTIONS.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
+              <option key={opt.value} value={opt.value}>{t(opt.labelKey)}</option>
             ))}
           </select>
         </div>
@@ -161,7 +163,7 @@ export function PasswordSettings() {
                     setMode('set')
                   }}
                 >
-                  Set Password
+                  {t('password.set')}
                 </Button>
               )
             : (
@@ -174,7 +176,7 @@ export function PasswordSettings() {
                       setMode('change')
                     }}
                   >
-                    Change Password
+                    {t('password.change')}
                   </Button>
                   <Button
                     variant="outline"
@@ -185,11 +187,11 @@ export function PasswordSettings() {
                     }}
                   >
                     <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-                    Remove Password
+                    {t('password.remove')}
                   </Button>
                   <Button variant="outline" size="sm" onClick={lock}>
                     <Lock className="mr-1.5 h-3.5 w-3.5" />
-                    Lock Now
+                    {t('password.lock_now')}
                   </Button>
                 </>
               )}
@@ -200,7 +202,7 @@ export function PasswordSettings() {
         <form onSubmit={handleSetPassword} className="space-y-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-foreground" htmlFor="new-pw">
-              New Password
+              {t('password.new_password')}
             </label>
             <Input
               id="new-pw"
@@ -213,7 +215,7 @@ export function PasswordSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-foreground" htmlFor="confirm-pw">
-              Confirm Password
+              {t('password.confirm_password')}
             </label>
             <Input
               id="confirm-pw"
@@ -229,9 +231,9 @@ export function PasswordSettings() {
             </div>
           )}
           <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={resetForm}>Cancel</Button>
+            <Button type="button" variant="outline" size="sm" onClick={resetForm}>{t('common.cancel')}</Button>
             <Button type="submit" size="sm" disabled={isLoading || !newPassword || !confirmPassword}>
-              {isLoading ? 'Setting...' : 'Set Password'}
+              {isLoading ? t('password.setting') : t('password.set')}
             </Button>
           </div>
         </form>
@@ -241,7 +243,7 @@ export function PasswordSettings() {
         <form onSubmit={handleChangePassword} className="space-y-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-foreground" htmlFor="current-pw">
-              Current Password
+              {t('password.current_password')}
             </label>
             <Input
               id="current-pw"
@@ -254,7 +256,7 @@ export function PasswordSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-foreground" htmlFor="new-pw-change">
-              New Password
+              {t('password.new_password')}
             </label>
             <Input
               id="new-pw-change"
@@ -266,7 +268,7 @@ export function PasswordSettings() {
           </div>
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-foreground" htmlFor="confirm-pw-change">
-              Confirm New Password
+              {t('password.confirm_new_password')}
             </label>
             <Input
               id="confirm-pw-change"
@@ -282,9 +284,9 @@ export function PasswordSettings() {
             </div>
           )}
           <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={resetForm}>Cancel</Button>
+            <Button type="button" variant="outline" size="sm" onClick={resetForm}>{t('common.cancel')}</Button>
             <Button type="submit" size="sm" disabled={isLoading || !currentPassword || !newPassword || !confirmPassword}>
-              {isLoading ? 'Changing...' : 'Change Password'}
+              {isLoading ? t('password.changing') : t('password.change')}
             </Button>
           </div>
         </form>
@@ -294,7 +296,7 @@ export function PasswordSettings() {
         <form onSubmit={handleRemovePassword} className="space-y-3">
           <div className="flex flex-col gap-1.5">
             <label className="text-xs font-medium text-foreground" htmlFor="remove-pw">
-              Current Password
+              {t('password.current_password')}
             </label>
             <Input
               id="remove-pw"
@@ -311,9 +313,9 @@ export function PasswordSettings() {
             </div>
           )}
           <div className="flex gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={resetForm}>Cancel</Button>
+            <Button type="button" variant="outline" size="sm" onClick={resetForm}>{t('common.cancel')}</Button>
             <Button type="submit" variant="destructive" size="sm" disabled={isLoading || !currentPassword}>
-              {isLoading ? 'Removing...' : 'Remove Password'}
+              {isLoading ? t('password.removing') : t('password.remove')}
             </Button>
           </div>
         </form>

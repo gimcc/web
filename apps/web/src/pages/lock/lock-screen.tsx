@@ -8,6 +8,7 @@ import {
 } from '@matrix-web/matrix-client'
 import { Lock, LogOut } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 
@@ -15,6 +16,7 @@ const MAX_ATTEMPTS = 3
 const DURESS_ANIMATION_MS = 2_000
 
 export function LockScreen() {
+  const { t } = useTranslation()
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -64,7 +66,7 @@ export function LockScreen() {
       }
 
       const remaining = MAX_ATTEMPTS - attemptCountRef.current
-      setError(`Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before data wipe.`)
+      setError(t('lock.incorrect_password', { remaining }))
     }
     catch {
       attemptCountRef.current += 1
@@ -74,12 +76,12 @@ export function LockScreen() {
         return
       }
       const remaining = MAX_ATTEMPTS - attemptCountRef.current
-      setError(`Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before data wipe.`)
+      setError(t('lock.incorrect_password', { remaining }))
     }
     finally {
       setIsLoading(false)
     }
-  }, [password, unlock])
+  }, [password, unlock, t])
 
   const handleForgotPassword = async () => {
     await clearAllLocalData()
@@ -96,9 +98,9 @@ export function LockScreen() {
               <LogOut className="h-6 w-6 text-muted-foreground" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Session Expired</h1>
+              <h1 className="text-2xl font-bold text-foreground">{t('lock.session_expired_title')}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                Your session has expired. Please sign in again.
+                {t('lock.session_expired_message')}
               </p>
             </div>
           </div>
@@ -106,7 +108,7 @@ export function LockScreen() {
             onClick={() => { window.location.href = '/' }}
             className="w-full"
           >
-            Sign In
+            {t('auth.sign_in')}
           </Button>
         </div>
       </div>
@@ -121,7 +123,7 @@ export function LockScreen() {
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
             <Lock className="h-6 w-6 animate-pulse text-muted-foreground" />
           </div>
-          <p className="text-sm text-muted-foreground">Unlocking...</p>
+          <p className="text-sm text-muted-foreground">{t('lock.unlocking')}</p>
         </div>
       </div>
     )
@@ -135,9 +137,9 @@ export function LockScreen() {
             <Lock className="h-6 w-6 text-muted-foreground" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-foreground">Locked</h1>
+            <h1 className="text-2xl font-bold text-foreground">{t('lock.title')}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Enter your password to unlock
+              {t('lock.subtitle')}
             </p>
           </div>
         </div>
@@ -145,14 +147,14 @@ export function LockScreen() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="lock-password">
-              Password
+              {t('lock.password_label')}
             </label>
             <Input
               id="lock-password"
               type="password"
               autoComplete="current-password"
               autoFocus
-              placeholder="Enter your lock screen password"
+              placeholder={t('lock.password_placeholder')}
               value={password}
               onChange={e => setPassword(e.target.value)}
             />
@@ -169,7 +171,7 @@ export function LockScreen() {
             disabled={isLoading || !password.trim()}
             className="w-full"
           >
-            {isLoading ? 'Unlocking...' : 'Unlock'}
+            {isLoading ? t('lock.unlocking') : t('lock.unlock')}
           </Button>
         </form>
 
@@ -178,7 +180,7 @@ export function LockScreen() {
             ? (
                 <div className="space-y-3 rounded-md border border-destructive/20 bg-destructive/5 p-4">
                   <p className="text-sm text-destructive">
-                    This will erase all local data and you will need to sign in again. This action cannot be undone.
+                    {t('lock.confirm_wipe')}
                   </p>
                   <div className="flex gap-2">
                     <Button
@@ -187,7 +189,7 @@ export function LockScreen() {
                       className="flex-1"
                       onClick={() => setShowForgotConfirm(false)}
                     >
-                      Cancel
+                      {t('common.cancel')}
                     </Button>
                     <Button
                       variant="destructive"
@@ -196,7 +198,7 @@ export function LockScreen() {
                       onClick={handleForgotPassword}
                     >
                       <LogOut className="mr-1.5 h-3.5 w-3.5" />
-                      Erase & Sign Out
+                      {t('lock.erase_sign_out')}
                     </Button>
                   </div>
                 </div>
@@ -207,7 +209,7 @@ export function LockScreen() {
                   className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
                   onClick={() => setShowForgotConfirm(true)}
                 >
-                  Forgot password?
+                  {t('lock.forgot_password')}
                 </button>
               )}
         </div>

@@ -1,5 +1,6 @@
 import { getPresenceService, useRoomsStore } from '@matrix-web/matrix-client'
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
@@ -8,12 +9,13 @@ import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
 function ChatPlaceholder() {
+  const { t } = useTranslation()
   return (
     <div className="flex h-full items-center justify-center">
       <div className="text-center">
-        <h2 className="text-lg font-medium text-foreground">Welcome to Matrix Web</h2>
+        <h2 className="text-lg font-medium text-foreground">{t('chat.welcome_title')}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Select a room to start chatting
+          {t('chat.welcome_subtitle')}
         </p>
       </div>
     </div>
@@ -21,6 +23,7 @@ function ChatPlaceholder() {
 }
 
 function ActiveRoomView({ roomId }: { roomId: string }) {
+  const { t } = useTranslation()
   const rooms = useRoomsStore(s => s.rooms)
   const room = rooms.get(roomId)
 
@@ -38,7 +41,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
         )}
         {room && (
           <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-            {room.isDirect ? 'Direct message' : `${room.memberCount} members`}
+            {room.isDirect ? t('chat.direct_message') : t('chat.members_count', { count: room.memberCount })}
           </span>
         )}
       </div>
@@ -56,6 +59,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
 }
 
 export function ChatLayout() {
+  const { t } = useTranslation()
   useMatrixClientLifecycle()
 
   const handleIdle = useCallback(() => {
@@ -87,7 +91,7 @@ export function ChatLayout() {
         <div className="flex items-center border-b border-border px-4 py-2 md:hidden">
           <SidebarToggle onToggle={() => setSidebarOpen(true)} />
           <span className="ml-3 text-sm font-medium text-foreground">
-            {activeRoomName ?? 'Matrix Web'}
+            {activeRoomName ?? t('app.name')}
           </span>
         </div>
 

@@ -1,10 +1,12 @@
 import { getMatrixClient, useCryptoStore } from '@matrix-web/matrix-client'
 import { useCallback, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
 
 type SetupPhase = 'idle' | 'creating' | 'restoring' | 'error'
 
 export function KeyBackupSetup() {
+  const { t } = useTranslation()
   const { keyBackupEnabled, keyBackupProgress } = useCryptoStore()
   const [phase, setPhase] = useState<SetupPhase>('idle')
   const [error, setError] = useState<string | null>(null)
@@ -23,10 +25,10 @@ export function KeyBackupSetup() {
       setPhase('idle')
     }
     catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create backup')
+      setError(err instanceof Error ? err.message : t('key_backup.error_create'))
       setPhase('error')
     }
-  }, [])
+  }, [t])
 
   const handleRestoreBackup = useCallback(async () => {
     const client = getMatrixClient()
@@ -43,24 +45,24 @@ export function KeyBackupSetup() {
         setPhase('idle')
       }
       else {
-        setError('No backup found on server')
+        setError(t('key_backup.error_no_backup'))
         setPhase('error')
       }
     }
     catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to restore backup')
+      setError(err instanceof Error ? err.message : t('key_backup.error_restore'))
       setPhase('error')
     }
-  }, [])
+  }, [t])
 
   return (
     <div className="space-y-4 rounded-lg border p-4">
       <div>
-        <h3 className="text-sm font-semibold">Key Backup</h3>
+        <h3 className="text-sm font-semibold">{t('key_backup.title')}</h3>
         <p className="text-xs text-muted-foreground">
           {keyBackupEnabled
-            ? 'Key backup is enabled. Your encryption keys are safely backed up.'
-            : 'Key backup is not configured. Set up backup to avoid losing encrypted messages.'}
+            ? t('key_backup.enabled_message')
+            : t('key_backup.disabled_message')}
         </p>
       </div>
 
@@ -75,13 +77,7 @@ export function KeyBackupSetup() {
             />
           </div>
           <p className="text-xs text-muted-foreground">
-            Backing up keys:
-            {' '}
-            {keyBackupProgress.current}
-            {' '}
-            /
-            {' '}
-            {keyBackupProgress.total}
+            {t('key_backup.progress', { current: keyBackupProgress.current, total: keyBackupProgress.total })}
           </p>
         </div>
       )}
@@ -97,7 +93,7 @@ export function KeyBackupSetup() {
             onClick={handleCreateBackup}
             disabled={phase === 'creating' || phase === 'restoring'}
           >
-            {phase === 'creating' ? 'Creating...' : 'Set Up Backup'}
+            {phase === 'creating' ? t('key_backup.creating') : t('key_backup.setup')}
           </Button>
         )}
         <Button
@@ -106,7 +102,7 @@ export function KeyBackupSetup() {
           onClick={handleRestoreBackup}
           disabled={phase === 'creating' || phase === 'restoring'}
         >
-          {phase === 'restoring' ? 'Restoring...' : 'Restore from Backup'}
+          {phase === 'restoring' ? t('key_backup.restoring') : t('key_backup.restore')}
         </Button>
       </div>
     </div>

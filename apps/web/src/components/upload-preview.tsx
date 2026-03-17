@@ -1,5 +1,6 @@
 import { File, X } from 'lucide-react'
 import { useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatFileSize } from '../lib/format'
 
 export interface PendingUpload {
@@ -20,6 +21,7 @@ function UploadItem({ upload, onRemove, onCaptionChange }: {
   onRemove: () => void
   onCaptionChange: (caption: string) => void
 }) {
+  const { t } = useTranslation()
   const isImage = upload.file.type.startsWith('image/')
   const isVideo = upload.file.type.startsWith('video/')
 
@@ -56,7 +58,7 @@ function UploadItem({ upload, onRemove, onCaptionChange }: {
         type="button"
         className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-destructive text-white"
         onClick={onRemove}
-        aria-label="Remove"
+        aria-label={t('common.remove')}
       >
         <X className="h-3 w-3" />
       </button>
@@ -70,7 +72,7 @@ function UploadItem({ upload, onRemove, onCaptionChange }: {
           type="text"
           value={upload.caption}
           onChange={e => onCaptionChange(e.target.value)}
-          placeholder="Add caption..."
+          placeholder={t('upload_preview.caption_placeholder')}
           className="mt-1 w-full rounded border border-input bg-transparent px-1.5 py-0.5 text-xs placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring"
         />
       </div>

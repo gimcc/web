@@ -1,6 +1,7 @@
 import type { ShowSasCallbacks, VerificationRequest } from '@matrix-web/matrix-client'
 import { VerifierEvent } from '@matrix-web/matrix-client'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
 
 type VerificationPhase = 'request' | 'sas' | 'done' | 'cancelled'
@@ -16,6 +17,7 @@ interface DeviceVerificationDialogProps {
 }
 
 export function DeviceVerificationDialog({ request, onClose }: DeviceVerificationDialogProps) {
+  const { t } = useTranslation()
   const [phase, setPhase] = useState<VerificationPhase>('request')
   const [emojis, setEmojis] = useState<EmojiItem[]>([])
   const [sasCallbacks, setSasCallbacks] = useState<ShowSasCallbacks | null>(null)
@@ -89,22 +91,22 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
       <div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-lg">
         {phase === 'request' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">Verification Request</h2>
+            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.request_title')}</h2>
             <p className="mb-4 text-sm text-muted-foreground">
-              A device is requesting verification. Accept to compare emojis and confirm the device is trusted.
+              {t('device_verification.request_message')}
             </p>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleReject}>Decline</Button>
-              <Button onClick={handleAccept}>Accept</Button>
+              <Button variant="outline" onClick={handleReject}>{t('device_verification.decline')}</Button>
+              <Button onClick={handleAccept}>{t('device_verification.accept')}</Button>
             </div>
           </>
         )}
 
         {phase === 'sas' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">Compare Emojis</h2>
+            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.sas_title')}</h2>
             <p className="mb-4 text-sm text-muted-foreground">
-              Confirm that the following emojis match on both devices.
+              {t('device_verification.sas_message')}
             </p>
             <div className="mb-4 grid grid-cols-7 gap-2">
               {emojis.map(item => (
@@ -115,32 +117,32 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
               ))}
             </div>
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={handleReject}>They don&apos;t match</Button>
-              <Button onClick={handleConfirmSas}>They match</Button>
+              <Button variant="outline" onClick={handleReject}>{t('device_verification.no_match')}</Button>
+              <Button onClick={handleConfirmSas}>{t('device_verification.match')}</Button>
             </div>
           </>
         )}
 
         {phase === 'done' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">Verified</h2>
+            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.done_title')}</h2>
             <p className="mb-4 text-sm text-muted-foreground">
-              Device verification complete. This device is now trusted.
+              {t('device_verification.done_message')}
             </p>
             <div className="flex justify-end">
-              <Button onClick={onClose}>Done</Button>
+              <Button onClick={onClose}>{t('common.done')}</Button>
             </div>
           </>
         )}
 
         {phase === 'cancelled' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">Verification Cancelled</h2>
+            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.cancelled_title')}</h2>
             <p className="mb-4 text-sm text-muted-foreground">
-              The verification was cancelled or failed.
+              {t('device_verification.cancelled_message')}
             </p>
             <div className="flex justify-end">
-              <Button variant="outline" onClick={onClose}>Close</Button>
+              <Button variant="outline" onClick={onClose}>{t('common.close')}</Button>
             </div>
           </>
         )}

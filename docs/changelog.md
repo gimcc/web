@@ -1,5 +1,21 @@
 # 变更日志
 
+## 2026-03-17 [FEAT-024, FEAT-025]
+
+**FEAT-024 i18n 国际化支持：**
+- 新增 `i18next` + `react-i18next` 依赖
+- 新增 `apps/web/src/i18n/index.ts`：i18n 初始化，语言持久化到 localStorage
+- 新增 `apps/web/src/i18n/locales/en.json` 和 `zh-CN.json`：约 200 个翻译键，覆盖所有 UI 文本
+- 全量替换约 26 个组件中的硬编码英文字符串为 `t()` 调用
+- 外观设置面板新增语言选择器（English / 简体中文）
+
+**FEAT-025 自定义主题系统：**
+- 新增 `apps/web/src/themes/types.ts`：ThemePreset 接口定义
+- 新增 `apps/web/src/themes/presets.ts`：4 个内置主题（Default, Blue, Green, Rose）
+- 新增 `apps/web/src/themes/index.ts`：主题注册中心，支持应用/清除/导入/导出/删除主题
+- 修改 `apps/web/src/hooks/use-theme.ts`：切换 light/dark 模式后自动重新应用活跃主题预设
+- 外观设置面板新增颜色主题选择网格、主题导入/导出按钮
+
 ## 2026-03-17 [FEAT-026]
 
 **FEAT-026 邀请通知系统：**

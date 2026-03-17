@@ -1,5 +1,6 @@
 import type { RoomSummary } from '@matrix-web/matrix-client'
 import { getMatrixClient } from '@matrix-web/matrix-client'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { EncryptionBadge } from './crypto/encryption-badge'
 import { Avatar } from './ui/avatar'
@@ -11,7 +12,7 @@ interface RoomListItemProps {
   onSelect: (roomId: string) => void
 }
 
-function formatTimestamp(ts: number): string {
+function formatTimestamp(ts: number, yesterdayLabel: string): string {
   const date = new Date(ts)
   const now = new Date()
   const isToday = date.toDateString() === now.toDateString()
@@ -23,7 +24,7 @@ function formatTimestamp(ts: number): string {
   const yesterday = new Date(now)
   yesterday.setDate(yesterday.getDate() - 1)
   if (date.toDateString() === yesterday.toDateString()) {
-    return 'Yesterday'
+    return yesterdayLabel
   }
 
   return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -54,6 +55,7 @@ function getDmUserId(roomId: string): string | null {
 }
 
 export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
+  const { t } = useTranslation()
   const hasUnread = room.unreadCount > 0
   const hasHighlight = room.highlightCount > 0
   const dmUserId = room.isDirect ? getDmUserId(room.roomId) : null
@@ -89,7 +91,7 @@ export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
           </span>
           {room.lastMessage && (
             <span className="shrink-0 text-xs text-muted-foreground">
-              {formatTimestamp(room.lastMessage.timestamp)}
+              {formatTimestamp(room.lastMessage.timestamp, t('room_list_item.yesterday'))}
             </span>
           )}
         </div>
@@ -98,7 +100,7 @@ export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
           <p className="truncate text-xs text-muted-foreground">
             {room.lastMessage
               ? truncateMessage(room.lastMessage.body)
-              : (room.isDirect ? 'Direct message' : 'No messages yet')}
+              : (room.isDirect ? t('room_list_item.direct_message') : t('room_list_item.no_messages'))}
           </p>
           {hasUnread && (
             <span className={cn(

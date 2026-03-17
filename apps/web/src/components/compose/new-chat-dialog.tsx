@@ -14,6 +14,7 @@ import {
 } from '@matrix-web/matrix-client'
 import { Check, Search, UserPlus, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
 import { Avatar } from '../ui/avatar'
 import { Button } from '../ui/button'
@@ -33,6 +34,7 @@ interface UserEntry {
 }
 
 export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
+  const { t } = useTranslation()
   const mockMode = useAuthStore(s => s.mockMode)
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const upsertRoom = useRoomsStore(s => s.upsertRoom)
@@ -158,12 +160,12 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
       onClose()
     }
     catch {
-      setError('Failed to create conversation')
+      setError(t('new_chat.error_create_dm'))
     }
     finally {
       setIsCreating(false)
     }
-  }, [mockMode, setActiveRoom, upsertRoom, onClose])
+  }, [mockMode, setActiveRoom, upsertRoom, onClose, t])
 
   const handleCreateGroup = useCallback(async () => {
     if (!groupName.trim() || selectedUsers.length === 0)
@@ -206,12 +208,12 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
       onClose()
     }
     catch {
-      setError('Failed to create group')
+      setError(t('new_chat.error_create_group'))
     }
     finally {
       setIsCreating(false)
     }
-  }, [mockMode, groupName, selectedUsers, setActiveRoom, upsertRoom, onClose])
+  }, [mockMode, groupName, selectedUsers, setActiveRoom, upsertRoom, onClose, t])
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape')
@@ -247,18 +249,18 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
         type="button"
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
-        aria-label="Close"
+        aria-label={t('common.close')}
       />
 
-      <div role="dialog" aria-modal="true" aria-label="New Chat" className="relative z-10 flex h-[min(85vh,600px)] w-[min(95vw,480px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
+      <div role="dialog" aria-modal="true" aria-label={t('new_chat.title')} className="relative z-10 flex h-[min(85vh,600px)] w-[min(95vw,480px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-base font-semibold text-foreground">New Chat</h2>
+          <h2 className="text-base font-semibold text-foreground">{t('new_chat.title')}</h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label="Close"
+            aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
           </button>
@@ -282,7 +284,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
             )}
           >
             <UserPlus className="h-4 w-4" />
-            Direct Message
+            {t('new_chat.mode_dm')}
           </button>
           <button
             type="button"
@@ -297,7 +299,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
             )}
           >
             <Users className="h-4 w-4" />
-            Group Chat
+            {t('new_chat.mode_group')}
           </button>
         </div>
 
@@ -305,7 +307,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
         {mode === 'group' && (
           <div className="border-b border-border px-4 py-3">
             <Input
-              placeholder="Group name"
+              placeholder={t('new_chat.group_name_placeholder')}
               value={groupName}
               onChange={e => setGroupName(e.target.value)}
             />
@@ -321,7 +323,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
                       type="button"
                       onClick={() => toggleUser(user)}
                       className="rounded-full p-0.5 hover:bg-accent-foreground/10"
-                      aria-label={`Remove ${user.displayName}`}
+                      aria-label={t('new_chat.remove_user', { name: user.displayName })}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -337,7 +339,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
           <div className="relative">
             <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder={mode === 'dm' ? 'Search users...' : 'Add members...'}
+              placeholder={mode === 'dm' ? t('new_chat.search_dm_placeholder') : t('new_chat.search_group_placeholder')}
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -358,7 +360,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
           {displayUsers.length === 0
             ? (
                 <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  {searchQuery ? 'No users found' : 'No known users'}
+                  {searchQuery ? t('new_chat.empty_search') : t('new_chat.empty_default')}
                 </p>
               )
             : (
@@ -399,8 +401,8 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
               className="w-full"
             >
               {isCreating
-                ? 'Creating...'
-                : `Create Group (${selectedUsers.length} member${selectedUsers.length !== 1 ? 's' : ''})`}
+                ? t('new_chat.creating')
+                : t('new_chat.create_group', { count: selectedUsers.length })}
             </Button>
           </div>
         )}

@@ -1,0 +1,289 @@
+{
+  "app": {
+    "name": "Matrix Web",
+    "loading": "加载中...",
+    "error": {
+      "config": "配置加载失败: {{error}}"
+    }
+  },
+  "common": {
+    "cancel": "取消",
+    "close": "关闭",
+    "save": "保存",
+    "remove": "移除",
+    "change": "修改",
+    "set": "设置",
+    "done": "完成",
+    "unknown": "未知",
+    "enabled": "已启用",
+    "disabled": "已禁用"
+  },
+  "connection": {
+    "connected": "已连接",
+    "connecting": "连接中",
+    "reconnecting": "重连中",
+    "error": "错误",
+    "disconnected": "已断开",
+    "connecting_ellipsis": "连接中...",
+    "reconnecting_ellipsis": "重连中..."
+  },
+  "auth": {
+    "sign_in": "登录",
+    "sign_in_title": "登录到你的账户",
+    "signing_in": "登录中...",
+    "register": "注册",
+    "register_title": "创建新账户",
+    "creating_account": "创建中...",
+    "create_account": "创建账户",
+    "username": "用户名",
+    "username_placeholder": "用户名",
+    "password": "密码",
+    "confirm_password": "确认密码",
+    "user_id_placeholder": "@user:server.org",
+    "custom_server_placeholder": "https://your-server.org",
+    "no_account": "还没有账户？",
+    "has_account": "已有账户？",
+    "sign_out": "退出登录",
+    "sign_out_description": "从此设备退出你的账户。"
+  },
+  "lock": {
+    "title": "已锁定",
+    "subtitle": "输入密码解锁",
+    "password_label": "密码",
+    "password_placeholder": "输入锁屏密码",
+    "unlock": "解锁",
+    "unlocking": "解锁中...",
+    "forgot_password": "忘记密码？",
+    "incorrect_password": "密码错误。还剩 {{remaining}} 次尝试机会，之后数据将被擦除。",
+    "session_expired_title": "会话已过期",
+    "session_expired_message": "你的会话已过期，请重新登录。",
+    "confirm_wipe": "这将擦除所有本地数据，你需要重新登录。此操作不可撤销。",
+    "erase_sign_out": "擦除并退出"
+  },
+  "sidebar": {
+    "close": "关闭侧边栏",
+    "new_chat": "新建对话",
+    "contacts": "联系人",
+    "settings": "设置",
+    "logout": "退出"
+  },
+  "room_list": {
+    "search_placeholder": "搜索房间...",
+    "section_direct": "私信",
+    "section_group": "群组",
+    "empty_search": "未找到房间",
+    "empty_default": "暂无房间",
+    "invites": "邀请"
+  },
+  "room_list_item": {
+    "yesterday": "昨天",
+    "direct_message": "私信",
+    "no_messages": "暂无消息"
+  },
+  "chat": {
+    "welcome_title": "欢迎使用 Matrix Web",
+    "welcome_subtitle": "选择一个房间开始聊天",
+    "direct_message": "私信",
+    "members_count": "{{count}} 位成员",
+    "attach_file": "添加附件",
+    "send_message": "发送消息",
+    "message_placeholder": "输入消息...",
+    "drop_files": "拖放文件到此处上传",
+    "upload_failed": "文件上传失败，你可以重试。",
+    "unknown_command": "未知命令: {{command}}",
+    "command_failed": "命令执行失败",
+    "empty_timeline": "暂无消息。打个招呼吧！",
+    "loading_history": "加载历史消息...",
+    "scroll_to_bottom": "滚动到底部",
+    "failed_to_send": "发送失败。点击重试。",
+    "uploading": "上传中..."
+  },
+  "typing": {
+    "single": "{{name}} 正在输入",
+    "two": "{{name1}} 和 {{name2}} 正在输入",
+    "multiple": "{{name1}}、{{name2}} 等正在输入"
+  },
+  "upload_preview": {
+    "remove": "移除",
+    "caption_placeholder": "添加说明..."
+  },
+  "contacts": {
+    "title": "联系人",
+    "close": "关闭联系人",
+    "search_placeholder": "搜索联系人...",
+    "empty_search": "未找到联系人",
+    "empty_default": "暂无联系人",
+    "message_user": "发消息给 {{name}}",
+    "count_one": "{{count}} 位联系人",
+    "count_other": "{{count}} 位联系人",
+    "error_start_dm": "无法发起对话"
+  },
+  "new_chat": {
+    "title": "新建对话",
+    "mode_dm": "私信",
+    "mode_group": "群聊",
+    "group_name_placeholder": "群组名称",
+    "search_dm_placeholder": "搜索用户...",
+    "search_group_placeholder": "添加成员...",
+    "remove_user": "移除 {{name}}",
+    "empty_search": "未找到用户",
+    "empty_default": "暂无已知用户",
+    "creating": "创建中...",
+    "create_group": "创建群组（{{count}} 位成员）",
+    "error_create_dm": "创建对话失败",
+    "error_create_group": "创建群组失败"
+  },
+  "settings": {
+    "title": "设置",
+    "close": "关闭设置",
+    "tab": {
+      "account": "账户",
+      "security": "安全",
+      "encryption": "加密",
+      "appearance": "外观",
+      "about": "关于"
+    }
+  },
+  "account": {
+    "title": "账户",
+    "description": "管理你的账户和连接。",
+    "user_id": "用户 ID",
+    "homeserver": "服务器",
+    "status": "状态",
+    "mode": "模式",
+    "mock": "模拟"
+  },
+  "security": {
+    "title": "安全",
+    "description": "配置锁屏密码和胁迫保护。"
+  },
+  "password": {
+    "title": "锁屏密码",
+    "timeout_label": "自动锁定时间",
+    "timeout_5m": "5 分钟",
+    "timeout_30m": "30 分钟",
+    "timeout_1h": "1 小时",
+    "timeout_4h": "4 小时",
+    "set": "设置密码",
+    "change": "修改密码",
+    "remove": "移除密码",
+    "lock_now": "立即锁定",
+    "new_password": "新密码",
+    "confirm_password": "确认密码",
+    "current_password": "当前密码",
+    "confirm_new_password": "确认新密码",
+    "setting": "设置中...",
+    "changing": "修改中...",
+    "removing": "移除中...",
+    "error_mismatch": "两次密码不一致",
+    "error_too_short": "密码长度至少 6 个字符",
+    "error_dek_unavailable": "DEK 不可用，请稍后再试。",
+    "error_incorrect": "密码错误",
+    "error_current_incorrect": "当前密码错误",
+    "error_set_failed": "密码设置失败",
+    "success_set": "密码设置成功",
+    "success_changed": "密码修改成功",
+    "success_removed": "密码已移除"
+  },
+  "duress": {
+    "title": "胁迫密码",
+    "disabled_message": "请先设置锁屏密码以启用胁迫密码功能。",
+    "warning": "胁迫密码仅供紧急使用。在锁屏界面输入胁迫密码后，将静默擦除所有本地数据并显示会话过期提示。此操作不可逆。",
+    "status_set": "胁迫密码已设置。",
+    "status_not_set": "未配置胁迫密码。",
+    "set": "设置胁迫密码",
+    "label_set": "胁迫密码",
+    "label_change": "新胁迫密码",
+    "confirm_label": "确认胁迫密码",
+    "placeholder": "输入胁迫密码",
+    "confirm_placeholder": "确认胁迫密码",
+    "saving": "保存中...",
+    "error_empty": "胁迫密码不能为空",
+    "error_new_empty": "新胁迫密码不能为空",
+    "error_mismatch": "两次密码不一致",
+    "error_set_failed": "胁迫密码设置失败",
+    "error_change_failed": "胁迫密码修改失败",
+    "success_configured": "胁迫密码已配置",
+    "success_updated": "胁迫密码已更新",
+    "success_removed": "胁迫密码已移除"
+  },
+  "encryption": {
+    "title": "加密",
+    "description": "端到端加密状态和密钥管理。",
+    "status_title": "E2EE 状态",
+    "crypto_module": "加密模块",
+    "cross_signing": "交叉签名",
+    "key_backup": "密钥备份"
+  },
+  "key_backup": {
+    "title": "密钥备份",
+    "enabled_message": "密钥备份已启用。你的加密密钥已安全备份。",
+    "disabled_message": "密钥备份未配置。设置备份以避免丢失加密消息。",
+    "progress": "正在备份密钥: {{current}} / {{total}}",
+    "creating": "创建中...",
+    "setup": "设置备份",
+    "restoring": "恢复中...",
+    "restore": "从备份恢复",
+    "error_no_backup": "服务器上未找到备份",
+    "error_create": "创建备份失败",
+    "error_restore": "恢复备份失败"
+  },
+  "device_verification": {
+    "request_title": "验证请求",
+    "request_message": "一个设备请求验证。接受后比较表情符号以确认设备可信。",
+    "decline": "拒绝",
+    "accept": "接受",
+    "sas_title": "比较表情符号",
+    "sas_message": "确认以下表情符号在两台设备上一致。",
+    "no_match": "不一致",
+    "match": "一致",
+    "done_title": "已验证",
+    "done_message": "设备验证完成。该设备现在已受信任。",
+    "cancelled_title": "验证已取消",
+    "cancelled_message": "验证已取消或失败。"
+  },
+  "encryption_badge": {
+    "verified": "已加密并验证",
+    "unverified": "已加密但未验证"
+  },
+  "lightbox": {
+    "close": "关闭",
+    "close_backdrop": "关闭灯箱"
+  },
+  "appearance": {
+    "title": "外观",
+    "description": "自定义应用的外观和风格。",
+    "theme": "主题",
+    "theme_light": "浅色",
+    "theme_dark": "深色",
+    "theme_system": "跟随系统",
+    "language": "语言",
+    "color_theme": "配色方案",
+    "import_theme": "导入",
+    "export_theme": "导出"
+  },
+  "about": {
+    "title": "关于",
+    "description": "应用信息。",
+    "version": "版本",
+    "protocol": "协议",
+    "protocol_value": "Matrix",
+    "framework": "框架",
+    "framework_value": "React 19",
+    "long_description": "Matrix Web 是基于 Matrix 协议的浏览器端聊天客户端。支持端到端加密、本地数据保护和实时消息。"
+  },
+  "invite": {
+    "accept_label": "接受邀请",
+    "reject_label": "拒绝邀请",
+    "invitations": "邀请",
+    "no_pending": "暂无待处理的邀请",
+    "dm_invite": "私信邀请",
+    "room_invite": "群组邀请",
+    "error_accept": "接受失败",
+    "error_reject": "拒绝失败"
+  },
+  "auth_server": {
+    "server": "服务器",
+    "custom_server": "自定义服务器..."
+  }
+}

@@ -2,6 +2,7 @@ import type { RoomSummary } from '@matrix-web/matrix-client'
 import { useRoomsStore } from '@matrix-web/matrix-client'
 import { ChevronDown, ChevronRight, MessageCircle, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { RoomListItem } from './room-list-item'
 import { Input } from './ui/input'
@@ -56,6 +57,7 @@ function RoomSection({ label, icon, rooms, activeRoomId, onSelect, defaultOpen =
 }
 
 export function RoomList() {
+  const { t } = useTranslation()
   const rooms = useRoomsStore(s => s.rooms)
   const activeRoomId = useRoomsStore(s => s.activeRoomId)
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
@@ -97,7 +99,7 @@ export function RoomList() {
         <div className="relative">
           <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search rooms..."
+            placeholder={t('room_list.search_placeholder')}
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -110,20 +112,20 @@ export function RoomList() {
         {directRooms.length === 0 && groupRooms.length === 0
           ? (
               <p className="px-3 py-8 text-center text-sm text-muted-foreground">
-                {searchQuery ? 'No rooms found' : 'No rooms yet'}
+                {searchQuery ? t('room_list.empty_search') : t('room_list.empty_default')}
               </p>
             )
           : (
               <div className="space-y-2">
                 <RoomSection
-                  label="Direct Messages"
+                  label={t('room_list.section_direct')}
                   icon={<MessageCircle className="h-3 w-3" />}
                   rooms={directRooms}
                   activeRoomId={activeRoomId}
                   onSelect={setActiveRoom}
                 />
                 <RoomSection
-                  label="Rooms"
+                  label={t('room_list.section_group')}
                   icon={<Users className="h-3 w-3" />}
                   rooms={groupRooms}
                   activeRoomId={activeRoomId}

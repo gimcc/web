@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import { applyPreset, findPreset, getActivePresetId } from '../themes'
 
 export type Theme = 'light' | 'dark' | 'system'
 
@@ -30,6 +31,15 @@ function applyThemeToDOM(theme: Theme): void {
   }
 }
 
+function reapplyActivePreset(): void {
+  const presetId = getActivePresetId()
+  if (presetId && presetId !== 'default') {
+    const preset = findPreset(presetId)
+    if (preset)
+      applyPreset(preset)
+  }
+}
+
 function notify(): void {
   for (const listener of listeners)
     listener()
@@ -53,6 +63,7 @@ export function setTheme(theme: Theme): void {
     // localStorage unavailable
   }
   applyThemeToDOM(theme)
+  reapplyActivePreset()
   notify()
 }
 
@@ -61,17 +72,20 @@ export function setTheme(theme: Theme): void {
  * Call once at the top of the component tree.
  */
 export function useThemeInit(): void {
-  // Apply persisted theme on mount
+  // Apply persisted theme and preset on mount
   useEffect(() => {
     applyThemeToDOM(currentTheme)
+    reapplyActivePreset()
   }, [])
 
   // Listen for system preference changes
   useEffect(() => {
     const mql = window.matchMedia('(prefers-color-scheme: dark)')
     const handler = () => {
-      if (currentTheme === 'system')
+      if (currentTheme === 'system') {
         applyThemeToDOM('system')
+        reapplyActivePreset()
+      }
     }
     mql.addEventListener('change', handler)
     return () => mql.removeEventListener('change', handler)
