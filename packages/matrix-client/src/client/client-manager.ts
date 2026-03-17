@@ -1,7 +1,6 @@
 import type { MatrixClient, Room } from 'matrix-js-sdk'
 import type { AuthSession } from '../auth/auth-service'
 import type { PresenceService } from '../services/presence-service'
-import { clearCryptoStoreAsync } from '../utils/clear-crypto-store'
 import type { TypingService } from '../services/typing-service'
 import type { RoomSummary } from '../stores/rooms-store'
 import { ClientEvent, createClient, NotificationCountType } from 'matrix-js-sdk'
@@ -16,6 +15,7 @@ import { createCryptoBridge } from '../sync/crypto-bridge'
 import { createPresenceBridge } from '../sync/presence-bridge'
 import { createSyncBridge } from '../sync/sync-bridge'
 import { createTypingBridge } from '../sync/typing-bridge'
+import { clearCryptoStoreAsync } from '../utils/clear-crypto-store'
 
 let matrixClient: MatrixClient | null = null
 let cleanupBridge: (() => void) | null = null
@@ -178,8 +178,12 @@ export async function stopMatrixClient(): Promise<void> {
   usePresenceStore.getState().reset()
 }
 
+const VISIBLE_MEMBERSHIPS = new Set(['join', 'invite'])
+
 export function extractRoomSummaryFromClient(client: MatrixClient): RoomSummary[] {
-  return client.getRooms().map(room => extractSingleRoomSummary(client, room))
+  return client.getRooms()
+    .filter(room => VISIBLE_MEMBERSHIPS.has(room.getMyMembership()))
+    .map(room => extractSingleRoomSummary(client, room))
 }
 
 export function extractSingleRoomSummary(client: MatrixClient, room: Room): RoomSummary {
@@ -193,6 +197,7 @@ export function extractSingleRoomSummary(client: MatrixClient, room: Room): Room
     avatarUrl: room.getAvatarUrl(client.baseUrl, 48, 48, 'crop') ?? null,
     isEncrypted: room.hasEncryptionStateEvent(),
     isDirect: !!dmUserId,
+    membership: room.getMyMembership() === 'invite' ? 'invite' : 'join',
     memberCount: room.getJoinedMemberCount(),
     lastMessage: lastEvent
       ? {

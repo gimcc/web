@@ -1,5 +1,16 @@
 # 变更日志
 
+## 2026-03-17 [FEAT-026]
+
+**FEAT-026 邀请通知系统：**
+- `RoomSummary` 新增 `membership` 字段（`'join' | 'invite'`），`extractSingleRoomSummary()` 读取 `room.getMyMembership()`
+- `extractRoomSummaryFromClient` 过滤仅保留 join/invite 状态房间
+- `sync-bridge.ts` 对 `invite` 成员状态使用 `upsertRoom` 替代全量同步
+- 新增 `invite-panel.tsx`：铃铛按钮 + 邀请面板，每条邀请显示房间信息及接受/拒绝按钮，失败时显示错误信息
+- `sidebar.tsx` Header 区域新增 `InviteBell` 组件，有未处理邀请时显示数量徽章
+- `room-list.tsx` 过滤 `membership === 'invite'` 的房间，仅显示已加入的房间
+- Mock 房间数据补充 `membership: 'join'` 字段
+
 ## 2026-03-17 [FEAT-022]
 
 **FEAT-022 直聊（Direct Chat）创建：**

@@ -69,6 +69,7 @@ export function ContactsDialog({ open, onClose }: ContactsDialogProps) {
           avatarUrl: user.avatarUrl,
           isDirect: true,
           isEncrypted: true,
+          membership: 'join',
           memberCount: 2,
           lastMessage: null,
           unreadCount: 0,

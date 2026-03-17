@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { cn } from '../lib/utils'
 import { NewChatDialog } from './compose/new-chat-dialog'
 import { ContactsDialog } from './contacts/contacts-dialog'
+import { InviteBell } from './invite-panel'
 import { RoomList } from './room-list'
 import { SettingsDialog } from './settings/settings-dialog'
 
@@ -63,6 +64,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h1 className="text-lg font-semibold text-foreground">Matrix Web</h1>
           <div className="flex items-center gap-1">
+            <InviteBell />
             <button
               type="button"
               onClick={() => setNewChatOpen(true)}
