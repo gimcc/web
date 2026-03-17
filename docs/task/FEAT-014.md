@@ -1,6 +1,6 @@
 # FEAT-014 实现胁迫密码
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

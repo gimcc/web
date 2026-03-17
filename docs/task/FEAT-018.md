@@ -1,6 +1,6 @@
 # FEAT-018 实现输入指示器与在线状态
 
-- **status**: pending
+- **status**: done
 - **priority**: P2
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

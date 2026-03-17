@@ -18,6 +18,38 @@
 
 **Mock 模式增强**：新增 `mock-message-service.ts`（预设消息、模拟发送、自动回复），Mock 文件上传。
 
+FEAT-012 + FEAT-013 + FEAT-014 + FEAT-018 完成。实现阶段 4（E2EE）、阶段 4.5（本地安全）和部分阶段 5（输入指示器）。
+
+**FEAT-012 E2EE 配置与密钥管理 UI：**
+- 添加 `@matrix-org/matrix-sdk-crypto-wasm` 依赖，`client-manager.ts` 中初始化 `initRustCrypto()`（失败时优雅降级）
+- `packages/matrix-client/src/stores/crypto-store.ts`：Zustand store 追踪加密状态（初始化、交叉签名、密钥备份）
+- `packages/matrix-client/src/sync/crypto-bridge.ts`：CryptoEvent 事件桥接（验证请求、密钥备份状态、密钥变更）
+- `apps/web/src/components/crypto/`：加密徽章、设备验证对话框、密钥备份设置、未验证设备警告
+- `RoomSummary` 新增 `isEncrypted` 字段，房间列表显示加密盾牌图标
+- Vite WASM 配置（`optimizeDeps.exclude`）
+
+**FEAT-013 锁屏密码与本地数据库加密：**
+- `packages/matrix-client/src/crypto/dek-manager.ts`：DEK/KEK 两层密钥架构，Web Crypto API（AES-256-GCM、PBKDF2 600K 迭代）
+- `packages/matrix-client/src/stores/lock-store.ts`：锁定状态 Zustand store，可配置空闲锁定超时
+- `apps/web/src/pages/lock/lock-screen.tsx`：锁屏密码输入 UI，3 次失败清除数据，忘记密码确认流程
+- `apps/web/src/components/settings/password-settings.tsx`：密码设置/修改/移除面板，空闲超时选择器
+- `apps/web/src/app.tsx`：启动流程集成（DEK 初始化、锁屏拦截、自动锁定）
+
+**FEAT-014 胁迫密码：**
+- `packages/matrix-client/src/crypto/duress-manager.ts`：胁迫密码管理（独立 salt/hash、常量时间比较）
+- `packages/matrix-client/src/crypto/wipe-service.ts`：静默擦除服务（localStorage、sessionStorage、IndexedDB、Service Worker、Cache Storage）
+- `packages/matrix-client/src/crypto/password-verifier.ts`：统一密码验证（先正常 → 再胁迫 → 无效）
+- `apps/web/src/components/settings/duress-password-settings.tsx`：胁迫密码设置 UI
+
+**FEAT-018 输入指示器与在线状态：**
+- `packages/matrix-client/src/stores/typing-store.ts` + `presence-store.ts`：Zustand 状态
+- `packages/matrix-client/src/sync/typing-bridge.ts` + `presence-bridge.ts`：SDK 事件桥接
+- `packages/matrix-client/src/services/typing-service.ts` + `presence-service.ts`：发送端服务（debounce、自动停止）
+- `apps/web/src/components/chat/typing-indicator.tsx`：输入指示器 UI（动画省略号）
+- `apps/web/src/components/ui/presence-dot.tsx`：在线状态指示点（绿/黄/灰）
+- `apps/web/src/hooks/use-idle-detector.ts`：空闲检测 hook（可配置超时）
+- 房间列表 DM 头像显示在线状态，聊天区域显示输入指示器
+
 ## 2026-03-16 22:00 [done]
 
 FEAT-006 完成。实现房间列表与侧边栏：

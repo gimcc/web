@@ -1,8 +1,10 @@
-import { useRoomsStore } from '@matrix-web/matrix-client'
-import { useState } from 'react'
+import { getPresenceService, useRoomsStore } from '@matrix-web/matrix-client'
+import { useCallback, useState } from 'react'
+import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
+import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
 function ChatPlaceholder() {
@@ -46,6 +48,9 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
       {/* Message timeline */}
       <MessageTimeline roomId={roomId} />
 
+      {/* Typing indicator */}
+      <TypingIndicator roomId={roomId} />
+
       {/* Message input */}
       <MessageInput roomId={roomId} />
     </div>
@@ -54,6 +59,16 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
 
 export function ChatLayout() {
   useMatrixClientLifecycle()
+
+  const handleIdle = useCallback(() => {
+    getPresenceService()?.setUnavailable()
+  }, [])
+
+  const handleActive = useCallback(() => {
+    getPresenceService()?.setOnline()
+  }, [])
+
+  useIdleDetector(handleIdle, handleActive)
 
   const activeRoomId = useRoomsStore(s => s.activeRoomId)
   const activeRoomName = useRoomsStore(s =>

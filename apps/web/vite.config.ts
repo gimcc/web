@@ -8,4 +8,7 @@ export default defineConfig({
     port: 5000,
     allowedHosts: true,
   },
+  optimizeDeps: {
+    exclude: ['@matrix-org/matrix-sdk-crypto-wasm'],
+  },
 })
