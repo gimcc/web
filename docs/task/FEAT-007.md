@@ -1,8 +1,8 @@
 # FEAT-007 实现消息时间线（虚拟滚动、反向加载）
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
-- **owner**: (未分配)
+- **owner**: claude-agent
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述

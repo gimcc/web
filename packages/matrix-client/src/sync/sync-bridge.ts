@@ -1,6 +1,8 @@
 import type { MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
 import { ClientEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
+import { matrixEventToTimelineMessage } from '../services/message-service'
+import { useMessagesStore } from '../stores/messages-store'
 import { useRoomsStore } from '../stores/rooms-store'
 
 export type QueryInvalidationCallback = (event: string, roomId?: string) => void
@@ -22,6 +24,13 @@ export function createSyncBridge(
     if (!room)
       return
     updateRoomFromEvent(client, room)
+
+    // Append message to messages store if it's a room message
+    if (event.getType() === 'm.room.message') {
+      const message = matrixEventToTimelineMessage(event, client)
+      useMessagesStore.getState().appendMessages(room.roomId, [message])
+    }
+
     onQueryInvalidation?.('room.timeline', room.roomId)
   }
 
