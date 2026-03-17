@@ -40,8 +40,8 @@ export function PasswordSettings({ lockIdleTimeout }: { lockIdleTimeout: number 
       setError('Passwords do not match')
       return
     }
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters')
       return
     }
     if (!dek) {
@@ -71,8 +71,8 @@ export function PasswordSettings({ lockIdleTimeout }: { lockIdleTimeout: number 
       setError('Passwords do not match')
       return
     }
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters')
+    if (newPassword.length < 6) {
+      setError('Password must be at least 6 characters')
       return
     }
 
