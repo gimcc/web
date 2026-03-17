@@ -3,6 +3,7 @@ import type { AuthSession } from '../auth/auth-service'
 import type { RoomSummary } from '../stores/rooms-store'
 import { ClientEvent, createClient, NotificationCountType } from 'matrix-js-sdk'
 import { useConnectionStore } from '../stores/connection-store'
+import { useRoomsStore } from '../stores/rooms-store'
 import { createSyncBridge } from '../sync/sync-bridge'
 
 let matrixClient: MatrixClient | null = null
@@ -87,6 +88,7 @@ export async function stopMatrixClient(): Promise<void> {
   }
 
   useConnectionStore.getState().reset()
+  useRoomsStore.getState().reset()
 }
 
 export function extractRoomSummaryFromClient(client: MatrixClient): RoomSummary[] {
