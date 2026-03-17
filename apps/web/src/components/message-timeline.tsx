@@ -4,6 +4,8 @@ import {
   loadMockTimeline,
   loadRoomHistory,
   resendMessage,
+  toggleMockReaction,
+  toggleReaction,
   useAuthStore,
   useMessagesStore,
 } from '@matrix-web/matrix-client'
@@ -89,6 +91,15 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
     void resendMessage(roomId, eventId)
   }, [roomId])
 
+  const handleReaction = useCallback((eventId: string, emoji: string) => {
+    if (mockMode) {
+      toggleMockReaction(roomId, eventId, emoji)
+    }
+    else {
+      void toggleReaction(roomId, eventId, emoji)
+    }
+  }, [roomId, mockMode])
+
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -127,6 +138,7 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
                 <MessageBubble
                   message={message}
                   onResend={handleResend}
+                  onReaction={handleReaction}
                 />
               </div>
             )

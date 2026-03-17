@@ -1,5 +1,5 @@
 import type { MatrixClient, MatrixEvent } from 'matrix-js-sdk'
-import type { TimelineMessage } from '../stores/messages-store'
+import type { Reaction, TimelineMessage } from '../stores/messages-store'
 import { Direction, EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useMessagesStore } from '../stores/messages-store'
@@ -32,6 +32,58 @@ export function matrixEventToTimelineMessage(event: MatrixEvent, client: MatrixC
     info: content.info,
     filename: content.filename ?? content.body,
   }
+}
+
+function aggregateReactions(events: MatrixEvent[]): Map<string, Reaction[]> {
+  const reactionMap = new Map<string, Map<string, { senderIds: string[], eventIds: Record<string, string> }>>()
+
+  for (const event of events) {
+    if (event.getType() !== 'm.reaction')
+      continue
+    const content = event.getContent()
+    const relatesTo = content['m.relates_to']
+    if (relatesTo?.rel_type !== 'm.annotation' || !relatesTo.event_id || !relatesTo.key)
+      continue
+
+    const targetId = relatesTo.event_id as string
+    const emoji = relatesTo.key as string
+    const senderId = event.getSender() ?? ''
+    const eventId = event.getId() ?? ''
+
+    if (!reactionMap.has(targetId)) {
+      reactionMap.set(targetId, new Map())
+    }
+    const emojiMap = reactionMap.get(targetId)!
+    if (!emojiMap.has(emoji)) {
+      emojiMap.set(emoji, { senderIds: [], eventIds: {} })
+    }
+    const entry = emojiMap.get(emoji)!
+    if (!entry.senderIds.includes(senderId)) {
+      entry.senderIds.push(senderId)
+      entry.eventIds[senderId] = eventId
+    }
+  }
+
+  const result = new Map<string, Reaction[]>()
+  for (const [targetId, emojiMap] of reactionMap) {
+    const reactions: Reaction[] = []
+    for (const [emoji, data] of emojiMap) {
+      reactions.push({ emoji, senderIds: data.senderIds, eventIds: data.eventIds })
+    }
+    result.set(targetId, reactions)
+  }
+  return result
+}
+
+function applyReactionsToMessages(messages: TimelineMessage[], allEvents: MatrixEvent[]): TimelineMessage[] {
+  const reactionsByTarget = aggregateReactions(allEvents)
+  if (reactionsByTarget.size === 0)
+    return messages
+
+  return messages.map((m) => {
+    const reactions = reactionsByTarget.get(m.eventId)
+    return reactions ? { ...m, reactions } : m
+  })
 }
 
 export async function sendTextMessage(
@@ -115,9 +167,12 @@ export async function loadRoomHistory(roomId: string): Promise<void> {
 
     const timeline = room.getLiveTimeline()
     const events = timeline.getEvents()
-    const messages = events
-      .filter(e => e.getType() === 'm.room.message')
-      .map(e => matrixEventToTimelineMessage(e, client))
+    const messages = applyReactionsToMessages(
+      events
+        .filter(e => e.getType() === 'm.room.message')
+        .map(e => matrixEventToTimelineMessage(e, client)),
+      events,
+    )
 
     const hasMore = timeline.getPaginationToken(Direction.Backward) !== null
     useMessagesStore.getState().setTimeline(roomId, messages, hasMore)
@@ -143,9 +198,12 @@ export function loadInitialTimeline(roomId: string): void {
 
   const timeline = room.getLiveTimeline()
   const events = timeline.getEvents()
-  const messages = events
-    .filter(e => e.getType() === 'm.room.message')
-    .map(e => matrixEventToTimelineMessage(e, client))
+  const messages = applyReactionsToMessages(
+    events
+      .filter(e => e.getType() === 'm.room.message')
+      .map(e => matrixEventToTimelineMessage(e, client)),
+    events,
+  )
 
   const hasMore = timeline.getPaginationToken(Direction.Backward) !== null
   useMessagesStore.getState().setTimeline(roomId, messages, hasMore)
