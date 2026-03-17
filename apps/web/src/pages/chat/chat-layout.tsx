@@ -1,5 +1,7 @@
 import { useRoomsStore } from '@matrix-web/matrix-client'
 import { useState } from 'react'
+import { MessageInput } from '../../components/message-input'
+import { MessageTimeline } from '../../components/message-timeline'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
@@ -32,21 +34,20 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
             {room.topic}
           </span>
         )}
+        {room && (
+          <span className="ml-auto shrink-0 text-xs text-muted-foreground">
+            {room.memberCount}
+            {' '}
+            members
+          </span>
+        )}
       </div>
 
-      {/* Message area placeholder */}
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-muted-foreground">
-          Message timeline coming in FEAT-007
-        </p>
-      </div>
+      {/* Message timeline */}
+      <MessageTimeline roomId={roomId} />
 
-      {/* Input placeholder */}
-      <div className="border-t border-border px-4 py-3">
-        <div className="rounded-lg border border-input bg-transparent px-3 py-2 text-sm text-muted-foreground">
-          Message input coming in FEAT-008
-        </div>
-      </div>
+      {/* Message input */}
+      <MessageInput roomId={roomId} />
     </div>
   )
 }

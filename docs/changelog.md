@@ -1,5 +1,23 @@
 # 变更日志
 
+## 2026-03-17 [done]
+
+阶段 3 — 核心聊天全部完成（FEAT-007 ~ FEAT-011）。
+
+**FEAT-007**：使用 TanStack Virtual 3.13 实现消息时间线虚拟滚动。支持可变高度消息、自动滚动到底部、历史消息分页加载、"新消息"滚动到底部按钮。组件：`message-timeline.tsx`。
+
+**FEAT-008**：实现文本消息收发与 Markdown 渲染。使用 `marked` + `DOMPurify` 安全渲染 Markdown/HTML。乐观更新（sending → sent → failed）、失败重发。支持 `/me` emote 消息。组件：`message-bubble.tsx`、`message-content.tsx`、`message-input.tsx`。新增 `packages/matrix-client/src/stores/messages-store.ts`（消息状态管理）和 `services/message-service.ts`（发送/加载消息）。
+
+**FEAT-009**：实现图片/视频/文件消息上传与展示。图片：缩略图显示 + Lightbox 全屏查看（`lightbox.tsx`）。视频：缩略图 + 内嵌播放器。文件：MIME 图标 + 文件名 + 大小 + 点击下载。统一上传流程：`services/upload-service.ts`（进度回调、mxc:// URI 转换）。组件：`media-message.tsx`。
+
+**FEAT-010**：实现命令系统。注册表模式 9 个命令：/me, /nick, /topic, /invite, /kick, /ban, /join, /leave, /plain。`/` 触发命令面板自动补全（`command-panel.tsx`）。用户 ID 输入自动补全（`utils/user-id.ts`）。
+
+**FEAT-011**：实现粘贴板图片（Ctrl/Cmd+V）与拖拽上传。拦截 paste/drop 事件，本地 Blob URL 预览，可添加说明/移除，确认后上传。组件：`upload-preview.tsx`。复用 FEAT-009 上传流程。
+
+**依赖新增**：@tanstack/react-virtual、marked、dompurify、@tailwindcss/typography。
+
+**Mock 模式增强**：新增 `mock-message-service.ts`（预设消息、模拟发送、自动回复），Mock 文件上传。
+
 ## 2026-03-16 22:00 [done]
 
 FEAT-006 完成。实现房间列表与侧边栏：

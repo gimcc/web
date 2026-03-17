@@ -1,8 +1,8 @@
 # FEAT-008 实现文本消息收发与 Markdown 渲染
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
-- **owner**: (未分配)
+- **owner**: claude-agent
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述

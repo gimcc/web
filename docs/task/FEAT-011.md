@@ -1,8 +1,8 @@
 # FEAT-011 实现粘贴板图片与拖拽上传
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
-- **owner**: (未分配)
+- **owner**: claude-agent
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述

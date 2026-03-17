@@ -32,9 +32,38 @@ export {
   queryKeys,
 } from './query/query-keys'
 
+// Services
+export {
+  loadInitialTimeline,
+  loadRoomHistory,
+  matrixEventToTimelineMessage,
+  resendMessage,
+  sendTextMessage,
+} from './services/message-service'
+export {
+  loadMockTimeline,
+  sendMockMessage,
+  uploadMockFile,
+} from './services/mock-message-service'
+export {
+  mxcToHttpUrl,
+  mxcToThumbnailUrl,
+  uploadAndSendFile,
+} from './services/upload-service'
+export type { UploadOptions, UploadResult } from './services/upload-service'
 // Stores
 export { useConnectionStore } from './stores/connection-store'
 export type { ConnectionState, ConnectionStatus } from './stores/connection-store'
-export { useRoomsStore } from './stores/rooms-store'
 
+export { useMessagesStore } from './stores/messages-store'
+export type { MessagesState, MessageStatus, TimelineMessage } from './stores/messages-store'
+export { useRoomsStore } from './stores/rooms-store'
 export type { LastMessagePreview, RoomsState, RoomSummary } from './stores/rooms-store'
+
+// Utils
+export {
+  formatUserId,
+  parseUserId,
+  resolveUserId,
+} from './utils/user-id'
+export type { ParsedUserId } from './utils/user-id'

@@ -1,8 +1,8 @@
 # FEAT-009 实现多媒体消息（图片/视频/文件上传与展示）
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
-- **owner**: (未分配)
+- **owner**: claude-agent
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述
