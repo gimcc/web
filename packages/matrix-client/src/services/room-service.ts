@@ -69,14 +69,19 @@ export async function createDirectRoom(userId: string): Promise<string> {
 
   const roomId = response.room_id
 
-  // Update m.direct account data
-  const directEvent = client.getAccountData(EventType.Direct)
-  const directMap = { ...(directEvent?.getContent() ?? {}) }
-  if (!directMap[userId]) {
-    directMap[userId] = []
+  // Update m.direct account data (best-effort — room already exists)
+  try {
+    const directEvent = client.getAccountData(EventType.Direct)
+    const directMap = { ...(directEvent?.getContent() ?? {}) }
+    if (!directMap[userId]) {
+      directMap[userId] = []
+    }
+    directMap[userId] = [...directMap[userId], roomId]
+    await client.setAccountData(EventType.Direct, directMap)
   }
-  directMap[userId] = [...directMap[userId], roomId]
-  await client.setAccountData(EventType.Direct, directMap)
+  catch (err) {
+    console.warn('Failed to update m.direct account data:', err)
+  }
 
   return roomId
 }

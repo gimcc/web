@@ -1,6 +1,6 @@
 import { createDirectRoom, useRoomsStore } from '@matrix-web/matrix-client'
 import { Loader2, MessageSquarePlus, X } from 'lucide-react'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { cn } from '../lib/utils'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
@@ -18,6 +18,11 @@ export function NewDirectChatDialog({ open, onClose }: NewDirectChatDialogProps)
   const [loading, setLoading] = useState(false)
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const inputRef = useRef<HTMLInputElement>(null)
+  const openRef = useRef(open)
+
+  useEffect(() => {
+    openRef.current = open
+  }, [open])
 
   const handleClose = useCallback(() => {
     setUserId('')
@@ -43,10 +48,15 @@ export function NewDirectChatDialog({ open, onClose }: NewDirectChatDialogProps)
 
     try {
       const roomId = await createDirectRoom(trimmed)
+      // Guard: ignore result if dialog was closed during the request
+      if (!openRef.current)
+        return
       setActiveRoom(roomId)
       handleClose()
     }
     catch (err) {
+      if (!openRef.current)
+        return
       setError(err instanceof Error ? err.message : 'Failed to create direct chat')
     }
     finally {
