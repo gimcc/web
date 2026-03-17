@@ -48,6 +48,7 @@ export function getKnownUsers(client: MatrixClient): KnownUser[] {
     }
   }
 
+  // eslint-disable-next-line e18e/prefer-array-to-sorted -- MapIterator lacks toSorted
   return [...usersMap.values()].sort((a, b) =>
     a.displayName.localeCompare(b.displayName),
   )
