@@ -1,6 +1,7 @@
 import type { MatrixClient, Room } from 'matrix-js-sdk'
 import type { AuthSession } from '../auth/auth-service'
 import type { PresenceService } from '../services/presence-service'
+import { clearCryptoStoreAsync } from '../utils/clear-crypto-store'
 import type { TypingService } from '../services/typing-service'
 import type { RoomSummary } from '../stores/rooms-store'
 import { ClientEvent, createClient, NotificationCountType } from 'matrix-js-sdk'
@@ -69,8 +70,25 @@ export async function startMatrixClient(options: StartClientOptions): Promise<Ma
       cleanupCryptoBridge = createCryptoBridge(client)
     }
     catch (err) {
-      console.warn('Failed to initialize Rust crypto — E2EE disabled:', err)
-      useCryptoStore.getState().setInitialized(false)
+      // Device ID mismatch: crypto store has stale data from a previous session.
+      // Clear the crypto IndexedDB and retry once before giving up.
+      if (isDeviceMismatchError(err)) {
+        console.warn('Crypto store device mismatch — clearing stale data and retrying…')
+        try {
+          await clearCryptoStoreAsync()
+          await client.initRustCrypto()
+          useCryptoStore.getState().setInitialized(true)
+          cleanupCryptoBridge = createCryptoBridge(client)
+        }
+        catch (retryErr) {
+          console.warn('Failed to initialize Rust crypto after retry — E2EE disabled:', retryErr)
+          useCryptoStore.getState().setInitialized(false)
+        }
+      }
+      else {
+        console.warn('Failed to initialize Rust crypto — E2EE disabled:', err)
+        useCryptoStore.getState().setInitialized(false)
+      }
     }
 
     // Set up sync bridges
@@ -197,4 +215,11 @@ function guessDmUserId(room: { getJoinedMembers: () => Array<{ userId: string }>
     return other?.userId ?? null
   }
   return null
+}
+
+function isDeviceMismatchError(err: unknown): boolean {
+  if (err instanceof Error) {
+    return err.message.includes('account in the store doesn\'t match the account in the constructor')
+  }
+  return false
 }
