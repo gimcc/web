@@ -11,8 +11,7 @@ import { useCallback, useRef, useState } from 'react'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 
-const MAX_ATTEMPTS = 10
-const LOCKOUT_DURATION_MS = 60_000 // 1 minute
+const MAX_ATTEMPTS = 3
 const DURESS_ANIMATION_MS = 2_000
 
 export function LockScreen() {
@@ -22,16 +21,14 @@ export function LockScreen() {
   const [showForgotConfirm, setShowForgotConfirm] = useState(false)
   const [isWiping, setIsWiping] = useState(false)
   const [sessionExpired, setSessionExpired] = useState(false)
-  const [isLockedOut, setIsLockedOut] = useState(false)
 
   const attemptCountRef = useRef(0)
-  const lockoutTimerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const unlock = useLockStore(s => s.unlock)
 
   const handleSubmit = useCallback(async (e: FormEvent) => {
     e.preventDefault()
-    if (!password.trim() || isLockedOut)
+    if (!password.trim())
       return
 
     setError(null)
@@ -58,29 +55,31 @@ export function LockScreen() {
         return
       }
 
-      // Invalid password
+      // Invalid password — wipe after MAX_ATTEMPTS
       attemptCountRef.current += 1
       if (attemptCountRef.current >= MAX_ATTEMPTS) {
-        setIsLockedOut(true)
-        setError(`Too many failed attempts. Try again in ${LOCKOUT_DURATION_MS / 1000} seconds.`)
-        lockoutTimerRef.current = setTimeout(() => {
-          setIsLockedOut(false)
-          attemptCountRef.current = 0
-          setError(null)
-        }, LOCKOUT_DURATION_MS)
+        clearAllLocalData()
+        window.location.href = '/'
+        return
       }
-      else {
-        const remaining = MAX_ATTEMPTS - attemptCountRef.current
-        setError(`Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining.`)
-      }
+
+      const remaining = MAX_ATTEMPTS - attemptCountRef.current
+      setError(`Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before data wipe.`)
     }
     catch {
-      setError('Incorrect password. Please try again.')
+      attemptCountRef.current += 1
+      if (attemptCountRef.current >= MAX_ATTEMPTS) {
+        clearAllLocalData()
+        window.location.href = '/'
+        return
+      }
+      const remaining = MAX_ATTEMPTS - attemptCountRef.current
+      setError(`Incorrect password. ${remaining} attempt${remaining === 1 ? '' : 's'} remaining before data wipe.`)
     }
     finally {
       setIsLoading(false)
     }
-  }, [password, isLockedOut, unlock])
+  }, [password, unlock])
 
   const handleForgotPassword = () => {
     clearAllLocalData()
@@ -156,7 +155,6 @@ export function LockScreen() {
               placeholder="Enter your lock screen password"
               value={password}
               onChange={e => setPassword(e.target.value)}
-              disabled={isLockedOut}
             />
           </div>
 
@@ -168,7 +166,7 @@ export function LockScreen() {
 
           <Button
             type="submit"
-            disabled={isLoading || !password.trim() || isLockedOut}
+            disabled={isLoading || !password.trim()}
             className="w-full"
           >
             {isLoading ? 'Unlocking...' : 'Unlock'}
