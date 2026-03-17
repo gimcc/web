@@ -1,0 +1,289 @@
+{
+  "app": {
+    "name": "Matrix Web",
+    "loading": "Loading...",
+    "error": {
+      "config": "Failed to load configuration: {{error}}"
+    }
+  },
+  "common": {
+    "cancel": "Cancel",
+    "close": "Close",
+    "save": "Save",
+    "remove": "Remove",
+    "change": "Change",
+    "set": "Set",
+    "done": "Done",
+    "unknown": "Unknown",
+    "enabled": "Enabled",
+    "disabled": "Disabled"
+  },
+  "connection": {
+    "connected": "Connected",
+    "connecting": "Connecting",
+    "reconnecting": "Reconnecting",
+    "error": "Error",
+    "disconnected": "Disconnected",
+    "connecting_ellipsis": "Connecting...",
+    "reconnecting_ellipsis": "Reconnecting..."
+  },
+  "auth": {
+    "sign_in": "Sign in",
+    "sign_in_title": "Sign in to your account",
+    "signing_in": "Signing in...",
+    "register": "Register",
+    "register_title": "Create a new account",
+    "creating_account": "Creating account...",
+    "create_account": "Create account",
+    "username": "Username",
+    "username_placeholder": "username",
+    "password": "Password",
+    "confirm_password": "Confirm Password",
+    "user_id_placeholder": "@user:server.org",
+    "custom_server_placeholder": "https://your-server.org",
+    "no_account": "Don't have an account?",
+    "has_account": "Already have an account?",
+    "sign_out": "Sign Out",
+    "sign_out_description": "Sign out of your account on this device."
+  },
+  "lock": {
+    "title": "Locked",
+    "subtitle": "Enter your password to unlock",
+    "password_label": "Password",
+    "password_placeholder": "Enter your lock screen password",
+    "unlock": "Unlock",
+    "unlocking": "Unlocking...",
+    "forgot_password": "Forgot password?",
+    "incorrect_password": "Incorrect password. {{remaining}} attempt(s) remaining before data wipe.",
+    "session_expired_title": "Session Expired",
+    "session_expired_message": "Your session has expired. Please sign in again.",
+    "confirm_wipe": "This will erase all local data and you will need to sign in again. This action cannot be undone.",
+    "erase_sign_out": "Erase & Sign Out"
+  },
+  "sidebar": {
+    "close": "Close sidebar",
+    "new_chat": "New chat",
+    "contacts": "Contacts",
+    "settings": "Settings",
+    "logout": "Logout"
+  },
+  "room_list": {
+    "search_placeholder": "Search rooms...",
+    "section_direct": "Direct Messages",
+    "section_group": "Rooms",
+    "empty_search": "No rooms found",
+    "empty_default": "No rooms yet",
+    "invites": "Invites"
+  },
+  "room_list_item": {
+    "yesterday": "Yesterday",
+    "direct_message": "Direct message",
+    "no_messages": "No messages yet"
+  },
+  "chat": {
+    "welcome_title": "Welcome to Matrix Web",
+    "welcome_subtitle": "Select a room to start chatting",
+    "direct_message": "Direct message",
+    "members_count": "{{count}} members",
+    "attach_file": "Attach file",
+    "send_message": "Send message",
+    "message_placeholder": "Type a message...",
+    "drop_files": "Drop files here to upload",
+    "upload_failed": "Failed to upload file. You can retry.",
+    "unknown_command": "Unknown command: {{command}}",
+    "command_failed": "Command failed",
+    "empty_timeline": "No messages yet. Say hello!",
+    "loading_history": "Loading history...",
+    "scroll_to_bottom": "Scroll to bottom",
+    "failed_to_send": "Failed to send. Click to retry.",
+    "uploading": "Uploading..."
+  },
+  "typing": {
+    "single": "{{name}} is typing",
+    "two": "{{name1}} and {{name2}} are typing",
+    "multiple": "{{name1}}, {{name2}} and others are typing"
+  },
+  "upload_preview": {
+    "remove": "Remove",
+    "caption_placeholder": "Add caption..."
+  },
+  "contacts": {
+    "title": "Contacts",
+    "close": "Close contacts",
+    "search_placeholder": "Search contacts...",
+    "empty_search": "No contacts found",
+    "empty_default": "No contacts yet",
+    "message_user": "Message {{name}}",
+    "count_one": "{{count}} contact",
+    "count_other": "{{count}} contacts",
+    "error_start_dm": "Failed to start conversation"
+  },
+  "new_chat": {
+    "title": "New Chat",
+    "mode_dm": "Direct Message",
+    "mode_group": "Group Chat",
+    "group_name_placeholder": "Group name",
+    "search_dm_placeholder": "Search users...",
+    "search_group_placeholder": "Add members...",
+    "remove_user": "Remove {{name}}",
+    "empty_search": "No users found",
+    "empty_default": "No known users",
+    "creating": "Creating...",
+    "create_group": "Create Group ({{count}} members)",
+    "error_create_dm": "Failed to create conversation",
+    "error_create_group": "Failed to create group"
+  },
+  "settings": {
+    "title": "Settings",
+    "close": "Close settings",
+    "tab": {
+      "account": "Account",
+      "security": "Security",
+      "encryption": "Encryption",
+      "appearance": "Appearance",
+      "about": "About"
+    }
+  },
+  "account": {
+    "title": "Account",
+    "description": "Manage your account and connection.",
+    "user_id": "User ID",
+    "homeserver": "Homeserver",
+    "status": "Status",
+    "mode": "Mode",
+    "mock": "Mock"
+  },
+  "security": {
+    "title": "Security",
+    "description": "Configure lock screen password and duress protection."
+  },
+  "password": {
+    "title": "Lock Screen Password",
+    "timeout_label": "Auto-lock after",
+    "timeout_5m": "5 minutes",
+    "timeout_30m": "30 minutes",
+    "timeout_1h": "1 hour",
+    "timeout_4h": "4 hours",
+    "set": "Set Password",
+    "change": "Change Password",
+    "remove": "Remove Password",
+    "lock_now": "Lock Now",
+    "new_password": "New Password",
+    "confirm_password": "Confirm Password",
+    "current_password": "Current Password",
+    "confirm_new_password": "Confirm New Password",
+    "setting": "Setting...",
+    "changing": "Changing...",
+    "removing": "Removing...",
+    "error_mismatch": "Passwords do not match",
+    "error_too_short": "Password must be at least 6 characters",
+    "error_dek_unavailable": "DEK not available. Please try again later.",
+    "error_incorrect": "Password is incorrect",
+    "error_current_incorrect": "Current password is incorrect",
+    "error_set_failed": "Failed to set password",
+    "success_set": "Password has been set successfully",
+    "success_changed": "Password has been changed successfully",
+    "success_removed": "Password has been removed"
+  },
+  "duress": {
+    "title": "Duress Password",
+    "disabled_message": "Set a lock screen password first to enable the duress password feature.",
+    "warning": "The duress password is for emergency use only. When entered on the lock screen, it silently wipes all local data and shows a session expiry message. This action is irreversible.",
+    "status_set": "Duress password is set.",
+    "status_not_set": "No duress password configured.",
+    "set": "Set duress password",
+    "label_set": "Duress password",
+    "label_change": "New duress password",
+    "confirm_label": "Confirm duress password",
+    "placeholder": "Enter duress password",
+    "confirm_placeholder": "Confirm duress password",
+    "saving": "Saving...",
+    "error_empty": "Duress password cannot be empty",
+    "error_new_empty": "New duress password cannot be empty",
+    "error_mismatch": "Passwords do not match",
+    "error_set_failed": "Failed to set duress password",
+    "error_change_failed": "Failed to change duress password",
+    "success_configured": "Duress password configured",
+    "success_updated": "Duress password updated",
+    "success_removed": "Duress password removed"
+  },
+  "encryption": {
+    "title": "Encryption",
+    "description": "End-to-end encryption status and key management.",
+    "status_title": "E2EE Status",
+    "crypto_module": "Crypto Module",
+    "cross_signing": "Cross-Signing",
+    "key_backup": "Key Backup"
+  },
+  "key_backup": {
+    "title": "Key Backup",
+    "enabled_message": "Key backup is enabled. Your encryption keys are safely backed up.",
+    "disabled_message": "Key backup is not configured. Set up backup to avoid losing encrypted messages.",
+    "progress": "Backing up keys: {{current}} / {{total}}",
+    "creating": "Creating...",
+    "setup": "Set Up Backup",
+    "restoring": "Restoring...",
+    "restore": "Restore from Backup",
+    "error_no_backup": "No backup found on server",
+    "error_create": "Failed to create backup",
+    "error_restore": "Failed to restore backup"
+  },
+  "device_verification": {
+    "request_title": "Verification Request",
+    "request_message": "A device is requesting verification. Accept to compare emojis and confirm the device is trusted.",
+    "decline": "Decline",
+    "accept": "Accept",
+    "sas_title": "Compare Emojis",
+    "sas_message": "Confirm that the following emojis match on both devices.",
+    "no_match": "They don't match",
+    "match": "They match",
+    "done_title": "Verified",
+    "done_message": "Device verification complete. This device is now trusted.",
+    "cancelled_title": "Verification Cancelled",
+    "cancelled_message": "The verification was cancelled or failed."
+  },
+  "encryption_badge": {
+    "verified": "Encrypted and verified",
+    "unverified": "Encrypted but unverified"
+  },
+  "lightbox": {
+    "close": "Close",
+    "close_backdrop": "Close lightbox"
+  },
+  "appearance": {
+    "title": "Appearance",
+    "description": "Customize the look and feel of the application.",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_system": "System",
+    "language": "Language",
+    "color_theme": "Color Theme",
+    "import_theme": "Import",
+    "export_theme": "Export"
+  },
+  "about": {
+    "title": "About",
+    "description": "Application information.",
+    "version": "Version",
+    "protocol": "Protocol",
+    "protocol_value": "Matrix",
+    "framework": "Framework",
+    "framework_value": "React 19",
+    "long_description": "Matrix Web is a browser-based chat client built on the Matrix protocol. It supports end-to-end encryption, local data protection, and real-time messaging."
+  },
+  "invite": {
+    "accept_label": "Accept invite",
+    "reject_label": "Reject invite",
+    "invitations": "Invitations",
+    "no_pending": "No pending invitations",
+    "dm_invite": "Direct message invite",
+    "room_invite": "Room invite",
+    "error_accept": "Failed to accept",
+    "error_reject": "Failed to reject"
+  },
+  "auth_server": {
+    "server": "Server",
+    "custom_server": "Custom server..."
+  }
+}

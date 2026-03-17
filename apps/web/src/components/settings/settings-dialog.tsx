@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
 import { AboutPanel } from './panels/about-panel'
 import { AccountPanel } from './panels/account-panel'
@@ -9,21 +10,22 @@ import { SecurityPanel } from './panels/security-panel'
 
 type SettingsTab = 'account' | 'security' | 'encryption' | 'appearance' | 'about'
 
-const TABS: { id: SettingsTab, label: string }[] = [
-  { id: 'account', label: 'Account' },
-  { id: 'security', label: 'Security' },
-  { id: 'encryption', label: 'Encryption' },
-  { id: 'appearance', label: 'Appearance' },
-  { id: 'about', label: 'About' },
-]
-
 interface SettingsDialogProps {
   open: boolean
   onClose: () => void
 }
 
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
+
+  const TABS: { id: SettingsTab, label: string }[] = [
+    { id: 'account', label: t('settings.tab.account') },
+    { id: 'security', label: t('settings.tab.security') },
+    { id: 'encryption', label: t('settings.tab.encryption') },
+    { id: 'appearance', label: t('settings.tab.appearance') },
+    { id: 'about', label: t('settings.tab.about') },
+  ]
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
@@ -54,19 +56,19 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
         type="button"
         className="absolute inset-0 bg-black/50"
         onClick={onClose}
-        aria-label="Close settings"
+        aria-label={t('settings.close')}
       />
 
       {/* Dialog */}
-      <div role="dialog" aria-modal="true" aria-label="Settings" className="relative z-10 flex h-[min(90vh,640px)] w-[min(95vw,768px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
+      <div role="dialog" aria-modal="true" aria-label={t('settings.title')} className="relative z-10 flex h-[min(90vh,640px)] w-[min(95vw,768px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
-          <h2 className="text-lg font-semibold text-foreground">Settings</h2>
+          <h2 className="text-lg font-semibold text-foreground">{t('settings.title')}</h2>
           <button
             type="button"
             onClick={onClose}
             className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label="Close"
+            aria-label={t('common.close')}
           >
             <X className="h-5 w-5" />
           </button>

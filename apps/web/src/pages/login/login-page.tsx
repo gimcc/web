@@ -1,11 +1,13 @@
 import type { FormEvent } from 'react'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { useRequiredConfig } from '../../providers/use-config'
 import { ServerSelector } from './server-selector'
 
 export function LoginPage() {
+  const { t } = useTranslation()
   const config = useRequiredConfig()
   const { homeservers } = config
 
@@ -31,8 +33,8 @@ export function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Matrix Web</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Sign in to your account</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('app.name')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('auth.sign_in_title')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -44,14 +46,14 @@ export function LoginPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="username">
-              Username
+              {t('auth.username')}
             </label>
             <input
               id="username"
               type="text"
               required
               autoComplete="username"
-              placeholder="@user:server.org"
+              placeholder={t('auth.user_id_placeholder')}
               className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
               value={username}
               onChange={e => setUsername(e.target.value)}
@@ -60,7 +62,7 @@ export function LoginPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="password">
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
@@ -84,15 +86,15 @@ export function LoginPage() {
             disabled={isLoading || !serverUrl}
             className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {isLoading ? 'Signing in...' : 'Sign in'}
+            {isLoading ? t('auth.signing_in') : t('auth.sign_in')}
           </button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
-          Don&apos;t have an account?
+          {t('auth.no_account')}
           {' '}
           <Link to="/register" className="text-primary underline-offset-4 hover:underline">
-            Register
+            {t('auth.register')}
           </Link>
         </p>
       </div>

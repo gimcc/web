@@ -1,11 +1,13 @@
 import type { FormEvent } from 'react'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Link, useNavigate } from 'react-router'
 import { useRequiredConfig } from '../../providers/use-config'
 import { ServerSelector } from '../login/server-selector'
 
 export function RegisterPage() {
+  const { t } = useTranslation()
   const config = useRequiredConfig()
   const { homeservers } = config
 
@@ -26,7 +28,7 @@ export function RegisterPage() {
     setValidationError(null)
 
     if (password !== confirmPassword) {
-      setValidationError('Passwords do not match')
+      setValidationError(t('password.error_mismatch'))
       return
     }
 
@@ -42,8 +44,8 @@ export function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-background p-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center">
-          <h1 className="text-2xl font-bold text-foreground">Matrix Web</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Create a new account</p>
+          <h1 className="text-2xl font-bold text-foreground">{t('app.name')}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t('auth.register_title')}</p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -55,14 +57,14 @@ export function RegisterPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="username">
-              Username
+              {t('auth.username')}
             </label>
             <input
               id="username"
               type="text"
               required
               autoComplete="username"
-              placeholder="username"
+              placeholder={t('auth.username_placeholder')}
               className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
               value={username}
               onChange={e => setUsername(e.target.value)}
@@ -71,7 +73,7 @@ export function RegisterPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="password">
-              Password
+              {t('auth.password')}
             </label>
             <input
               id="password"
@@ -86,7 +88,7 @@ export function RegisterPage() {
 
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-foreground" htmlFor="confirm-password">
-              Confirm Password
+              {t('auth.confirm_password')}
             </label>
             <input
               id="confirm-password"
@@ -110,15 +112,15 @@ export function RegisterPage() {
             disabled={isLoading || !serverUrl}
             className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
           >
-            {isLoading ? 'Creating account...' : 'Create account'}
+            {isLoading ? t('auth.creating_account') : t('auth.create_account')}
           </button>
         </form>
 
         <p className="text-center text-sm text-muted-foreground">
-          Already have an account?
+          {t('auth.has_account')}
           {' '}
           <Link to="/login" className="text-primary underline-offset-4 hover:underline">
-            Sign in
+            {t('auth.sign_in')}
           </Link>
         </p>
       </div>

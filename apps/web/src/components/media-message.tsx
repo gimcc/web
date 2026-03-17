@@ -2,6 +2,7 @@ import type { TimelineMessage } from '@matrix-web/matrix-client'
 import { mxcToHttpUrl, mxcToThumbnailUrl, useAuthStore } from '@matrix-web/matrix-client'
 import { Download, File, Loader2, Play } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { formatFileSize } from '../lib/format'
 import { cn } from '../lib/utils'
 import { Lightbox } from './lightbox'
@@ -181,11 +182,13 @@ function FileMessage({ message }: MediaMessageProps) {
 }
 
 export function MediaMessage({ message }: MediaMessageProps) {
+  const { t } = useTranslation()
+
   if (message.status === 'sending' && !message.url) {
     return (
       <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Uploading...
+        {t('chat.uploading')}
       </div>
     )
   }

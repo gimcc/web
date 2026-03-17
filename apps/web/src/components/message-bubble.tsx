@@ -2,6 +2,7 @@ import type { TimelineMessage } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { AlertCircle, Check, Loader2 } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
+import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { MediaMessage } from './media-message'
 import { MessageActions } from './message-actions'
@@ -35,6 +36,7 @@ function formatTime(timestamp: number): string {
 }
 
 export function MessageBubble({ message, onResend, onReaction }: MessageBubbleProps) {
+  const { t } = useTranslation()
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
   const isEmote = message.msgtype === 'm.emote'
@@ -115,7 +117,7 @@ export function MessageBubble({ message, onResend, onReaction }: MessageBubblePr
             className="mt-1 text-xs text-destructive hover:underline"
             onClick={() => onResend(message.eventId)}
           >
-            Failed to send. Click to retry.
+            {t('chat.failed_to_send')}
           </button>
         )}
       </div>

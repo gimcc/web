@@ -12,6 +12,7 @@ import {
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { MessageBubble } from './message-bubble'
 
 const EMPTY_TIMELINE: TimelineMessage[] = []
@@ -21,6 +22,7 @@ interface MessageTimelineProps {
 }
 
 export function MessageTimeline({ roomId }: MessageTimelineProps) {
+  const { t } = useTranslation()
   const messages = useMessagesStore(s => s.timelines.get(roomId) ?? EMPTY_TIMELINE)
   const hasMore = useMessagesStore(s => s.hasMore.get(roomId) ?? false)
   const mockMode = useAuthStore(s => s.mockMode)
@@ -103,7 +105,7 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-muted-foreground">No messages yet. Say hello!</p>
+        <p className="text-sm text-muted-foreground">{t('chat.empty_timeline')}</p>
       </div>
     )
   }
@@ -121,7 +123,7 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
         >
           {isLoadingHistory && (
             <div className="flex justify-center py-2">
-              <span className="text-xs text-muted-foreground">Loading history...</span>
+              <span className="text-xs text-muted-foreground">{t('chat.loading_history')}</span>
             </div>
           )}
 
@@ -152,7 +154,7 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
           type="button"
           className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background shadow-lg transition-colors hover:bg-accent"
           onClick={scrollToBottom}
-          aria-label="Scroll to bottom"
+          aria-label={t('chat.scroll_to_bottom')}
         >
           <ArrowDown className="h-5 w-5 text-foreground" />
         </button>

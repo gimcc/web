@@ -1,13 +1,15 @@
+import { useTranslation } from 'react-i18next'
 import { DuressPasswordSettings } from '../duress-password-settings'
 import { PasswordSettings } from '../password-settings'
 
 export function SecurityPanel() {
+  const { t } = useTranslation()
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-sm font-semibold text-foreground">Security</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t('security.title')}</h3>
         <p className="text-xs text-muted-foreground">
-          Configure lock screen password and duress protection.
+          {t('security.description')}
         </p>
       </div>
 

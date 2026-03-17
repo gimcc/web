@@ -1,5 +1,6 @@
 import { X } from 'lucide-react'
 import { useCallback, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 
 interface LightboxProps {
   src: string
@@ -8,6 +9,7 @@ interface LightboxProps {
 }
 
 export function Lightbox({ src, alt, onClose }: LightboxProps) {
+  const { t } = useTranslation()
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') {
       onClose()
@@ -29,7 +31,7 @@ export function Lightbox({ src, alt, onClose }: LightboxProps) {
         type="button"
         className="absolute right-4 top-4 rounded-full bg-black/50 p-2 text-white transition-colors hover:bg-black/70"
         onClick={onClose}
-        aria-label="Close"
+        aria-label={t('lightbox.close')}
       >
         <X className="h-6 w-6" />
       </button>
@@ -38,7 +40,7 @@ export function Lightbox({ src, alt, onClose }: LightboxProps) {
         type="button"
         className="absolute inset-0"
         onClick={onClose}
-        aria-label="Close lightbox"
+        aria-label={t('lightbox.close_backdrop')}
       />
 
       <img
