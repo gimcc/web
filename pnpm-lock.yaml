@@ -111,6 +111,9 @@ importers:
 
   packages/matrix-client:
     dependencies:
+      '@matrix-org/matrix-sdk-crypto-wasm':
+        specifier: ^18.0.0
+        version: 18.0.0
       '@matrix-web/types':
         specifier: workspace:*
         version: link:../types
@@ -491,6 +494,10 @@ packages:
 
   '@matrix-org/matrix-sdk-crypto-wasm@17.1.0':
     resolution: {integrity: sha512-yKPqBvKlHSqkt/UJh+Z+zLKQP8bd19OxokXYXh3VkKbW0+C44nPHsidSwd3SH+RxT+Ck2PDRwVcVXEnUft+/2g==}
+    engines: {node: '>= 18'}
+
+  '@matrix-org/matrix-sdk-crypto-wasm@18.0.0':
+    resolution: {integrity: sha512-88+n+dvxLI1cjS10UIlKXVYK7TGWbpAnnaDC9fow7ch/hCvdu3dFhJ3tS3/13N9s9+1QFXB4FFuommj+tHJPhQ==}
     engines: {node: '>= 18'}
 
   '@napi-rs/wasm-runtime@1.1.1':
@@ -2599,6 +2606,8 @@ snapshots:
       '@jridgewell/sourcemap-codec': 1.5.5
 
   '@matrix-org/matrix-sdk-crypto-wasm@17.1.0': {}
+
+  '@matrix-org/matrix-sdk-crypto-wasm@18.0.0': {}
 
   '@napi-rs/wasm-runtime@1.1.1':
     dependencies:

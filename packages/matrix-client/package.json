@@ -15,6 +15,7 @@
     "clean": "rm -rf dist *.tsbuildinfo"
   },
   "dependencies": {
+    "@matrix-org/matrix-sdk-crypto-wasm": "^18.0.0",
     "@matrix-web/types": "workspace:*",
     "matrix-js-sdk": "^41.1.0",
     "zod": "^4.3.6",

@@ -1,6 +1,9 @@
 import type { RoomSummary } from '@matrix-web/matrix-client'
+import { getMatrixClient } from '@matrix-web/matrix-client'
 import { cn } from '../lib/utils'
+import { EncryptionBadge } from './crypto/encryption-badge'
 import { Avatar } from './ui/avatar'
+import { PresenceDot } from './ui/presence-dot'
 
 interface RoomListItemProps {
   room: RoomSummary
@@ -32,9 +35,28 @@ function truncateMessage(body: string, maxLength: number = 50): string {
   return `${body.slice(0, maxLength)}…`
 }
 
+function getDmUserId(roomId: string): string | null {
+  const client = getMatrixClient()
+  if (!client)
+    return null
+
+  const matrixRoom = client.getRoom(roomId)
+  if (!matrixRoom)
+    return null
+
+  const myUserId = client.getUserId()
+  const members = matrixRoom.getJoinedMembers()
+  if (members.length === 2) {
+    const other = members.find(m => m.userId !== myUserId)
+    return other?.userId ?? null
+  }
+  return null
+}
+
 export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
   const hasUnread = room.unreadCount > 0
   const hasHighlight = room.highlightCount > 0
+  const dmUserId = room.isDirect ? getDmUserId(room.roomId) : null
 
   return (
     <button
@@ -46,19 +68,23 @@ export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
         isActive && 'bg-accent',
       )}
     >
-      <Avatar
-        name={room.name}
-        src={room.avatarUrl ?? undefined}
-        size="md"
-      />
+      <div className="relative">
+        <Avatar
+          name={room.name}
+          src={room.avatarUrl ?? undefined}
+          size="md"
+        />
+        {dmUserId && <PresenceDot userId={dmUserId} />}
+      </div>
 
       <div className="min-w-0 flex-1">
         <div className="flex items-center justify-between gap-2">
           <span className={cn(
-            'truncate text-sm',
+            'flex items-center gap-1 truncate text-sm',
             hasUnread ? 'font-semibold text-foreground' : 'font-medium text-foreground',
           )}
           >
+            <EncryptionBadge status={room.isEncrypted ? 'encrypted' : 'unencrypted'} />
             {room.name}
           </span>
           {room.lastMessage && (

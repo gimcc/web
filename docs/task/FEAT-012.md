@@ -1,6 +1,6 @@
 # FEAT-012 实现 E2EE 配置与密钥管理 UI
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

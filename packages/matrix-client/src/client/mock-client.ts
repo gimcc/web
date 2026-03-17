@@ -11,6 +11,7 @@ function createMockRooms(): RoomSummary[] {
       name: 'General',
       topic: 'General discussion',
       avatarUrl: null,
+      isEncrypted: false,
       isDirect: false,
       memberCount: 42,
       lastMessage: {
@@ -28,6 +29,7 @@ function createMockRooms(): RoomSummary[] {
       name: 'Random',
       topic: 'Off-topic conversations',
       avatarUrl: null,
+      isEncrypted: false,
       isDirect: false,
       memberCount: 28,
       lastMessage: {
@@ -45,6 +47,7 @@ function createMockRooms(): RoomSummary[] {
       name: 'Alice',
       topic: null,
       avatarUrl: null,
+      isEncrypted: true,
       isDirect: true,
       memberCount: 2,
       lastMessage: {
@@ -62,6 +65,7 @@ function createMockRooms(): RoomSummary[] {
       name: 'Bob',
       topic: null,
       avatarUrl: null,
+      isEncrypted: true,
       isDirect: true,
       memberCount: 2,
       lastMessage: {
@@ -79,6 +83,7 @@ function createMockRooms(): RoomSummary[] {
       name: 'Development',
       topic: 'Engineering discussions',
       avatarUrl: null,
+      isEncrypted: false,
       isDirect: false,
       memberCount: 15,
       lastMessage: {

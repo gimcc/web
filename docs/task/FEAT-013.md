@@ -1,6 +1,6 @@
 # FEAT-013 实现锁屏密码与本地数据库加密（DEK + KEK）
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

@@ -1,16 +1,39 @@
 import type { MatrixClient, Room } from 'matrix-js-sdk'
 import type { AuthSession } from '../auth/auth-service'
+import type { PresenceService } from '../services/presence-service'
+import type { TypingService } from '../services/typing-service'
 import type { RoomSummary } from '../stores/rooms-store'
 import { ClientEvent, createClient, NotificationCountType } from 'matrix-js-sdk'
+import { createPresenceService } from '../services/presence-service'
+import { createTypingService } from '../services/typing-service'
 import { useConnectionStore } from '../stores/connection-store'
+import { useCryptoStore } from '../stores/crypto-store'
+import { usePresenceStore } from '../stores/presence-store'
 import { useRoomsStore } from '../stores/rooms-store'
+import { useTypingStore } from '../stores/typing-store'
+import { createCryptoBridge } from '../sync/crypto-bridge'
+import { createPresenceBridge } from '../sync/presence-bridge'
 import { createSyncBridge } from '../sync/sync-bridge'
+import { createTypingBridge } from '../sync/typing-bridge'
 
 let matrixClient: MatrixClient | null = null
 let cleanupBridge: (() => void) | null = null
+let cleanupCryptoBridge: (() => void) | null = null
+let cleanupTypingBridge: (() => void) | null = null
+let cleanupPresenceBridge: (() => void) | null = null
+let typingService: TypingService | null = null
+let presenceService: PresenceService | null = null
 
 export function getMatrixClient(): MatrixClient | null {
   return matrixClient
+}
+
+export function getTypingService(): TypingService | null {
+  return typingService
+}
+
+export function getPresenceService(): PresenceService | null {
+  return presenceService
 }
 
 export interface StartClientOptions {
@@ -39,8 +62,25 @@ export async function startMatrixClient(options: StartClientOptions): Promise<Ma
 
     matrixClient = client
 
-    // Set up sync bridge before starting client
+    // Initialize Rust crypto (E2EE via WASM)
+    try {
+      await client.initRustCrypto()
+      useCryptoStore.getState().setInitialized(true)
+      cleanupCryptoBridge = createCryptoBridge(client)
+    }
+    catch (err) {
+      console.warn('Failed to initialize Rust crypto — E2EE disabled:', err)
+      useCryptoStore.getState().setInitialized(false)
+    }
+
+    // Set up sync bridges
     cleanupBridge = createSyncBridge(client, onQueryInvalidation)
+    cleanupTypingBridge = createTypingBridge(client)
+    cleanupPresenceBridge = createPresenceBridge(client)
+
+    // Create typing and presence services
+    typingService = createTypingService(client)
+    presenceService = createPresenceService(client)
 
     // Listen for sync state changes
     client.on(ClientEvent.Sync, (state, _prevState, data) => {
@@ -76,6 +116,31 @@ export async function startMatrixClient(options: StartClientOptions): Promise<Ma
 }
 
 export async function stopMatrixClient(): Promise<void> {
+  if (typingService) {
+    typingService.dispose()
+    typingService = null
+  }
+
+  if (presenceService) {
+    presenceService.dispose()
+    presenceService = null
+  }
+
+  if (cleanupCryptoBridge) {
+    cleanupCryptoBridge()
+    cleanupCryptoBridge = null
+  }
+
+  if (cleanupTypingBridge) {
+    cleanupTypingBridge()
+    cleanupTypingBridge = null
+  }
+
+  if (cleanupPresenceBridge) {
+    cleanupPresenceBridge()
+    cleanupPresenceBridge = null
+  }
+
   if (cleanupBridge) {
     cleanupBridge()
     cleanupBridge = null
@@ -88,7 +153,10 @@ export async function stopMatrixClient(): Promise<void> {
   }
 
   useConnectionStore.getState().reset()
+  useCryptoStore.getState().reset()
   useRoomsStore.getState().reset()
+  useTypingStore.getState().reset()
+  usePresenceStore.getState().reset()
 }
 
 export function extractRoomSummaryFromClient(client: MatrixClient): RoomSummary[] {
@@ -104,6 +172,7 @@ export function extractSingleRoomSummary(client: MatrixClient, room: Room): Room
     name: room.name ?? room.roomId,
     topic: room.currentState.getStateEvents('m.room.topic', '')?.getContent()?.topic ?? null,
     avatarUrl: room.getAvatarUrl(client.baseUrl, 48, 48, 'crop') ?? null,
+    isEncrypted: room.hasEncryptionStateEvent(),
     isDirect: !!dmUserId,
     memberCount: room.getJoinedMemberCount(),
     lastMessage: lastEvent
