@@ -1,8 +1,8 @@
 # FEAT-015 实现表情回复
 
-- **status**: pending
+- **status**: in-progress
 - **priority**: P2
-- **owner**: (未分配)
+- **owner**: dev
 - **createdAt**: 2026-03-16 17:30
 
 ## 描述

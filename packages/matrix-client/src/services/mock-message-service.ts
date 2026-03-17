@@ -95,6 +95,9 @@ export function loadMockTimeline(roomId: string): void {
   hasMore.set(roomId, false)
 
   useMessagesStore.setState({ timelines, hasMore })
+
+  // Add some mock reactions for demo
+  addMockReactions(roomId)
 }
 
 export async function sendMockMessage(roomId: string, body: string, options?: {
@@ -193,4 +196,52 @@ export async function uploadMockFile(roomId: string, file: File, caption?: strin
   const confirmedId = generateMockEventId()
   // Keep blob URL alive in mock mode — no server URL to replace it with
   useMessagesStore.getState().confirmMessage(roomId, tempId, confirmedId)
+}
+
+export function toggleMockReaction(roomId: string, targetEventId: string, emoji: string): void {
+  const store = useMessagesStore.getState()
+  const timeline = store.getTimeline(roomId)
+  const message = timeline.find(m => m.eventId === targetEventId)
+  if (!message)
+    return
+
+  const mockUserId = '@mock-user:localhost'
+  const reaction = message.reactions?.find(r => r.emoji === emoji)
+  const hasReacted = reaction?.senderIds.includes(mockUserId) ?? false
+
+  if (hasReacted) {
+    store.removeReaction(roomId, targetEventId, emoji, mockUserId)
+  }
+  else {
+    store.addReaction(roomId, targetEventId, emoji, mockUserId, generateMockEventId())
+  }
+}
+
+/** Add some initial mock reactions to messages for demo purposes */
+export function addMockReactions(roomId: string): void {
+  const store = useMessagesStore.getState()
+  const timeline = store.getTimeline(roomId)
+  if (timeline.length < 3)
+    return
+
+  // Add reactions to a few messages
+  const reactions: Array<{ idx: number, emoji: string, sender: number }> = [
+    { idx: 0, emoji: '👍', sender: 1 },
+    { idx: 0, emoji: '👍', sender: 2 },
+    { idx: 0, emoji: '❤️', sender: 2 },
+    { idx: 2, emoji: '🎉', sender: 0 },
+    { idx: 2, emoji: '🎉', sender: 3 },
+    { idx: 2, emoji: '🔥', sender: 1 },
+    { idx: 4, emoji: '😂', sender: 0 },
+  ]
+
+  for (const r of reactions) {
+    const msg = timeline[r.idx]
+    if (!msg)
+      continue
+    const user = MOCK_USERS[r.sender]
+    if (!user)
+      continue
+    store.addReaction(roomId, msg.eventId, r.emoji, user.id, generateMockEventId())
+  }
 }
