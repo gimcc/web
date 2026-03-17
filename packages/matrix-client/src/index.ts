@@ -74,7 +74,7 @@ export {
   queryKeys,
 } from './query/query-keys'
 
-// Services
+// Services — messages
 export {
   loadInitialTimeline,
   loadRoomHistory,

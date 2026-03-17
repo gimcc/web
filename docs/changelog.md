@@ -1,5 +1,14 @@
 # 变更日志
 
+## 2026-03-17 [FEAT-022]
+
+**FEAT-022 直聊（Direct Chat）创建：**
+- 新增 `packages/matrix-client/src/services/room-service.ts`：`findExistingDirectRoom()` 检查已有 DM（先查 `m.direct` account data，再回退到 rooms store），`createDirectRoom()` 创建 DM 房间（`is_direct: true`，`Preset.TrustedPrivateChat`），自动更新 `m.direct` account data
+- 新增 `apps/web/src/components/new-direct-chat-dialog.tsx`：弹窗对话框输入 Matrix 用户 ID（`@user:server.com` 格式校验），支持 Enter 提交、Escape 关闭、加载状态和错误提示
+- 侧边栏 header 新增"新建聊天"按钮（SquarePen 图标），打开 DM 创建对话框
+- 房间列表分组显示：Direct Messages（私聊）和 Rooms（群组）两个折叠分区，各自按最近活跃排序，带数量徽章
+- 活跃房间 header 对 DM 房间显示"Direct message"替代"X members"
+
 ## 2026-03-17 [done]
 
 FEAT-023 完成。实现联系人列表、新建对话和搜索增强。
