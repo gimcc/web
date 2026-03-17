@@ -115,6 +115,23 @@ Matrix Homeserver
   有锁屏密码时：空闲超时/手动锁定 → 清除内存 DEK → 显示锁屏
 ```
 
+## 国际化（i18n）
+
+当前**不支持**多语言。所有 UI 文本为硬编码英文字符串。
+
+计划引入 `react-i18next` + `i18next`，将所有用户可见文本提取为翻译键，支持运行时语言切换。详见 [FEAT-024](task/FEAT-024.md)。
+
+## 主题系统
+
+当前支持基础的 light/dark/system 三种模式切换：
+
+- 主题状态由 `apps/web/src/hooks/use-theme.ts` 管理
+- `useThemeInit()` 在应用顶层调用，确保页面加载时立即应用已存储主题，并全局监听系统偏好变化
+- `useTheme()` 供 UI 组件响应式读取和切换主题
+- 主题偏好持久化到 `localStorage`（key: `matrix-web-theme`）
+
+尚不支持自定义配色和主题包。详见 [FEAT-025](task/FEAT-025.md)。
+
 ## 关键决策
 
 详见 [PLAN-001](plan/PLAN-001.md) 第 12 节「关键工程决策」。
@@ -129,4 +146,5 @@ Matrix Homeserver
 | 4 | E2EE 配置、密钥管理 UI |
 | 4.5 | 锁屏密码、本地数据库加密、胁迫密码 |
 | 5 | 表情回复、线程、语音消息录制、输入指示器、更多命令扩展 |
+| 5.5 | i18n 国际化、自定义主题系统 |
 | 6 | PWA、离线支持、推送通知 |

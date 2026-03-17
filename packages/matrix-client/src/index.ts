@@ -89,12 +89,26 @@ export {
   toggleMockReaction,
   uploadMockFile,
 } from './services/mock-message-service'
+export {
+  createMockDmRoom,
+  createMockGroupRoom,
+  getMockKnownUsers,
+  searchMockUsers,
+} from './services/mock-room-service'
 export type { PresenceService } from './services/presence-service'
 export {
   redactReaction,
   sendReaction,
   toggleReaction,
 } from './services/reaction-service'
+export {
+  createDmRoom,
+  createGroupRoom,
+  extractNewRoomSummary,
+  getKnownUsers,
+  searchUsers,
+} from './services/room-service'
+export type { CreateDmOptions, CreateGroupOptions, KnownUser, UserSearchResult } from './services/room-service'
 export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,
