@@ -1,6 +1,6 @@
 # FEAT-006 实现房间列表与侧边栏
 
-- **status**: pending
+- **status**: done
 - **priority**: P1
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30
