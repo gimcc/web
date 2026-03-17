@@ -56,7 +56,9 @@ export interface MessagesState {
   failMessage: (roomId: string, eventId: string) => void
   removeMessage: (roomId: string, eventId: string) => void
   addReaction: (roomId: string, targetEventId: string, emoji: string, senderId: string, reactionEventId?: string) => void
+  updateReactionEventId: (roomId: string, targetEventId: string, emoji: string, senderId: string, reactionEventId: string) => void
   removeReaction: (roomId: string, targetEventId: string, emoji: string, senderId: string) => void
+  removeReactionByEventId: (roomId: string, reactionEventId: string) => void
   getTimeline: (roomId: string) => TimelineMessage[]
   clearRoom: (roomId: string) => void
   reset: () => void
@@ -190,6 +192,30 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
     set({ timelines })
   },
 
+  updateReactionEventId: (roomId, targetEventId, emoji, senderId, reactionEventId) => {
+    const timelines = new Map(get().timelines)
+    const existing = timelines.get(roomId)
+    if (!existing)
+      return
+
+    timelines.set(
+      roomId,
+      existing.map((m) => {
+        if (m.eventId !== targetEventId)
+          return m
+        const reactions = (m.reactions ?? []).map((r) => {
+          if (r.emoji !== emoji)
+            return r
+          if (!r.senderIds.includes(senderId))
+            return r
+          return { ...r, eventIds: { ...r.eventIds, [senderId]: reactionEventId } }
+        })
+        return { ...m, reactions }
+      }),
+    )
+    set({ timelines })
+  },
+
   removeReaction: (roomId, targetEventId, emoji, senderId) => {
     const timelines = new Map(get().timelines)
     const existing = timelines.get(roomId)
@@ -209,6 +235,35 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
             const eventIds = { ...r.eventIds }
             delete eventIds[senderId]
             return senderIds.length > 0 ? { emoji, senderIds, eventIds } : null
+          })
+          .filter((r): r is Reaction => r !== null)
+        return { ...m, reactions: reactions.length > 0 ? reactions : undefined }
+      }),
+    )
+    set({ timelines })
+  },
+
+  removeReactionByEventId: (roomId, reactionEventId) => {
+    const timelines = new Map(get().timelines)
+    const existing = timelines.get(roomId)
+    if (!existing)
+      return
+
+    timelines.set(
+      roomId,
+      existing.map((m) => {
+        if (!m.reactions)
+          return m
+        const reactions = m.reactions
+          .map((r) => {
+            // Find sender whose reaction eventId matches
+            const senderEntry = Object.entries(r.eventIds ?? {}).find(([, eid]) => eid === reactionEventId)
+            if (!senderEntry)
+              return r
+            const senderIds = r.senderIds.filter(id => id !== senderEntry[0])
+            const eventIds = { ...r.eventIds }
+            delete eventIds[senderEntry[0]]
+            return senderIds.length > 0 ? { ...r, senderIds, eventIds } : null
           })
           .filter((r): r is Reaction => r !== null)
         return { ...m, reactions: reactions.length > 0 ? reactions : undefined }

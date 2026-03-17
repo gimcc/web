@@ -38,7 +38,7 @@ function aggregateReactions(events: MatrixEvent[]): Map<string, Reaction[]> {
   const reactionMap = new Map<string, Map<string, { senderIds: string[], eventIds: Record<string, string> }>>()
 
   for (const event of events) {
-    if (event.getType() !== 'm.reaction')
+    if (event.getType() !== 'm.reaction' || event.isRedacted())
       continue
     const content = event.getContent()
     const relatesTo = content['m.relates_to']
@@ -151,6 +151,34 @@ export async function resendMessage(roomId: string, eventId: string): Promise<vo
   })
 }
 
+/** Merge live-sync reactions from current store into freshly loaded messages */
+function mergeStoreReactions(roomId: string, messages: TimelineMessage[]): TimelineMessage[] {
+  const existing = useMessagesStore.getState().getTimeline(roomId)
+  if (existing.length === 0)
+    return messages
+
+  const existingReactions = new Map<string, Reaction[]>()
+  for (const m of existing) {
+    if (m.reactions && m.reactions.length > 0) {
+      existingReactions.set(m.eventId, m.reactions)
+    }
+  }
+
+  if (existingReactions.size === 0)
+    return messages
+
+  return messages.map((m) => {
+    const storeReactions = existingReactions.get(m.eventId)
+    if (!storeReactions)
+      return m
+    // If SDK already provided reactions, prefer them (they include server state);
+    // otherwise use the store reactions from live sync
+    if (m.reactions && m.reactions.length > 0)
+      return m
+    return { ...m, reactions: storeReactions }
+  })
+}
+
 export async function loadRoomHistory(roomId: string): Promise<void> {
   const client = getMatrixClient()
   if (!client)
@@ -167,11 +195,14 @@ export async function loadRoomHistory(roomId: string): Promise<void> {
 
     const timeline = room.getLiveTimeline()
     const events = timeline.getEvents()
-    const messages = applyReactionsToMessages(
-      events
-        .filter(e => e.getType() === 'm.room.message')
-        .map(e => matrixEventToTimelineMessage(e, client)),
-      events,
+    const messages = mergeStoreReactions(
+      roomId,
+      applyReactionsToMessages(
+        events
+          .filter(e => e.getType() === 'm.room.message')
+          .map(e => matrixEventToTimelineMessage(e, client)),
+        events,
+      ),
     )
 
     const hasMore = timeline.getPaginationToken(Direction.Backward) !== null
@@ -196,6 +227,11 @@ export function loadInitialTimeline(roomId: string): void {
   if (!room)
     return
 
+  // Skip if timeline already loaded (avoid overwriting live-sync reactions)
+  const store = useMessagesStore.getState()
+  if ((store.timelines.get(roomId)?.length ?? 0) > 0)
+    return
+
   const timeline = room.getLiveTimeline()
   const events = timeline.getEvents()
   const messages = applyReactionsToMessages(
@@ -206,5 +242,5 @@ export function loadInitialTimeline(roomId: string): void {
   )
 
   const hasMore = timeline.getPaginationToken(Direction.Backward) !== null
-  useMessagesStore.getState().setTimeline(roomId, messages, hasMore)
+  store.setTimeline(roomId, messages, hasMore)
 }

@@ -32,7 +32,7 @@ export function createSyncBridge(
     }
 
     // Handle reaction events
-    if (event.getType() === 'm.reaction') {
+    if (event.getType() === 'm.reaction' && !event.isRedacted()) {
       const content = event.getContent()
       const relatesTo = content['m.relates_to']
       if (relatesTo?.rel_type === 'm.annotation' && relatesTo.event_id && relatesTo.key) {
@@ -45,6 +45,14 @@ export function createSyncBridge(
           senderId,
           reactionEventId,
         )
+      }
+    }
+
+    // Handle redaction events (remove reactions)
+    if (event.getType() === 'm.room.redaction') {
+      const redactedId = event.getAssociatedId()
+      if (redactedId) {
+        useMessagesStore.getState().removeReactionByEventId(room.roomId, redactedId)
       }
     }
 

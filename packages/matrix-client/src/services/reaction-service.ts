@@ -1,6 +1,13 @@
 import { getMatrixClient } from '../client/client-manager'
 import { useMessagesStore } from '../stores/messages-store'
 
+/** Track in-flight toggles to prevent double-tap races */
+const inflight = new Set<string>()
+
+function inflightKey(roomId: string, eventId: string, emoji: string): string {
+  return `${roomId}:${eventId}:${emoji}`
+}
+
 export async function sendReaction(
   roomId: string,
   targetEventId: string,
@@ -24,8 +31,8 @@ export async function sendReaction(
       },
     })
 
-    // Store the reaction event ID for future redaction
-    useMessagesStore.getState().addReaction(
+    // Update the stored reaction event ID for future redaction
+    useMessagesStore.getState().updateReactionEventId(
       roomId,
       targetEventId,
       emoji,
@@ -79,16 +86,27 @@ export async function toggleReaction(
   if (!client)
     throw new Error('Matrix client not initialized')
 
-  const userId = client.getUserId() ?? ''
-  const timeline = useMessagesStore.getState().getTimeline(roomId)
-  const message = timeline.find(m => m.eventId === targetEventId)
-  const reaction = message?.reactions?.find(r => r.emoji === emoji)
-  const hasReacted = reaction?.senderIds.includes(userId) ?? false
+  // Prevent concurrent toggles for the same reaction
+  const key = inflightKey(roomId, targetEventId, emoji)
+  if (inflight.has(key))
+    return
+  inflight.add(key)
 
-  if (hasReacted) {
-    await redactReaction(roomId, targetEventId, emoji)
+  try {
+    const userId = client.getUserId() ?? ''
+    const timeline = useMessagesStore.getState().getTimeline(roomId)
+    const message = timeline.find(m => m.eventId === targetEventId)
+    const reaction = message?.reactions?.find(r => r.emoji === emoji)
+    const hasReacted = reaction?.senderIds.includes(userId) ?? false
+
+    if (hasReacted) {
+      await redactReaction(roomId, targetEventId, emoji)
+    }
+    else {
+      await sendReaction(roomId, targetEventId, emoji)
+    }
   }
-  else {
-    await sendReaction(roomId, targetEventId, emoji)
+  finally {
+    inflight.delete(key)
   }
 }
