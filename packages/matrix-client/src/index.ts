@@ -74,12 +74,6 @@ export {
   queryKeys,
 } from './query/query-keys'
 
-// Services — rooms
-export {
-  createDirectRoom,
-  findExistingDirectRoom,
-} from './services/room-service'
-
 // Services — messages
 export {
   loadInitialTimeline,
@@ -89,11 +83,32 @@ export {
   sendTextMessage,
 } from './services/message-service'
 export {
+  addMockReactions,
   loadMockTimeline,
   sendMockMessage,
+  toggleMockReaction,
   uploadMockFile,
 } from './services/mock-message-service'
+export {
+  createMockDmRoom,
+  createMockGroupRoom,
+  getMockKnownUsers,
+  searchMockUsers,
+} from './services/mock-room-service'
 export type { PresenceService } from './services/presence-service'
+export {
+  redactReaction,
+  sendReaction,
+  toggleReaction,
+} from './services/reaction-service'
+export {
+  createDmRoom,
+  createGroupRoom,
+  extractNewRoomSummary,
+  getKnownUsers,
+  searchUsers,
+} from './services/room-service'
+export type { CreateDmOptions, CreateGroupOptions, KnownUser, UserSearchResult } from './services/room-service'
 export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,
@@ -110,7 +125,7 @@ export type { CryptoState, KeyBackupProgress } from './stores/crypto-store'
 export { useLockStore } from './stores/lock-store'
 export type { LockState } from './stores/lock-store'
 export { useMessagesStore } from './stores/messages-store'
-export type { MessagesState, MessageStatus, TimelineMessage } from './stores/messages-store'
+export type { MessagesState, MessageStatus, Reaction, TimelineMessage } from './stores/messages-store'
 export { usePresenceStore } from './stores/presence-store'
 export type { PresenceInfo, PresenceState, PresenceStatus } from './stores/presence-store'
 export { useRoomsStore } from './stores/rooms-store'

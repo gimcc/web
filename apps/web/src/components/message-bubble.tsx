@@ -1,14 +1,17 @@
 import type { TimelineMessage } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { AlertCircle, Check, Loader2 } from 'lucide-react'
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn } from '../lib/utils'
 import { MediaMessage } from './media-message'
+import { MessageActions } from './message-actions'
 import { MessageContent } from './message-content'
+import { ReactionBar } from './reaction-bar'
 
 interface MessageBubbleProps {
   message: TimelineMessage
   onResend?: (eventId: string) => void
+  onReaction?: (eventId: string, emoji: string) => void
 }
 
 function MessageStatusIcon({ status }: { status: TimelineMessage['status'] }) {
@@ -31,7 +34,7 @@ function formatTime(timestamp: number): string {
   })
 }
 
-export function MessageBubble({ message, onResend }: MessageBubbleProps) {
+export function MessageBubble({ message, onResend, onReaction }: MessageBubbleProps) {
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
   const isEmote = message.msgtype === 'm.emote'
@@ -39,17 +42,32 @@ export function MessageBubble({ message, onResend }: MessageBubbleProps) {
 
   const timeStr = useMemo(() => formatTime(message.timestamp), [message.timestamp])
 
+  const handleReaction = useCallback((emoji: string) => {
+    onReaction?.(message.eventId, emoji)
+  }, [message.eventId, onReaction])
+
   if (isEmote) {
     return (
-      <div className="group flex items-baseline gap-2 px-4 py-0.5 hover:bg-accent/50">
+      <div className="group relative flex items-baseline gap-2 px-4 py-0.5 hover:bg-accent/50">
         <span className="text-xs text-muted-foreground">{timeStr}</span>
-        <span className="text-sm italic text-muted-foreground">
-          *
-          {' '}
-          {message.senderName}
-          {' '}
-          {message.body}
-        </span>
+        <div className="min-w-0 flex-1">
+          <span className="text-sm italic text-muted-foreground">
+            *
+            {' '}
+            {message.senderName}
+            {' '}
+            {message.body}
+          </span>
+          {message.reactions && message.reactions.length > 0 && (
+            <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
+          )}
+        </div>
+        {/* Hover action bar */}
+        {message.status === 'sent' && onReaction && (
+          <div className="absolute -top-3 right-2 hidden group-hover:block">
+            <MessageActions onReaction={handleReaction} />
+          </div>
+        )}
       </div>
     )
   }
@@ -57,7 +75,7 @@ export function MessageBubble({ message, onResend }: MessageBubbleProps) {
   return (
     <div
       className={cn(
-        'group flex gap-3 px-4 py-1.5 hover:bg-accent/50',
+        'group relative flex gap-3 px-4 py-1.5 hover:bg-accent/50',
         message.status === 'failed' && 'bg-destructive/5',
       )}
     >
@@ -85,6 +103,11 @@ export function MessageBubble({ message, onResend }: MessageBubbleProps) {
           ? <MediaMessage message={message} />
           : <MessageContent message={message} />}
 
+        {/* Reactions */}
+        {message.reactions && message.reactions.length > 0 && (
+          <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
+        )}
+
         {/* Failed message actions */}
         {message.status === 'failed' && onResend && (
           <button
@@ -96,6 +119,13 @@ export function MessageBubble({ message, onResend }: MessageBubbleProps) {
           </button>
         )}
       </div>
+
+      {/* Hover action bar */}
+      {message.status === 'sent' && onReaction && (
+        <div className="absolute -top-3 right-2 hidden group-hover:block">
+          <MessageActions onReaction={handleReaction} />
+        </div>
+      )}
     </div>
   )
 }

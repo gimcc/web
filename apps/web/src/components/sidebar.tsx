@@ -1,9 +1,11 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
-import { LogOut, Menu, SquarePen, X } from 'lucide-react'
+import { LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { cn } from '../lib/utils'
-import { NewDirectChatDialog } from './new-direct-chat-dialog'
+import { NewChatDialog } from './compose/new-chat-dialog'
+import { ContactsDialog } from './contacts/contacts-dialog'
 import { RoomList } from './room-list'
+import { SettingsDialog } from './settings/settings-dialog'
 
 interface SidebarProps {
   isOpen: boolean
@@ -34,7 +36,9 @@ function ConnectionIndicator() {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const session = useAuthStore(s => s.session)
   const logout = useAuthStore(s => s.logout)
-  const [dmDialogOpen, setDmDialogOpen] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [contactsOpen, setContactsOpen] = useState(false)
+  const [newChatOpen, setNewChatOpen] = useState(false)
 
   return (
     <>
@@ -47,12 +51,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           aria-label="Close sidebar"
         />
       )}
-
-      {/* New Direct Chat Dialog */}
-      <NewDirectChatDialog
-        open={dmDialogOpen}
-        onClose={() => setDmDialogOpen(false)}
-      />
 
       {/* Sidebar */}
       <aside
@@ -67,11 +65,11 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           <div className="flex items-center gap-1">
             <button
               type="button"
-              onClick={() => setDmDialogOpen(true)}
+              onClick={() => setNewChatOpen(true)}
               className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label="New direct chat"
+              aria-label="New chat"
             >
-              <SquarePen className="h-5 w-5" />
+              <Plus className="h-5 w-5" />
             </button>
             <button
               type="button"
@@ -98,17 +96,40 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               </p>
               <ConnectionIndicator />
             </div>
-            <button
-              type="button"
-              onClick={logout}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label="Logout"
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <div className="flex items-center gap-1">
+              <button
+                type="button"
+                onClick={() => setContactsOpen(true)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Contacts"
+              >
+                <Users className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Settings"
+              >
+                <Settings className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={logout}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label="Logout"
+              >
+                <LogOut className="h-4 w-4" />
+              </button>
+            </div>
           </div>
         </div>
       </aside>
+
+      {/* Dialogs */}
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <ContactsDialog open={contactsOpen} onClose={() => setContactsOpen(false)} />
+      <NewChatDialog open={newChatOpen} onClose={() => setNewChatOpen(false)} />
     </>
   )
 }

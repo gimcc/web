@@ -36,4 +36,4 @@
 - [x] [**PLAN-005 Matrix 客户端连接与 sync 桥接**](PLAN-005.md) `2026-03-16`
 - [-] [**PLAN-006 Phase 4 — E2EE 配置与本地安全**](PLAN-006.md) `2026-03-17`
 - [-] [**PLAN-007 Phase 5 — 增强功能（输入指示器与在线状态）**](PLAN-007.md) `2026-03-17`
-- [-] [**PLAN-008 实现直聊（Direct Chat）创建**](PLAN-008.md) `2026-03-17`
+- [-] [**PLAN-008 Phase 5 — Emoji Reactions (FEAT-015)**](PLAN-008.md) `2026-03-17`

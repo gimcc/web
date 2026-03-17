@@ -31,6 +31,31 @@ export function createSyncBridge(
       useMessagesStore.getState().appendMessages(room.roomId, [message])
     }
 
+    // Handle reaction events
+    if (event.getType() === 'm.reaction' && !event.isRedacted()) {
+      const content = event.getContent()
+      const relatesTo = content['m.relates_to']
+      if (relatesTo?.rel_type === 'm.annotation' && relatesTo.event_id && relatesTo.key) {
+        const senderId = event.getSender() ?? ''
+        const reactionEventId = event.getId() ?? ''
+        useMessagesStore.getState().addReaction(
+          room.roomId,
+          relatesTo.event_id,
+          relatesTo.key,
+          senderId,
+          reactionEventId,
+        )
+      }
+    }
+
+    // Handle redaction events (remove reactions)
+    if (event.getType() === 'm.room.redaction') {
+      const redactedId = event.getAssociatedId()
+      if (redactedId) {
+        useMessagesStore.getState().removeReactionByEventId(room.roomId, redactedId)
+      }
+    }
+
     onQueryInvalidation?.('room.timeline', room.roomId)
   }
 

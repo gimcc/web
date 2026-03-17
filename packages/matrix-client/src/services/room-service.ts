@@ -1,87 +1,150 @@
-import { EventType, Preset, Visibility } from 'matrix-js-sdk'
-import { getMatrixClient } from '../client/client-manager'
-import { useRoomsStore } from '../stores/rooms-store'
+import type { MatrixClient, Room } from 'matrix-js-sdk'
+import { Preset, Visibility } from 'matrix-js-sdk'
+import { extractSingleRoomSummary } from '../client/client-manager'
+
+export interface KnownUser {
+  userId: string
+  displayName: string
+  avatarUrl: string | null
+}
+
+export interface CreateDmOptions {
+  userId: string
+  encrypted?: boolean
+}
+
+export interface CreateGroupOptions {
+  name: string
+  topic?: string
+  userIds: string[]
+  encrypted?: boolean
+}
+
+export interface UserSearchResult {
+  userId: string
+  displayName: string | null
+  avatarUrl: string | null
+}
 
 /**
- * Find an existing direct room with the given user ID by checking
- * the m.direct account data event.
+ * Get all known users from joined rooms (deduplicated).
  */
-export function findExistingDirectRoom(userId: string): string | null {
-  const client = getMatrixClient()
-  if (!client)
-    return null
+export function getKnownUsers(client: MatrixClient): KnownUser[] {
+  const myUserId = client.getUserId()
+  const usersMap = new Map<string, KnownUser>()
 
-  // Check m.direct account data for existing DM mapping
-  const directEvent = client.getAccountData(EventType.Direct)
-  if (directEvent) {
-    const directMap = directEvent.getContent()
-    const roomIds = directMap[userId]
-    if (roomIds?.length) {
-      // Return the first room that we are still a member of
-      for (const roomId of roomIds) {
-        const room = client.getRoom(roomId)
-        if (room && room.getMyMembership() === 'join') {
-          return roomId
-        }
-      }
+  for (const room of client.getRooms()) {
+    for (const member of room.getJoinedMembers()) {
+      if (member.userId === myUserId)
+        continue
+      if (usersMap.has(member.userId))
+        continue
+
+      usersMap.set(member.userId, {
+        userId: member.userId,
+        displayName: member.name || member.userId,
+        avatarUrl: member.getAvatarUrl(client.baseUrl, 40, 40, 'crop', false, false) ?? null,
+      })
     }
   }
 
-  // Fallback: check rooms store for isDirect rooms with this user
-  const rooms = useRoomsStore.getState().rooms
-  for (const [, summary] of rooms) {
-    if (!summary.isDirect)
-      continue
-    const room = client.getRoom(summary.roomId)
-    if (!room)
-      continue
+  // eslint-disable-next-line e18e/prefer-array-to-sorted -- MapIterator lacks toSorted
+  return [...usersMap.values()].sort((a, b) =>
+    a.displayName.localeCompare(b.displayName),
+  )
+}
+
+/**
+ * Find existing DM room with a user.
+ */
+function findExistingDm(client: MatrixClient, userId: string): Room | null {
+  const myUserId = client.getUserId()
+
+  for (const room of client.getRooms()) {
     const members = room.getJoinedMembers()
-    if (members.length === 2 && members.some(m => m.userId === userId)) {
-      return summary.roomId
+    if (members.length === 2) {
+      const hasMe = members.some(m => m.userId === myUserId)
+      const hasTarget = members.some(m => m.userId === userId)
+      if (hasMe && hasTarget)
+        return room
     }
   }
-
   return null
 }
 
 /**
- * Create a new direct chat room with the given user ID.
- * If a DM already exists, returns the existing room ID instead.
+ * Create a DM room or return existing one.
  */
-export async function createDirectRoom(userId: string): Promise<string> {
-  const client = getMatrixClient()
-  if (!client)
-    throw new Error('Matrix client not initialized')
+export async function createDmRoom(
+  client: MatrixClient,
+  options: CreateDmOptions,
+): Promise<string> {
+  const existing = findExistingDm(client, options.userId)
+  if (existing)
+    return existing.roomId
 
-  // Check for existing DM first
-  const existingRoomId = findExistingDirectRoom(userId)
-  if (existingRoomId)
-    return existingRoomId
-
-  // Create a new DM room
-  const response = await client.createRoom({
-    preset: Preset.TrustedPrivateChat,
-    visibility: Visibility.Private,
-    invite: [userId],
+  const result = await client.createRoom({
     is_direct: true,
-    initial_state: [],
+    invite: [options.userId],
+    visibility: Visibility.Private,
+    preset: options.encrypted ? Preset.TrustedPrivateChat : Preset.PrivateChat,
+    initial_state: options.encrypted
+      ? [{ type: 'm.room.encryption', state_key: '', content: { algorithm: 'm.megolm.v1.aes-sha2' } }]
+      : [],
   })
 
-  const roomId = response.room_id
+  return result.room_id
+}
 
-  // Update m.direct account data (best-effort — room already exists)
-  try {
-    const directEvent = client.getAccountData(EventType.Direct)
-    const directMap = { ...(directEvent?.getContent() ?? {}) }
-    if (!directMap[userId]) {
-      directMap[userId] = []
-    }
-    directMap[userId] = [...directMap[userId], roomId]
-    await client.setAccountData(EventType.Direct, directMap)
-  }
-  catch (err) {
-    console.warn('Failed to update m.direct account data:', err)
-  }
+/**
+ * Create a group room.
+ */
+export async function createGroupRoom(
+  client: MatrixClient,
+  options: CreateGroupOptions,
+): Promise<string> {
+  const result = await client.createRoom({
+    name: options.name,
+    topic: options.topic,
+    invite: options.userIds,
+    visibility: Visibility.Private,
+    preset: options.encrypted ? Preset.TrustedPrivateChat : Preset.PrivateChat,
+    initial_state: options.encrypted
+      ? [{ type: 'm.room.encryption', state_key: '', content: { algorithm: 'm.megolm.v1.aes-sha2' } }]
+      : [],
+  })
 
-  return roomId
+  return result.room_id
+}
+
+/**
+ * Search users in homeserver directory.
+ */
+export async function searchUsers(
+  client: MatrixClient,
+  query: string,
+  limit: number = 20,
+): Promise<UserSearchResult[]> {
+  if (!query.trim())
+    return []
+
+  const response = await client.searchUserDirectory({ term: query, limit })
+
+  return response.results.map(user => ({
+    userId: user.user_id,
+    displayName: user.display_name ?? null,
+    avatarUrl: user.avatar_url
+      ? client.mxcUrlToHttp(user.avatar_url, 40, 40, 'crop') ?? null
+      : null,
+  }))
+}
+
+/**
+ * Extract room summary after creation (helper for UI).
+ */
+export function extractNewRoomSummary(client: MatrixClient, roomId: string) {
+  const room = client.getRoom(roomId)
+  if (!room)
+    return null
+  return extractSingleRoomSummary(client, room)
 }

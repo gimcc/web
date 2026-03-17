@@ -1,28 +1,34 @@
-# FEAT-022 Implement Direct Chat Creation
+# FEAT-022 实现设置 UI
 
-> Priority: P1 | Status: In Progress | Created: 2026-03-17
+- **status**: done
+- **priority**: P1
+- **owner**: (未分配)
+- **createdAt**: 2026-03-17
 
-## Description
+## 描述
 
-Add the ability to create and start direct (1-on-1) chats using the Matrix `is_direct` flag. Currently all rooms default to group display. This feature enables users to initiate private conversations with specific users.
+实现统一的设置 UI，汇总所有用户可配置项到一个对话框中。
 
-## Acceptance Criteria
+验收标准：
+- 侧边栏底部添加设置齿轮图标按钮
+- 点击打开设置对话框（Modal 模式，不新增路由）
+- 设置分为 5 个 Tab：账户、安全、加密、外观、关于
+- 账户 Tab：显示用户 ID、Homeserver、连接状态、登出按钮
+- 安全 Tab：集成已有的锁屏密码和胁迫密码设置组件
+- 加密 Tab：集成已有的密钥备份组件，显示 E2EE 状态
+- 外观 Tab：亮色/暗色主题切换
+- 关于 Tab：应用名称、版本、链接
 
-- [ ] Users can start a new direct chat from the sidebar via a "New Chat" button
-- [ ] A dialog allows entering a Matrix user ID to start a DM
-- [ ] The system checks for existing DM rooms before creating duplicates
-- [ ] New DM rooms are created with `is_direct: true` flag via Matrix API
-- [ ] Room list separates direct messages and group rooms into sections
-- [ ] After creating a DM, the room is auto-selected and ready for messaging
+## 进行时描述
 
-## Technical Notes
+正在实现设置 UI
 
-- Uses `MatrixClient.createRoom()` with `is_direct: true` and `invite: [userId]`
-- Sets `m.direct` account data to track DM mappings
-- Reuses existing DM detection logic (`getDMInviter`, `guessDmUserId`)
-- New `room-service.ts` in `packages/matrix-client/src/services/`
+## 依赖
 
-## Dependencies
+- **blocked by**: （无）
+- **blocks**: （无）
 
-- FEAT-005 (Matrix client connection) ✅
-- FEAT-006 (Room list & sidebar) ✅
+## 笔记
+
+- 复用已有组件：PasswordSettings、DuressPasswordSettings、KeyBackupSetup
+- 使用自建 Dialog 和 Tab 组件（不引入额外依赖）
