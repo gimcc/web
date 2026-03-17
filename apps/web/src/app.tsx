@@ -11,6 +11,7 @@ import {
 import { useCallback, useEffect, useMemo } from 'react'
 import { RouterProvider } from 'react-router'
 import { useIdleDetector } from './hooks/use-idle-detector'
+import { useThemeInit } from './hooks/use-theme'
 import { LockScreen } from './pages/lock/lock-screen'
 import { ConfigProvider } from './providers/config-provider'
 import { QueryProvider } from './providers/query-provider'
@@ -76,6 +77,7 @@ function AppRouterInner() {
   const isLocked = useLockStore(s => s.isLocked)
 
   useAutoLock()
+  useThemeInit()
 
   useEffect(() => {
     if (!config)
