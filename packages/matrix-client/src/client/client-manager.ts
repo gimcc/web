@@ -122,6 +122,7 @@ export async function stopMatrixClient(): Promise<void> {
   }
 
   if (presenceService) {
+    presenceService.setOffline()
     presenceService.dispose()
     presenceService = null
   }

@@ -58,7 +58,7 @@ export function LockScreen() {
       // Invalid password — wipe after MAX_ATTEMPTS
       attemptCountRef.current += 1
       if (attemptCountRef.current >= MAX_ATTEMPTS) {
-        clearAllLocalData()
+        await clearAllLocalData()
         window.location.href = '/'
         return
       }
@@ -69,7 +69,7 @@ export function LockScreen() {
     catch {
       attemptCountRef.current += 1
       if (attemptCountRef.current >= MAX_ATTEMPTS) {
-        clearAllLocalData()
+        await clearAllLocalData()
         window.location.href = '/'
         return
       }
@@ -81,8 +81,8 @@ export function LockScreen() {
     }
   }, [password, unlock])
 
-  const handleForgotPassword = () => {
-    clearAllLocalData()
+  const handleForgotPassword = async () => {
+    await clearAllLocalData()
     window.location.href = '/'
   }
 

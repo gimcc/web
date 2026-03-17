@@ -253,7 +253,7 @@ export async function verifyPassword(password: string): Promise<boolean> {
 
 // --- Clear all local data ---
 
-export function clearAllLocalData(): void {
+export async function clearAllLocalData(): Promise<void> {
   // Remove all matrix-web:* keys from localStorage
   const keysToRemove: string[] = []
   for (let i = 0; i < localStorage.length; i++) {
@@ -274,12 +274,16 @@ export function clearAllLocalData(): void {
 
   // Clear all IndexedDB databases
   if (typeof indexedDB !== 'undefined' && indexedDB.databases) {
-    indexedDB.databases().then((dbs) => {
-      for (const db of dbs) {
-        if (db.name) {
-          indexedDB.deleteDatabase(db.name)
-        }
-      }
-    })
+    const dbs = await indexedDB.databases()
+    await Promise.all(
+      dbs
+        .filter(db => db.name)
+        .map(db => new Promise<void>((resolve) => {
+          const req = indexedDB.deleteDatabase(db.name!)
+          req.onsuccess = () => resolve()
+          req.onerror = () => resolve()
+          req.onblocked = () => resolve()
+        })),
+    )
   }
 }

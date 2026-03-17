@@ -1,5 +1,6 @@
 import type { AuthCredentials, AuthSession } from './auth-service'
 import { create } from 'zustand'
+import { useLockStore } from '../stores/lock-store'
 import {
   clearPersistedSession,
   loadPersistedSession,
@@ -67,6 +68,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   logout: () => {
     clearPersistedSession()
+    useLockStore.getState().reset()
     set({ isAuthenticated: false, session: null, error: null })
   },
 
