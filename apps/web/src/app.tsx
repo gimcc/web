@@ -17,6 +17,8 @@ import { QueryProvider } from './providers/query-provider'
 import { useConfig } from './providers/use-config'
 import { createRouter } from './router'
 
+function noop() {}
+
 /**
  * Initialize DEK on app startup:
  * - No DEK stored: generate a new one (first-time user, stored plaintext)
@@ -64,11 +66,7 @@ function useAutoLock() {
       lock()
   }, [lock])
 
-  const handleActive = useCallback(() => {
-    // no-op: lock is permanent until password entry
-  }, [])
-
-  useIdleDetector(handleIdle, handleActive, enabled ? timeoutMs : 0)
+  useIdleDetector(handleIdle, noop, enabled ? timeoutMs : 0)
 }
 
 function AppRouterInner() {

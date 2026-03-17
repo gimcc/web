@@ -18,6 +18,8 @@ export interface LockState {
 }
 
 function loadIdleTimeout(): number {
+  if (typeof localStorage === 'undefined')
+    return DEFAULT_IDLE_TIMEOUT
   const stored = localStorage.getItem(IDLE_TIMEOUT_KEY)
   if (stored === null)
     return DEFAULT_IDLE_TIMEOUT
@@ -48,5 +50,8 @@ export const useLockStore = create<LockState>(set => ({
     set({ idleTimeout: seconds })
   },
 
-  reset: () => set(initialState),
+  reset: () => {
+    localStorage.removeItem(IDLE_TIMEOUT_KEY)
+    set({ ...initialState, idleTimeout: DEFAULT_IDLE_TIMEOUT })
+  },
 }))

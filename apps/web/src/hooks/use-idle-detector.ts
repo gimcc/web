@@ -13,8 +13,10 @@ export function useIdleDetector(
 
   useEffect(() => {
     // timeout <= 0 means disabled
-    if (timeout <= 0)
+    if (timeout <= 0) {
+      isIdleRef.current = false
       return
+    }
 
     function resetTimer(): void {
       if (isIdleRef.current) {
