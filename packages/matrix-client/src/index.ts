@@ -74,7 +74,13 @@ export {
   queryKeys,
 } from './query/query-keys'
 
-// Services
+// Services — rooms
+export {
+  createDirectRoom,
+  findExistingDirectRoom,
+} from './services/room-service'
+
+// Services — messages
 export {
   loadInitialTimeline,
   loadRoomHistory,

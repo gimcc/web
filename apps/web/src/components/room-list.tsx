@@ -1,8 +1,59 @@
+import type { RoomSummary } from '@matrix-web/matrix-client'
 import { useRoomsStore } from '@matrix-web/matrix-client'
-import { Search } from 'lucide-react'
+import { ChevronDown, ChevronRight, MessageCircle, Search, Users } from 'lucide-react'
 import { useMemo, useState } from 'react'
+import { cn } from '../lib/utils'
 import { RoomListItem } from './room-list-item'
 import { Input } from './ui/input'
+
+interface SectionProps {
+  label: string
+  icon: React.ReactNode
+  rooms: RoomSummary[]
+  activeRoomId: string | null
+  onSelect: (roomId: string) => void
+  defaultOpen?: boolean
+}
+
+function RoomSection({ label, icon, rooms, activeRoomId, onSelect, defaultOpen = true }: SectionProps) {
+  const [open, setOpen] = useState(defaultOpen)
+
+  if (rooms.length === 0)
+    return null
+
+  return (
+    <div>
+      <button
+        type="button"
+        onClick={() => setOpen(v => !v)}
+        className="flex w-full items-center gap-1.5 px-3 py-1.5 text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground"
+      >
+        {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+        {icon}
+        <span>{label}</span>
+        <span className={cn(
+          'ml-auto rounded-full px-1.5 py-0.5 text-[10px] font-medium',
+          'bg-muted text-muted-foreground',
+        )}
+        >
+          {rooms.length}
+        </span>
+      </button>
+      {open && (
+        <div className="space-y-0.5">
+          {rooms.map(room => (
+            <RoomListItem
+              key={room.roomId}
+              room={room}
+              isActive={room.roomId === activeRoomId}
+              onSelect={onSelect}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
 
 export function RoomList() {
   const rooms = useRoomsStore(s => s.rooms)
@@ -10,7 +61,7 @@ export function RoomList() {
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const sortedRooms = useMemo(() => {
+  const { directRooms, groupRooms } = useMemo(() => {
     const list = [...rooms.values()]
 
     // Filter by search
@@ -22,7 +73,21 @@ export function RoomList() {
       : list
 
     // Sort by most recent activity
-    return filtered.sort((a, b) => b.timestamp - a.timestamp)
+    const sorted = filtered.sort((a, b) => b.timestamp - a.timestamp)
+
+    // Separate direct and group rooms
+    const directRooms: RoomSummary[] = []
+    const groupRooms: RoomSummary[] = []
+    for (const room of sorted) {
+      if (room.isDirect) {
+        directRooms.push(room)
+      }
+      else {
+        groupRooms.push(room)
+      }
+    }
+
+    return { directRooms, groupRooms }
   }, [rooms, searchQuery])
 
   return (
@@ -42,22 +107,28 @@ export function RoomList() {
 
       {/* Room list */}
       <div className="flex-1 overflow-y-auto px-2 pb-2">
-        {sortedRooms.length === 0
+        {directRooms.length === 0 && groupRooms.length === 0
           ? (
               <p className="px-3 py-8 text-center text-sm text-muted-foreground">
                 {searchQuery ? 'No rooms found' : 'No rooms yet'}
               </p>
             )
           : (
-              <div className="space-y-0.5">
-                {sortedRooms.map(room => (
-                  <RoomListItem
-                    key={room.roomId}
-                    room={room}
-                    isActive={room.roomId === activeRoomId}
-                    onSelect={setActiveRoom}
-                  />
-                ))}
+              <div className="space-y-2">
+                <RoomSection
+                  label="Direct Messages"
+                  icon={<MessageCircle className="h-3 w-3" />}
+                  rooms={directRooms}
+                  activeRoomId={activeRoomId}
+                  onSelect={setActiveRoom}
+                />
+                <RoomSection
+                  label="Rooms"
+                  icon={<Users className="h-3 w-3" />}
+                  rooms={groupRooms}
+                  activeRoomId={activeRoomId}
+                  onSelect={setActiveRoom}
+                />
               </div>
             )}
       </div>

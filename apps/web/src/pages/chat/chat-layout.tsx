@@ -38,9 +38,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
         )}
         {room && (
           <span className="ml-auto shrink-0 text-xs text-muted-foreground">
-            {room.memberCount}
-            {' '}
-            members
+            {room.isDirect ? 'Direct message' : `${room.memberCount} members`}
           </span>
         )}
       </div>
