@@ -2,6 +2,23 @@
 
 ## 2026-03-17 [done]
 
+FEAT-023 完成。实现联系人列表、新建对话和搜索增强。
+
+**room-service（packages/matrix-client）：**
+- `services/room-service.ts`：getKnownUsers（从已加入房间提取去重用户）、createDmRoom（查找已有 DM 或创建）、createGroupRoom、searchUsers（Homeserver 目录搜索）、extractNewRoomSummary
+- `services/mock-room-service.ts`：8 个 mock 用户、mock 搜索、mock 房间 ID 生成
+
+**联系人列表对话框：**
+- `apps/web/src/components/contacts/contacts-dialog.tsx`：已知用户列表 + 搜索 + 点击发起 DM
+- 侧边栏底部添加联系人按钮（Users 图标）
+
+**新建对话对话框：**
+- `apps/web/src/components/compose/new-chat-dialog.tsx`：DM / 群聊双模式 Tab 切换
+- DM 模式：搜索用户 → 点击直接创建（复用已有 DM 房间）
+- 群聊模式：输入群名 + 多选成员（chips 标签显示）→ 创建按钮
+- 用户搜索支持 300ms debounce，同时搜索已知用户和 Homeserver 目录
+- 侧边栏标题栏添加「+」按钮
+
 FEAT-022 完成。实现统一设置 UI。
 
 **设置对话框**：侧边栏底部新增齿轮图标按钮，点击打开模态设置对话框。左侧 Tab 导航，右侧内容区域，支持 Escape 键关闭。
