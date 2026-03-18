@@ -123,7 +123,7 @@ export function MessageActions({ onReaction, isSelf, onEdit, onDelete, onReply, 
                 e.stopPropagation()
                 onThread()
               }}
-              aria-label="Reply in thread"
+              aria-label={t('message.thread')}
             >
               <MessageSquare className="h-4 w-4" />
             </button>

@@ -61,6 +61,7 @@
     "erase_sign_out": "擦除并退出"
   },
   "sidebar": {
+    "open": "打开侧边栏",
     "close": "关闭侧边栏",
     "new_chat": "新建对话",
     "contacts": "联系人",
@@ -313,7 +314,8 @@
     "editing_message": "正在编辑消息",
     "edit_placeholder": "编辑消息...",
     "confirm_delete": "确定要删除这条消息吗？",
-    "replying_to": "回复 {{name}}"
+    "replying_to": "回复 {{name}}",
+    "thread": "在线程中回复"
   },
   "room": {
     "create_title": "创建房间",

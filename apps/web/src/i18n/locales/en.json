@@ -61,6 +61,7 @@
     "erase_sign_out": "Erase & Sign Out"
   },
   "sidebar": {
+    "open": "Open sidebar",
     "close": "Close sidebar",
     "new_chat": "New chat",
     "contacts": "Contacts",
@@ -313,7 +314,8 @@
     "editing_message": "Editing message",
     "edit_placeholder": "Edit message...",
     "confirm_delete": "Are you sure you want to delete this message?",
-    "replying_to": "Replying to {{name}}"
+    "replying_to": "Replying to {{name}}",
+    "thread": "Reply in thread"
   },
   "room": {
     "create_title": "Create Room",

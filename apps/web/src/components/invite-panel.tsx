@@ -50,7 +50,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
   }, [room.roomId, t])
 
   return (
-    <div className="px-3 py-2.5">
+    <div className="px-4 py-3 transition-colors hover:bg-muted/40">
       <div className="flex items-center gap-3">
         <Avatar name={room.name} src={room.avatarUrl ?? undefined} size="sm" />
         <div className="min-w-0 flex-1">
@@ -65,7 +65,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
             disabled={loading !== null}
             onClick={handleAccept}
             className={cn(
-              'rounded-md p-1.5 transition-colors',
+              'rounded-full p-1.5 transition-colors',
               'text-green-600 hover:bg-green-100 dark:text-green-400 dark:hover:bg-green-900/30',
               loading === 'accept' && 'animate-pulse',
               loading !== null && 'opacity-50',
@@ -79,7 +79,7 @@ function InviteItem({ room }: { room: RoomSummary }) {
             disabled={loading !== null}
             onClick={handleReject}
             className={cn(
-              'rounded-md p-1.5 transition-colors',
+              'rounded-full p-1.5 transition-colors',
               'text-red-600 hover:bg-red-100 dark:text-red-400 dark:hover:bg-red-900/30',
               loading === 'reject' && 'animate-pulse',
               loading !== null && 'opacity-50',
@@ -142,29 +142,34 @@ export function InviteBell() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-full z-50 mt-1 w-72 rounded-lg border border-border bg-background shadow-lg">
-          <div className="border-b border-border px-3 py-2">
-            <p className="text-sm font-medium text-foreground">
+        <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
+          <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
+            <p className="text-sm font-semibold text-foreground">
               {t('invite.invitations')}
-              {invites.length > 0 && (
-                <span className="ml-1.5 text-xs text-muted-foreground">
-                  (
-                  {invites.length}
-                  )
-                </span>
-              )}
             </p>
+            {invites.length > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
+                {invites.length}
+              </span>
+            )}
           </div>
-          <div className="max-h-64 overflow-y-auto">
+          <div className="max-h-72 overflow-y-auto">
             {invites.length === 0
               ? (
-                  <p className="px-3 py-6 text-center text-sm text-muted-foreground">
-                    {t('invite.no_pending')}
-                  </p>
+                  <div className="flex flex-col items-center gap-2 px-4 py-8">
+                    <Bell className="h-8 w-8 text-muted-foreground/40" />
+                    <p className="text-sm text-muted-foreground">
+                      {t('invite.no_pending')}
+                    </p>
+                  </div>
                 )
-              : invites.map(room => (
-                  <InviteItem key={room.roomId} room={room} />
-                ))}
+              : (
+                  <div className="divide-y divide-border">
+                    {invites.map(room => (
+                      <InviteItem key={room.roomId} room={room} />
+                    ))}
+                  </div>
+                )}
           </div>
         </div>
       )}

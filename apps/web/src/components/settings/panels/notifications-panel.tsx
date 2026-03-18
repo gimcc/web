@@ -27,19 +27,19 @@ export function NotificationsPanel() {
   return (
     <div className="space-y-6">
       <div>
-        <h3 className="text-base font-medium text-foreground">{t('settings.notifications.title')}</h3>
-        <p className="mt-1 text-sm text-muted-foreground">{t('settings.notifications.description')}</p>
+        <h3 className="text-base font-medium text-foreground">{t('notifications.title')}</h3>
+        <p className="mt-1 text-sm text-muted-foreground">{t('notifications.description')}</p>
       </div>
 
       <div className="space-y-4">
         {/* Enable toggle */}
         <div className="flex items-center justify-between rounded-lg border border-border p-4">
           <div>
-            <p className="text-sm font-medium text-foreground">{t('settings.notifications.enable')}</p>
+            <p className="text-sm font-medium text-foreground">{t('notifications.enable')}</p>
             <p className="text-xs text-muted-foreground">
               {permission === 'denied'
-                ? t('settings.notifications.blocked')
-                : t('settings.notifications.enable_desc')}
+                ? t('notifications.blocked')
+                : t('notifications.enable_desc')}
             </p>
           </div>
           <button
@@ -57,14 +57,14 @@ export function NotificationsPanel() {
         {/* Status */}
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-muted-foreground">
-            {t('settings.notifications.permission')}
+            {t('notifications.permission')}
             :
             {' '}
             <span className="font-medium text-foreground">
-              {permission === 'granted' && t('settings.notifications.permission_granted')}
-              {permission === 'denied' && t('settings.notifications.permission_denied')}
-              {permission === 'default' && t('settings.notifications.permission_default')}
-              {permission === 'unsupported' && t('settings.notifications.unsupported')}
+              {permission === 'granted' && t('notifications.permission_granted')}
+              {permission === 'denied' && t('notifications.permission_denied')}
+              {permission === 'default' && t('notifications.permission_default')}
+              {permission === 'unsupported' && t('notifications.unsupported')}
             </span>
           </p>
         </div>
