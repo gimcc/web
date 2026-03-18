@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next'
 import { formatFileSize } from '../lib/format'
 import { cn } from '../lib/utils'
 import { Lightbox } from './lightbox'
+import { VoicePlayer } from './voice-player'
 
 interface MediaMessageProps {
   message: TimelineMessage
@@ -181,6 +182,23 @@ function FileMessage({ message }: MediaMessageProps) {
   )
 }
 
+function AudioMessage({ message }: MediaMessageProps) {
+  const homeserverUrl = useAuthStore(s => s.session?.homeserverUrl ?? '')
+  const audioSrc = useMemo(
+    () => getMediaUrl(message.url, homeserverUrl),
+    [message.url, homeserverUrl],
+  )
+
+  if (!audioSrc)
+    return null
+
+  return (
+    <div className="mt-1 max-w-[320px]">
+      <VoicePlayer url={audioSrc} duration={message.info?.duration} />
+    </div>
+  )
+}
+
 export function MediaMessage({ message }: MediaMessageProps) {
   const { t } = useTranslation()
 
@@ -198,6 +216,8 @@ export function MediaMessage({ message }: MediaMessageProps) {
       return <ImageMessage message={message} />
     case 'm.video':
       return <VideoMessage message={message} />
+    case 'm.audio':
+      return <AudioMessage message={message} />
     case 'm.file':
       return <FileMessage message={message} />
     default:

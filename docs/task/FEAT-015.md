@@ -1,6 +1,6 @@
 # FEAT-015 实现表情回复
 
-- **status**: in-progress
+- **status**: done
 - **priority**: P2
 - **owner**: dev
 - **createdAt**: 2026-03-16 17:30

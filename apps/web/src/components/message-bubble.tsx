@@ -1,6 +1,6 @@
 import type { TimelineMessage } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
-import { AlertCircle, Check, Loader2 } from 'lucide-react'
+import { AlertCircle, Check, Loader2, MessageSquare } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
@@ -16,6 +16,7 @@ interface MessageBubbleProps {
   onEdit?: (message: TimelineMessage) => void
   onDelete?: (message: TimelineMessage) => void
   onReply?: (message: TimelineMessage) => void
+  onThread?: (eventId: string) => void
 }
 
 function MessageStatusIcon({ status }: { status: TimelineMessage['status'] }) {
@@ -51,12 +52,12 @@ function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessage['reply
   )
 }
 
-export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete, onReply }: MessageBubbleProps) {
+export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete, onReply, onThread }: MessageBubbleProps) {
   const { t } = useTranslation()
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
   const isEmote = message.msgtype === 'm.emote'
-  const isMedia = ['m.image', 'm.video', 'm.file'].includes(message.msgtype)
+  const isMedia = ['m.image', 'm.video', 'm.file', 'm.audio'].includes(message.msgtype)
 
   const timeStr = useMemo(() => formatTime(message.timestamp), [message.timestamp])
 
@@ -75,6 +76,10 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
   const handleReply = useCallback(() => {
     onReply?.(message)
   }, [message, onReply])
+
+  const handleThread = useCallback(() => {
+    onThread?.(message.eventId)
+  }, [message.eventId, onThread])
 
   // Redacted message
   if (message.redacted) {
@@ -119,6 +124,7 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
               onEdit={isSelf && onEdit ? handleEdit : undefined}
               onDelete={isSelf && onDelete ? handleDelete : undefined}
               onReply={onReply ? handleReply : undefined}
+              onThread={onThread ? handleThread : undefined}
             />
           </div>
         )}
@@ -163,6 +169,18 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
           ? <MediaMessage message={message} />
           : <MessageContent message={message} />}
 
+        {/* Thread reply count */}
+        {message.isThreadRoot && (message.threadReplyCount ?? 0) > 0 && onThread && (
+          <button
+            type="button"
+            onClick={handleThread}
+            className="mt-1 flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            <MessageSquare className="h-3 w-3" />
+            {t('chat.thread_replies', { count: message.threadReplyCount })}
+          </button>
+        )}
+
         {/* Reactions */}
         {message.reactions && message.reactions.length > 0 && (
           <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
@@ -189,6 +207,7 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
             onEdit={isSelf && onEdit ? handleEdit : undefined}
             onDelete={isSelf && onDelete ? handleDelete : undefined}
             onReply={onReply ? handleReply : undefined}
+            onThread={onThread ? handleThread : undefined}
           />
         </div>
       )}

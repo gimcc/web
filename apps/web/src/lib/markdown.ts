@@ -34,7 +34,7 @@ const ALLOWED_TAGS = [
   'h6',
 ]
 
-const ALLOWED_ATTR = ['href', 'target', 'rel', 'class']
+const ALLOWED_ATTR = ['href', 'target', 'rel', 'class', 'data-mx-spoiler']
 
 // Prevent reverse tabnapping: force rel="noopener noreferrer" on all links
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {

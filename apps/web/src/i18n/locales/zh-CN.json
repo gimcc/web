@@ -96,7 +96,11 @@
     "loading_history": "加载历史消息...",
     "scroll_to_bottom": "滚动到底部",
     "failed_to_send": "发送失败。点击重试。",
-    "uploading": "上传中..."
+    "uploading": "上传中...",
+    "thread": "话题",
+    "thread_replies": "{{count}} 条回复",
+    "thread_empty": "暂无回复",
+    "thread_reply_placeholder": "回复话题..."
   },
   "typing": {
     "single": "{{name}} 正在输入",
@@ -140,6 +144,7 @@
       "account": "账户",
       "security": "安全",
       "encryption": "加密",
+      "notifications": "通知",
       "appearance": "外观",
       "about": "关于"
     }
@@ -249,6 +254,18 @@
   "lightbox": {
     "close": "关闭",
     "close_backdrop": "关闭灯箱"
+  },
+  "notifications": {
+    "title": "通知",
+    "description": "配置新消息通知方式。",
+    "enable": "启用通知",
+    "enable_desc": "有新消息时显示浏览器通知",
+    "blocked": "浏览器已阻止通知，请在浏览器设置中启用。",
+    "permission": "浏览器权限",
+    "permission_granted": "已允许",
+    "permission_denied": "已阻止",
+    "permission_default": "未请求",
+    "unsupported": "浏览器不支持"
   },
   "appearance": {
     "title": "外观",
@@ -367,5 +384,14 @@
     "saved": "权限保存成功",
     "error_save": "保存权限失败",
     "no_permission": "您没有权限编辑权限级别"
+  },
+  "voice": {
+    "record": "录制语音消息",
+    "cancel": "取消录制",
+    "send": "发送语音消息"
+  },
+  "pwa": {
+    "update_available": "新版本可用",
+    "reload": "更新"
   }
 }

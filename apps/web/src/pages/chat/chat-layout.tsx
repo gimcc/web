@@ -1,5 +1,5 @@
 import type { TimelineMessage } from '@matrix-web/matrix-client'
-import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore } from '@matrix-web/matrix-client'
+import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
 import { LogOut, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -10,6 +10,7 @@ import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
+import { ThreadPanel } from '../../components/thread-panel'
 import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
@@ -33,6 +34,8 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const room = rooms.get(roomId)
   const mockMode = useAuthStore(s => s.mockMode)
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
+  const activeThreadId = useThreadsStore(s => s.activeThreadId)
+  const setActiveThread = useThreadsStore(s => s.setActiveThread)
 
   const [showMembers, setShowMembers] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
@@ -49,6 +52,14 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
     setReplyingTo(message)
     setEditingMessage(null)
   }, [])
+
+  const handleOpenThread = useCallback((eventId: string) => {
+    setActiveThread(eventId)
+  }, [setActiveThread])
+
+  const handleCloseThread = useCallback(() => {
+    setActiveThread(null)
+  }, [setActiveThread])
 
   const handleLeaveRoom = useCallback(async () => {
     if (mockMode)
@@ -125,6 +136,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
           roomId={roomId}
           onEditMessage={handleEditMessage}
           onReplyMessage={handleReplyMessage}
+          onThread={handleOpenThread}
         />
 
         {/* Typing indicator */}
@@ -146,6 +158,16 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
       {/* Right panel: members or search */}
       {showMembers && <MemberListPanel roomId={roomId} onClose={() => setShowMembers(false)} />}
       {showSearch && <MessageSearch roomId={roomId} onClose={() => setShowSearch(false)} />}
+
+      {/* Thread side panel */}
+      {activeThreadId && (
+        <ThreadPanel
+          roomId={roomId}
+          threadRootId={activeThreadId}
+          onClose={handleCloseThread}
+          onReaction={() => {}}
+        />
+      )}
     </div>
   )
 }

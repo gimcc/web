@@ -1,6 +1,6 @@
 # FEAT-016 实现消息线程
 
-- **status**: pending
+- **status**: done
 - **priority**: P2
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

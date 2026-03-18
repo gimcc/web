@@ -11,7 +11,9 @@ import {
 import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RouterProvider } from 'react-router'
+import { PwaUpdatePrompt } from './components/pwa-update-prompt'
 import { useIdleDetector } from './hooks/use-idle-detector'
+import { useNotificationListener } from './hooks/use-notifications'
 import { useThemeInit } from './hooks/use-theme'
 import { LockScreen } from './pages/lock/lock-screen'
 import { ConfigProvider } from './providers/config-provider'
@@ -80,6 +82,7 @@ function AppRouterInner() {
 
   useAutoLock()
   useThemeInit()
+  useNotificationListener()
 
   useEffect(() => {
     if (!config)
@@ -134,6 +137,7 @@ export function App() {
     <QueryProvider>
       <ConfigProvider>
         <AppRouterInner />
+        <PwaUpdatePrompt />
       </ConfigProvider>
     </QueryProvider>
   )

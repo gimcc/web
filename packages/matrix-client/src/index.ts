@@ -136,10 +136,15 @@ export {
   updateRoomTopic,
 } from './services/room-service'
 export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, UserSearchResult } from './services/room-service'
-
 // Services — search
 export { searchMessages } from './services/search-service'
+
 export type { SearchResult } from './services/search-service'
+export {
+  handleThreadEvent,
+  loadThreadTimeline,
+  sendThreadMessage,
+} from './services/thread-service'
 export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,
@@ -163,6 +168,8 @@ export { usePresenceStore } from './stores/presence-store'
 export type { PresenceInfo, PresenceState, PresenceStatus } from './stores/presence-store'
 export { useRoomsStore } from './stores/rooms-store'
 export type { LastMessagePreview, RoomsState, RoomSummary } from './stores/rooms-store'
+export { useThreadsStore } from './stores/threads-store'
+export type { ThreadsState } from './stores/threads-store'
 export { useTypingStore } from './stores/typing-store'
 export type { TypingState } from './stores/typing-store'
 

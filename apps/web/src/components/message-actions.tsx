@@ -1,4 +1,4 @@
-import { CornerUpLeft, Pencil, SmilePlus, Trash2 } from 'lucide-react'
+import { CornerUpLeft, MessageSquare, Pencil, SmilePlus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EmojiPicker, QUICK_REACTIONS } from './emoji-picker'
@@ -9,9 +9,10 @@ interface MessageActionsProps {
   onEdit?: () => void
   onDelete?: () => void
   onReply?: () => void
+  onThread?: () => void
 }
 
-export function MessageActions({ onReaction, isSelf, onEdit, onDelete, onReply }: MessageActionsProps) {
+export function MessageActions({ onReaction, isSelf, onEdit, onDelete, onReply, onThread }: MessageActionsProps) {
   const { t } = useTranslation()
   const [showPicker, setShowPicker] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -110,6 +111,23 @@ export function MessageActions({ onReaction, isSelf, onEdit, onDelete, onReply }
           >
             <Trash2 className="h-3.5 w-3.5" />
           </button>
+        )}
+
+        {onThread && (
+          <>
+            <div className="mx-0.5 h-4 w-px bg-border" />
+            <button
+              type="button"
+              className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              onClick={(e) => {
+                e.stopPropagation()
+                onThread()
+              }}
+              aria-label="Reply in thread"
+            >
+              <MessageSquare className="h-4 w-4" />
+            </button>
+          </>
         )}
       </div>
 

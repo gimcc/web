@@ -15,7 +15,7 @@ import {
   useDraftsStore,
   useMessagesStore,
 } from '@matrix-web/matrix-client'
-import { CornerUpLeft, Paperclip, Pencil, Send, X } from 'lucide-react'
+import { CornerUpLeft, Mic, Paperclip, Pencil, Send, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { filterCommands, findCommand, parseCommandInput } from '../lib/commands'
@@ -23,6 +23,7 @@ import { renderMarkdown } from '../lib/markdown'
 import { CommandPanel } from './command-panel'
 import { MentionPanel } from './mention-panel'
 import { UploadPreview } from './upload-preview'
+import { VoiceRecorder } from './voice-recorder'
 
 interface MessageInputProps {
   roomId: string
@@ -53,6 +54,7 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   const [_mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [matchedMembers, setMatchedMembers] = useState<RoomMemberInfo[]>([])
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(0)
+  const [isRecording, setIsRecording] = useState(false)
 
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -472,6 +474,35 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     )
   }, [])
 
+  const handleVoiceSend = useCallback(async (blob: Blob, durationMs: number) => {
+    setIsRecording(false)
+    try {
+      const file = new File([blob], `voice-${Date.now()}.webm`, { type: blob.type })
+      if (mockMode) {
+        await uploadMockFile(roomId, file)
+      }
+      else {
+        await uploadAndSendFile({
+          roomId,
+          file,
+          msgtype: 'm.audio',
+          info: { duration: durationMs, mimetype: blob.type, size: blob.size },
+        })
+      }
+    }
+    catch {
+      setCommandError(t('chat.upload_failed'))
+    }
+  }, [roomId, mockMode, t])
+
+  const handleVoiceCancel = useCallback(() => {
+    setIsRecording(false)
+  }, [])
+
+  if (isRecording) {
+    return <VoiceRecorder onSend={(blob, dur) => void handleVoiceSend(blob, dur)} onCancel={handleVoiceCancel} />
+  }
+
   return (
     <div
       className="border-t border-border"
@@ -589,6 +620,18 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
           disabled={isSending}
           className="max-h-[200px] min-h-[36px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
         />
+
+        {/* Voice record button (shown when input is empty) */}
+        {text.trim() === '' && pendingUploads.length === 0 && (
+          <button
+            type="button"
+            onClick={() => setIsRecording(true)}
+            className="mb-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            aria-label={t('voice.record')}
+          >
+            <Mic className="h-5 w-5" />
+          </button>
+        )}
 
         {/* Send button */}
         <button
