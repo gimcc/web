@@ -66,6 +66,11 @@
   --color-sidebar-ring: oklch(0.439 0.017 285.823);
 }
 
+body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
 /* Spoiler text: hidden until clicked */
 [data-mx-spoiler] {
   background-color: currentColor;
