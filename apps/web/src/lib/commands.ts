@@ -1,4 +1,5 @@
 import { resolveUserId } from '@matrix-web/matrix-client'
+import { sanitizeHtml } from './markdown'
 
 const WHITESPACE_RE = /\s+/
 
@@ -188,6 +189,33 @@ const commands: CommandDefinition[] = [
       if (!text)
         return fail('Usage: /plain <text>')
       await ctx.sendMessage(text)
+      return ok()
+    },
+  },
+  {
+    name: '/spoiler',
+    description: 'Send a spoiler message (hidden until clicked)',
+    args: '<text>',
+    execute: async (ctx) => {
+      const text = ctx.args.trim()
+      if (!text)
+        return fail('Usage: /spoiler <text>')
+      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      const formattedBody = `<span data-mx-spoiler>${escaped}</span>`
+      await ctx.sendMessage(text, { formattedBody })
+      return ok()
+    },
+  },
+  {
+    name: '/html',
+    description: 'Send a message with raw HTML formatting',
+    args: '<html>',
+    execute: async (ctx) => {
+      const text = ctx.args.trim()
+      if (!text)
+        return fail('Usage: /html <html>')
+      const safeHtml = sanitizeHtml(text)
+      await ctx.sendMessage(text, { formattedBody: safeHtml })
       return ok()
     },
   },

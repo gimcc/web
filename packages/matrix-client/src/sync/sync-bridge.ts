@@ -2,8 +2,10 @@ import type { MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
 import { ClientEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
 import { matrixEventToTimelineMessage } from '../services/message-service'
+import { handleThreadEvent } from '../services/thread-service'
 import { useMessagesStore } from '../stores/messages-store'
 import { useRoomsStore } from '../stores/rooms-store'
+import { useThreadsStore } from '../stores/threads-store'
 
 export type QueryInvalidationCallback = (event: string, roomId?: string) => void
 
@@ -40,6 +42,19 @@ export function createSyncBridge(
             edited: true,
             editedAt: event.getTs(),
           })
+        }
+      }
+      // Handle thread messages
+      else if (relatesTo?.rel_type === 'm.thread' && relatesTo.event_id) {
+        const threadRootId = relatesTo.event_id as string
+        const message = matrixEventToTimelineMessage(event, client)
+        message.threadRootId = threadRootId
+        const existing = useThreadsStore.getState().threads.get(threadRootId)
+        const isEcho = existing?.some(m => m.eventId === message.eventId)
+        useThreadsStore.getState().appendThreadMessage(threadRootId, message)
+        // Only increment reply count if this is a genuinely new message (not an echo of our optimistic send)
+        if (!isEcho) {
+          handleThreadEvent(room.roomId, threadRootId)
         }
       }
       else {

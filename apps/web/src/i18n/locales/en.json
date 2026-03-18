@@ -96,7 +96,11 @@
     "loading_history": "Loading history...",
     "scroll_to_bottom": "Scroll to bottom",
     "failed_to_send": "Failed to send. Click to retry.",
-    "uploading": "Uploading..."
+    "uploading": "Uploading...",
+    "thread": "Thread",
+    "thread_replies": "{{count}} replies",
+    "thread_empty": "No replies yet",
+    "thread_reply_placeholder": "Reply in thread..."
   },
   "typing": {
     "single": "{{name}} is typing",
@@ -140,6 +144,7 @@
       "account": "Account",
       "security": "Security",
       "encryption": "Encryption",
+      "notifications": "Notifications",
       "appearance": "Appearance",
       "about": "About"
     }
@@ -249,6 +254,18 @@
   "lightbox": {
     "close": "Close",
     "close_backdrop": "Close lightbox"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "description": "Configure how you receive notifications for new messages.",
+    "enable": "Enable Notifications",
+    "enable_desc": "Show browser notifications for new messages",
+    "blocked": "Notifications are blocked by the browser. Enable in browser settings.",
+    "permission": "Browser permission",
+    "permission_granted": "Allowed",
+    "permission_denied": "Blocked",
+    "permission_default": "Not yet requested",
+    "unsupported": "Not supported by browser"
   },
   "appearance": {
     "title": "Appearance",
@@ -367,5 +384,14 @@
     "saved": "Permissions saved successfully",
     "error_save": "Failed to save permissions",
     "no_permission": "You do not have permission to edit power levels"
+  },
+  "voice": {
+    "record": "Record voice message",
+    "cancel": "Cancel recording",
+    "send": "Send voice message"
+  },
+  "pwa": {
+    "update_available": "A new version is available",
+    "reload": "Update"
   }
 }

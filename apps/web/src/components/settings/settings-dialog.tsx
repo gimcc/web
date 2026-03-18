@@ -6,9 +6,10 @@ import { AboutPanel } from './panels/about-panel'
 import { AccountPanel } from './panels/account-panel'
 import { AppearancePanel } from './panels/appearance-panel'
 import { EncryptionPanel } from './panels/encryption-panel'
+import { NotificationsPanel } from './panels/notifications-panel'
 import { SecurityPanel } from './panels/security-panel'
 
-type SettingsTab = 'account' | 'security' | 'encryption' | 'appearance' | 'about'
+type SettingsTab = 'account' | 'security' | 'encryption' | 'notifications' | 'appearance' | 'about'
 
 interface SettingsDialogProps {
   open: boolean
@@ -23,6 +24,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     { id: 'account', label: t('settings.tab.account') },
     { id: 'security', label: t('settings.tab.security') },
     { id: 'encryption', label: t('settings.tab.encryption') },
+    { id: 'notifications', label: t('settings.tab.notifications') },
     { id: 'appearance', label: t('settings.tab.appearance') },
     { id: 'about', label: t('settings.tab.about') },
   ]
@@ -100,6 +102,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             {activeTab === 'account' && <AccountPanel />}
             {activeTab === 'security' && <SecurityPanel />}
             {activeTab === 'encryption' && <EncryptionPanel />}
+            {activeTab === 'notifications' && <NotificationsPanel />}
             {activeTab === 'appearance' && <AppearancePanel />}
             {activeTab === 'about' && <AboutPanel />}
           </div>

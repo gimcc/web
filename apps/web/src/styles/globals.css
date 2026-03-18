@@ -66,6 +66,23 @@
   --color-sidebar-ring: oklch(0.439 0.017 285.823);
 }
 
+/* Spoiler text: hidden until clicked */
+[data-mx-spoiler] {
+  background-color: currentColor;
+  color: transparent;
+  cursor: pointer;
+  border-radius: 2px;
+  padding: 0 2px;
+  transition: background-color 0.2s, color 0.2s;
+  user-select: none;
+}
+
+[data-mx-spoiler].revealed {
+  background-color: var(--color-muted);
+  color: var(--color-foreground);
+  user-select: auto;
+}
+
 @keyframes bounce-dot {
   0%, 80%, 100% {
     transform: translateY(0);

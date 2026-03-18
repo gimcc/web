@@ -33,6 +33,46 @@
 - Updated components: `message-bubble`, `message-actions`, `message-input`, `message-timeline`, `chat-layout`, `sidebar`
 - i18n: added `message`, `room`, `member`, `ux` namespaces to en.json and zh-CN.json
 
+## 2026-03-18 [FEAT-016, FEAT-017, FEAT-019, FEAT-020, FEAT-021]
+
+**FEAT-019 扩展命令：**
+- 新增 `/spoiler` 命令：发送剧透消息（`data-mx-spoiler` 属性），点击可显示
+- 新增 `/html` 命令：发送原始 HTML 格式消息
+- `markdown.ts` 允许 `data-mx-spoiler` 属性通过 DOMPurify 白名单
+- `globals.css` 新增 spoiler 样式（隐藏文本 + 点击显示过渡动画）
+- `message-content.tsx` 新增点击事件处理 spoiler 切换
+
+**FEAT-020 PWA 与离线支持：**
+- 新增 `vite-plugin-pwa` 配置（`registerType: 'prompt'`）
+- 生成 `manifest.json`（standalone 模式、主题色、图标）
+- 配置 Workbox：静态资源预缓存、Matrix API NetworkFirst 策略、媒体 CacheFirst 策略
+- 新增 `pwa-update-prompt.tsx`：检测新版本并提示更新
+- `index.html` 新增 PWA meta 标签和图标链接
+- 新增 placeholder PWA 图标（192px / 512px）
+
+**FEAT-021 推送通知：**
+- 新增 `notifications.ts`：通知权限管理、通知设置持久化（zustand/persist）、新消息浏览器通知
+- 新增 `use-notifications.ts` hook：订阅消息 store，对新消息触发通知（排除自己的消息和当前活跃房间）
+- 新增设置面板 Notifications Tab：启用/禁用开关、权限状态显示
+- 支持按房间静音配置
+
+**FEAT-016 消息线程：**
+- `TimelineMessage` 新增 `threadRootId`、`threadReplyCount`、`isThreadRoot` 字段
+- 新增 `threads-store.ts`：管理线程消息时间线和当前活跃线程
+- 新增 `thread-service.ts`：发送线程消息（`m.thread` relation）、加载线程时间线、更新回复计数
+- `sync-bridge.ts` 识别 `m.thread` 关系，分流线程消息到 threads store
+- `message-actions.tsx` 新增"Reply in thread"按钮
+- `message-bubble.tsx` 显示线程回复计数指示器
+- 新增 `thread-panel.tsx`：线程侧边面板（消息列表 + 回复输入框）
+- `chat-layout.tsx` 集成线程面板
+
+**FEAT-017 语音消息录制与播放：**
+- 新增 `voice-recorder.tsx`：MediaRecorder API 录制（Opus/WebM）、实时波形可视化（Web Audio AnalyserNode）、时长显示、录制/取消/发送控制
+- 新增 `voice-player.tsx`：音频播放/暂停、进度条（可点击跳转）、时长显示
+- `message-input.tsx` 新增麦克风按钮（输入为空时显示），切换录制模式
+- `media-message.tsx` 新增 `m.audio` 类型支持，渲染 VoicePlayer
+- `upload-service.ts` 新增 `msgtype` 和 `info` 覆盖参数（支持 duration 等音频元数据）
+
 ## 2026-03-17 [FEAT-024, FEAT-025]
 
 **FEAT-024 i18n 国际化支持：**

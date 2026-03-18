@@ -23,6 +23,8 @@ export interface UploadOptions {
   roomId: string
   file: File
   caption?: string
+  msgtype?: string
+  info?: Record<string, unknown>
   onProgress?: (loaded: number, total: number) => void
 }
 
@@ -32,12 +34,12 @@ export interface UploadResult {
 }
 
 export async function uploadAndSendFile(options: UploadOptions): Promise<UploadResult> {
-  const { roomId, file, caption, onProgress } = options
+  const { roomId, file, caption, onProgress, msgtype: msgtypeOverride, info: infoOverride } = options
   const client = getMatrixClient()
   if (!client)
     throw new Error('Matrix client not initialized')
 
-  const msgtype = detectMsgtype(file.type)
+  const msgtype = msgtypeOverride ?? detectMsgtype(file.type)
   const tempEventId = generateTempEventId()
   const userId = client.getUserId() ?? ''
   const room = client.getRoom(roomId)
@@ -59,6 +61,7 @@ export async function uploadAndSendFile(options: UploadOptions): Promise<UploadR
     info: {
       size: file.size,
       mimetype: file.type,
+      ...infoOverride,
     },
     filename: file.name,
   }
@@ -99,6 +102,7 @@ export async function uploadAndSendFile(options: UploadOptions): Promise<UploadR
         size: file.size,
         mimetype: file.type,
         ...(optimistic.info?.w ? { w: optimistic.info.w, h: optimistic.info.h } : {}),
+        ...infoOverride,
       },
     }
 

@@ -1,6 +1,6 @@
 # FEAT-019 扩展命令（/spoiler, /html 等）
 
-- **status**: pending
+- **status**: done
 - **priority**: P2
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

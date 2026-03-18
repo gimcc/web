@@ -118,6 +118,11 @@ export {
 export type { PowerLevels } from './services/permission-service'
 export type { PresenceService } from './services/presence-service'
 export {
+  handleThreadEvent,
+  loadThreadTimeline,
+  sendThreadMessage,
+} from './services/thread-service'
+export {
   redactReaction,
   sendReaction,
   toggleReaction,
@@ -159,6 +164,8 @@ export { useLockStore } from './stores/lock-store'
 export type { LockState } from './stores/lock-store'
 export { useMessagesStore } from './stores/messages-store'
 export type { MessagesState, MessageStatus, Reaction, ReplyTo, TimelineMessage } from './stores/messages-store'
+export { useThreadsStore } from './stores/threads-store'
+export type { ThreadsState } from './stores/threads-store'
 export { usePresenceStore } from './stores/presence-store'
 export type { PresenceInfo, PresenceState, PresenceStatus } from './stores/presence-store'
 export { useRoomsStore } from './stores/rooms-store'

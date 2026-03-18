@@ -41,6 +41,7 @@ export interface TimelineMessage {
     h?: number
     size?: number
     mimetype?: string
+    duration?: number
     thumbnail_url?: string
     thumbnail_info?: {
       w?: number
@@ -50,6 +51,10 @@ export interface TimelineMessage {
     }
   }
   filename?: string
+  // Thread fields
+  threadRootId?: string
+  threadReplyCount?: number
+  isThreadRoot?: boolean
 }
 
 export interface MessagesState {

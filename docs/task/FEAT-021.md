@@ -1,6 +1,6 @@
 # FEAT-021 实现推送通知
 
-- **status**: pending
+- **status**: done
 - **priority**: P2
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

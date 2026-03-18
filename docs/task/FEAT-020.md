@@ -1,6 +1,6 @@
 # FEAT-020 实现 PWA 与离线支持
 
-- **status**: pending
+- **status**: done
 - **priority**: P2
 - **owner**: (未分配)
 - **createdAt**: 2026-03-16 17:30

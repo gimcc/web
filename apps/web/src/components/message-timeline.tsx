@@ -22,9 +22,10 @@ interface MessageTimelineProps {
   roomId: string
   onEditMessage?: (message: TimelineMessage) => void
   onReplyMessage?: (message: TimelineMessage) => void
+  onThread?: (eventId: string) => void
 }
 
-export function MessageTimeline({ roomId, onEditMessage, onReplyMessage }: MessageTimelineProps) {
+export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread }: MessageTimelineProps) {
   const { t } = useTranslation()
   const messages = useMessagesStore(s => s.timelines.get(roomId) ?? EMPTY_TIMELINE)
   const hasMore = useMessagesStore(s => s.hasMore.get(roomId) ?? false)
@@ -165,6 +166,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage }: Messa
                   onEdit={onEditMessage}
                   onDelete={handleDelete}
                   onReply={onReplyMessage}
+                  onThread={onThread}
                 />
               </div>
             )
