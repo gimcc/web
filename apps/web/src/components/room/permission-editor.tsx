@@ -1,3 +1,4 @@
+import type { PowerLevels, RoomMemberInfo } from '@matrix-web/matrix-client'
 import {
   getMatrixClient,
   getMyPowerLevel,
@@ -6,7 +7,6 @@ import {
   setUserPowerLevel,
   updatePowerLevels,
 } from '@matrix-web/matrix-client'
-import type { PowerLevels, RoomMemberInfo } from '@matrix-web/matrix-client'
 import { Crown, Save, Shield, User } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -37,15 +37,11 @@ const POWER_LEVEL_PRESETS = [
 ]
 
 function roleIcon(level: number) {
-  if (level >= 100) return <Crown className="h-4 w-4 text-amber-500" />
-  if (level >= 50) return <Shield className="h-4 w-4 text-blue-500" />
+  if (level >= 100)
+    return <Crown className="h-4 w-4 text-amber-500" />
+  if (level >= 50)
+    return <Shield className="h-4 w-4 text-blue-500" />
   return <User className="h-4 w-4 text-muted-foreground" />
-}
-
-function roleName(level: number, t: (key: string) => string): string {
-  if (level >= 100) return t('member.role_admin')
-  if (level >= 50) return t('member.role_moderator')
-  return t('member.role_member')
 }
 
 export function PermissionEditor({ roomId }: PermissionEditorProps) {
@@ -61,7 +57,8 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
 
   useEffect(() => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     const pl = getRoomPowerLevels(client, roomId)
     setPowerLevels(pl)
@@ -89,7 +86,8 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
 
   const handleSave = useCallback(async () => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     setIsSaving(true)
     setError(null)
@@ -122,15 +120,18 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
     }
   }, [editedLevels, userChanges, roomId, t])
 
-  if (!powerLevels) return null
+  if (!powerLevels)
+    return null
 
   const currentActionValue = (key: keyof PowerLevels) => {
-    if (key in editedLevels) return (editedLevels as any)[key] as number
+    if (key in editedLevels)
+      return (editedLevels as any)[key] as number
     return powerLevels[key] as number
   }
 
   const currentUserPower = (userId: string) => {
-    if (userId in userChanges) return userChanges[userId]!
+    if (userId in userChanges)
+      return userChanges[userId]!
     return powerLevels.users[userId] ?? powerLevels.usersDefault
   }
 
@@ -151,7 +152,7 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
               >
                 {POWER_LEVEL_PRESETS.map(preset => (
                   <option key={preset.value} value={preset.value}>
-                    {t(preset.labelKey)} ({preset.value})
+                    {`${t(preset.labelKey)} (${preset.value})`}
                   </option>
                 ))}
               </select>
@@ -177,9 +178,9 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
                 disabled={!canEdit || currentUserPower(member.userId) >= myPower}
                 className="rounded-md border border-input bg-background px-2 py-1 text-xs text-foreground disabled:opacity-50"
               >
-                <option value={0}>{t('member.role_member')} (0)</option>
-                <option value={50}>{t('member.role_moderator')} (50)</option>
-                <option value={100}>{t('member.role_admin')} (100)</option>
+                <option value={0}>{`${t('member.role_member')} (0)`}</option>
+                <option value={50}>{`${t('member.role_moderator')} (50)`}</option>
+                <option value={100}>{`${t('member.role_admin')} (100)`}</option>
               </select>
             </div>
           ))}
@@ -202,7 +203,7 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
           className="w-full gap-2"
         >
           <Save className="h-4 w-4" />
-          {isSaving ? t('common.save') + '...' : t('permission.save_permissions')}
+          {isSaving ? `${t('common.save')}...` : t('permission.save_permissions')}
         </Button>
       )}
 

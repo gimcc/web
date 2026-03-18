@@ -146,7 +146,7 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
             {canEdit && (
               <div className="border-t border-border px-4 py-3">
                 <Button onClick={handleSave} disabled={isSaving || !name.trim()} className="w-full">
-                  {isSaving ? t('common.save') + '...' : t('common.save')}
+                  {isSaving ? `${t('common.save')}...` : t('common.save')}
                 </Button>
               </div>
             )}

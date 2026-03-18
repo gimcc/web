@@ -66,7 +66,10 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
         })
         .catch(() => {})
     }, 300)
-    return () => { cancelled = true; clearTimeout(timer) }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [showInvite, inviteQuery])
 
   const filtered = useMemo(() => {
@@ -76,9 +79,11 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
       list = list.filter(m => m.displayName.toLowerCase().includes(q) || m.userId.toLowerCase().includes(q))
     }
     if (sortMode === 'role') {
+      // eslint-disable-next-line e18e/prefer-array-to-sorted -- mutating a copy is fine here
       list = [...list].sort((a, b) => b.powerLevel - a.powerLevel || a.displayName.localeCompare(b.displayName))
     }
     else {
+      // eslint-disable-next-line e18e/prefer-array-to-sorted -- mutating a copy is fine here
       list = [...list].sort((a, b) => a.displayName.localeCompare(b.displayName))
     }
     return list
@@ -165,7 +170,7 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
     return (
       <div key={label}>
         <p className="px-3 py-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-          {label} — {members.length}
+          {`${label} — ${members.length}`}
         </p>
         {members.map(renderMember)}
       </div>
@@ -175,7 +180,7 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   return (
     <div className="flex h-full w-64 flex-col border-l border-border bg-background">
       <div className="flex items-center justify-between border-b border-border px-3 py-2">
-        <h3 className="text-sm font-semibold text-foreground">{t('member.title')} ({members.length})</h3>
+        <h3 className="text-sm font-semibold text-foreground">{`${t('member.title')} (${members.length})`}</h3>
         <button type="button" onClick={onClose} className="rounded p-1 text-muted-foreground hover:text-foreground">
           <X className="h-4 w-4" />
         </button>

@@ -1,6 +1,6 @@
+import type { RoomMemberInfo, TimelineMessage } from '@matrix-web/matrix-client'
 import type { CommandDefinition } from '../lib/commands'
 import type { PendingUpload } from './upload-preview'
-import type { RoomMemberInfo, TimelineMessage } from '@matrix-web/matrix-client'
 import {
   editMessage,
   getMatrixClient,
@@ -32,6 +32,8 @@ interface MessageInputProps {
   onCancelReply?: () => void
 }
 
+const RE_MENTION = /(^|\s)@(\S*)$/
+
 let uploadIdCounter = 0
 
 export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit, onCancelReply }: MessageInputProps) {
@@ -48,7 +50,7 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([])
   const [matchedCommands, setMatchedCommands] = useState<CommandDefinition[]>([])
   const [selectedCommandIndex, setSelectedCommandIndex] = useState(0)
-  const [mentionQuery, setMentionQuery] = useState<string | null>(null)
+  const [_mentionQuery, setMentionQuery] = useState<string | null>(null)
   const [matchedMembers, setMatchedMembers] = useState<RoomMemberInfo[]>([])
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(0)
 
@@ -61,7 +63,8 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   // Cache room members for mention autocomplete
   const roomMembers = useMemo(() => {
     const client = getMatrixClient()
-    if (!client) return []
+    if (!client)
+      return []
     return getRoomMembers(client, roomId)
   }, [roomId])
 
@@ -136,7 +139,7 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     // Mention autocomplete: detect @query at cursor position
     const pos = cursorPos ?? value.length
     const textBefore = value.slice(0, pos)
-    const mentionMatch = textBefore.match(/(^|\s)@(\S*)$/)
+    const mentionMatch = textBefore.match(RE_MENTION)
 
     if (mentionMatch) {
       const query = mentionMatch[2]!.toLowerCase()
@@ -293,8 +296,9 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     const el = textareaRef.current
     const pos = el?.selectionStart ?? text.length
     const textBefore = text.slice(0, pos)
-    const mentionMatch = textBefore.match(/(^|\s)@(\S*)$/)
-    if (!mentionMatch) return
+    const mentionMatch = textBefore.match(RE_MENTION)
+    if (!mentionMatch)
+      return
 
     const matchStart = textBefore.length - mentionMatch[0]!.length + mentionMatch[1]!.length
     const before = text.slice(0, matchStart)
@@ -498,7 +502,10 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
           </span>
           <button
             type="button"
-            onClick={() => { onCancelEdit?.(); setText('') }}
+            onClick={() => {
+              onCancelEdit?.()
+              setText('')
+            }}
             className="rounded p-0.5 text-muted-foreground hover:text-foreground"
           >
             <X className="h-4 w-4" />

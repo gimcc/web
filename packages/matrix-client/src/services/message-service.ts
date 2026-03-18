@@ -4,9 +4,16 @@ import { Direction, EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useMessagesStore } from '../stores/messages-store'
 
+const RE_AMP = /&/g
+const RE_LT = /</g
+const RE_GT = />/g
+const RE_QUOT = /"/g
+
 function escapeHtml(str: string): string {
-  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+  return str.replace(RE_AMP, '&amp;').replace(RE_LT, '&lt;').replace(RE_GT, '&gt;').replace(RE_QUOT, '&quot;')
 }
+
+const RE_MX_REPLY = /<mx-reply>[\s\S]*?<\/mx-reply>/i
 
 let tempIdCounter = 0
 
@@ -60,7 +67,7 @@ export function matrixEventToTimelineMessage(event: MatrixEvent, client: MatrixC
     }
   }
   if (formattedBody && replyTo) {
-    formattedBody = formattedBody.replace(/<mx-reply>[\s\S]*?<\/mx-reply>/i, '').trim()
+    formattedBody = formattedBody.replace(RE_MX_REPLY, '').trim()
   }
 
   return {

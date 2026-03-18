@@ -105,13 +105,23 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage }: Messa
     }
   }, [roomId, mockMode])
 
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+
   const handleDelete = useCallback((message: TimelineMessage) => {
     if (mockMode)
       return
-    if (!window.confirm(t('message.confirm_delete')))
-      return
-    void deleteMessage(roomId, message.eventId)
-  }, [roomId, mockMode, t])
+    if (pendingDelete === message.eventId) {
+      // Second click confirms
+      void deleteMessage(roomId, message.eventId)
+      setPendingDelete(null)
+    }
+    else {
+      // First click sets pending
+      setPendingDelete(message.eventId)
+      // Auto-clear after 3 seconds
+      setTimeout(setPendingDelete, 3000, null)
+    }
+  }, [roomId, mockMode, pendingDelete])
 
   if (messages.length === 0) {
     return (

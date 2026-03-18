@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Input } from '../ui/input'
 
+const RE_SPECIAL_CHARS = /[.*+?^${}()|[\]\\]/g
+
 interface MessageSearchProps {
   roomId: string
   onClose: () => void
@@ -49,13 +51,16 @@ export function MessageSearch({ roomId, onClose }: MessageSearchProps) {
         })
     }, 300)
 
-    return () => { cancelled = true; clearTimeout(timer) }
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [query, roomId])
 
   const highlight = useCallback((text: string) => {
     if (!query.trim())
       return text
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi')
+    const regex = new RegExp(`(${query.replace(RE_SPECIAL_CHARS, '\\$&')})`, 'gi')
     const parts = text.split(regex)
     return parts.map((part, i) =>
       regex.test(part)

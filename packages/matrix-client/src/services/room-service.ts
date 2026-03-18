@@ -189,7 +189,9 @@ export async function leaveRoom(
 ): Promise<void> {
   await client.leave(roomId)
   if (forget) {
-    try { await client.forget(roomId) }
+    try {
+      await client.forget(roomId)
+    }
     catch { /* ignore */ }
   }
 }

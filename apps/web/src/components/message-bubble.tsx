@@ -151,7 +151,7 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
           <span className="text-xs text-muted-foreground">{timeStr}</span>
           {isSelf && <MessageStatusIcon status={message.status} />}
           {message.edited && (
-            <span className="text-xs text-muted-foreground">({t('message.edited')})</span>
+            <span className="text-xs text-muted-foreground">{`(${t('message.edited')})`}</span>
           )}
         </div>
 

@@ -4,12 +4,12 @@ import { LogOut, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MessageSearch } from '../../components/chat/message-search'
+import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { MemberListPanel } from '../../components/members/member-list-panel'
 import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
-import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
@@ -79,7 +79,10 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
           <div className="ml-auto flex items-center gap-1">
             <button
               type="button"
-              onClick={() => { setShowSearch(v => !v); setShowMembers(false) }}
+              onClick={() => {
+                setShowSearch(v => !v)
+                setShowMembers(false)
+              }}
               className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
               aria-label={t('ux.search')}
             >
@@ -87,7 +90,10 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
             </button>
             <button
               type="button"
-              onClick={() => { setShowMembers(v => !v); setShowSearch(false) }}
+              onClick={() => {
+                setShowMembers(v => !v)
+                setShowSearch(false)
+              }}
               className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
               aria-label={t('member.title')}
             >
