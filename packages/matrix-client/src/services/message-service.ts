@@ -1,5 +1,5 @@
 import type { MatrixClient, MatrixEvent } from 'matrix-js-sdk'
-import type { Reaction, TimelineMessage } from '../stores/messages-store'
+import type { Reaction, ReplyTo, TimelineMessage } from '../stores/messages-store'
 import { Direction, EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useMessagesStore } from '../stores/messages-store'
@@ -16,21 +16,67 @@ export function matrixEventToTimelineMessage(event: MatrixEvent, client: MatrixC
   const room = client.getRoom(event.getRoomId() ?? '')
   const member = room?.getMember(sender)
 
+  // Handle edited messages (m.new_content)
+  const effectiveContent = content['m.new_content'] ?? content
+  const isEdited = !!content['m.new_content']
+
+  // Parse reply-to
+  let replyTo: ReplyTo | undefined
+  const inReplyTo = content['m.relates_to']?.['m.in_reply_to']
+  if (inReplyTo?.event_id && room) {
+    const replyEvent = room.findEventById(inReplyTo.event_id)
+    if (replyEvent) {
+      const replySender = replyEvent.getSender() ?? ''
+      const replyMember = room.getMember(replySender)
+      replyTo = {
+        eventId: inReplyTo.event_id,
+        senderId: replySender,
+        senderName: replyMember?.name ?? replySender,
+        body: replyEvent.getContent()?.body ?? '',
+      }
+    }
+    else {
+      replyTo = {
+        eventId: inReplyTo.event_id,
+        senderId: '',
+        senderName: '',
+        body: '',
+      }
+    }
+  }
+
+  // Strip reply fallback from body
+  let body = effectiveContent.body ?? ''
+  let formattedBody = effectiveContent.formatted_body
+  if (replyTo && body.startsWith('> ')) {
+    const lines = body.split('\n')
+    const nonQuoteIdx = lines.findIndex((l: string) => !l.startsWith('> ') && l !== '')
+    if (nonQuoteIdx > 0) {
+      body = lines.slice(nonQuoteIdx).join('\n').trim()
+    }
+  }
+  if (formattedBody && replyTo) {
+    formattedBody = formattedBody.replace(/<mx-reply>[\s\S]*?<\/mx-reply>/i, '').trim()
+  }
+
   return {
     eventId: event.getId() ?? '',
     roomId: event.getRoomId() ?? '',
     senderId: sender,
     senderName: member?.name ?? sender,
     type: event.getType(),
-    msgtype: content.msgtype ?? '',
-    body: content.body ?? '',
-    formattedBody: content.formatted_body,
+    msgtype: effectiveContent.msgtype ?? '',
+    body,
+    formattedBody: formattedBody || undefined,
     timestamp: event.getTs(),
     status: 'sent',
-    url: content.url,
-    thumbnailUrl: content.info?.thumbnail_url,
-    info: content.info,
-    filename: content.filename ?? content.body,
+    edited: isEdited,
+    redacted: event.isRedacted(),
+    replyTo,
+    url: effectiveContent.url,
+    thumbnailUrl: effectiveContent.info?.thumbnail_url,
+    info: effectiveContent.info,
+    filename: effectiveContent.filename ?? effectiveContent.body,
   }
 }
 
@@ -123,6 +169,114 @@ export async function sendTextMessage(
       ...(options?.formattedBody
         ? { format: 'org.matrix.custom.html', formatted_body: options.formattedBody }
         : {}),
+    }
+
+    const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+    useMessagesStore.getState().confirmMessage(roomId, tempEventId, response.event_id)
+  }
+  catch {
+    useMessagesStore.getState().failMessage(roomId, tempEventId)
+  }
+}
+
+export async function editMessage(
+  roomId: string,
+  eventId: string,
+  newBody: string,
+  options?: { formattedBody?: string },
+): Promise<void> {
+  const client = getMatrixClient()
+  if (!client)
+    throw new Error('Matrix client not initialized')
+
+  const content: Record<string, unknown> = {
+    'msgtype': 'm.text',
+    'body': `* ${newBody}`,
+    'm.new_content': {
+      msgtype: 'm.text',
+      body: newBody,
+      ...(options?.formattedBody
+        ? { format: 'org.matrix.custom.html', formatted_body: options.formattedBody }
+        : {}),
+    },
+    'm.relates_to': {
+      rel_type: 'm.replace',
+      event_id: eventId,
+    },
+  }
+
+  await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+  useMessagesStore.getState().updateMessage(roomId, eventId, {
+    body: newBody,
+    formattedBody: options?.formattedBody,
+    edited: true,
+    editedAt: Date.now(),
+  })
+}
+
+export async function deleteMessage(
+  roomId: string,
+  eventId: string,
+): Promise<void> {
+  const client = getMatrixClient()
+  if (!client)
+    throw new Error('Matrix client not initialized')
+
+  await client.redactEvent(roomId, eventId)
+  useMessagesStore.getState().redactMessage(roomId, eventId)
+}
+
+export async function sendReply(
+  roomId: string,
+  replyToEventId: string,
+  replyToSender: string,
+  replyToBody: string,
+  body: string,
+  options?: { formattedBody?: string },
+): Promise<void> {
+  const client = getMatrixClient()
+  if (!client)
+    throw new Error('Matrix client not initialized')
+
+  const tempEventId = generateTempEventId()
+  const userId = client.getUserId() ?? ''
+  const room = client.getRoom(roomId)
+  const member = room?.getMember(userId)
+
+  const optimistic: TimelineMessage = {
+    eventId: tempEventId,
+    roomId,
+    senderId: userId,
+    senderName: member?.name ?? userId,
+    type: 'm.room.message',
+    msgtype: 'm.text',
+    body,
+    formattedBody: options?.formattedBody,
+    timestamp: Date.now(),
+    status: 'sending',
+    replyTo: {
+      eventId: replyToEventId,
+      senderId: replyToSender,
+      senderName: replyToSender,
+      body: replyToBody,
+    },
+  }
+
+  useMessagesStore.getState().addOptimisticMessage(optimistic)
+
+  try {
+    const fallbackHtml = `<mx-reply><blockquote><a href="https://matrix.to/#/${roomId}/${replyToEventId}">In reply to</a> <a href="https://matrix.to/#/${replyToSender}">${replyToSender}</a><br/>${replyToBody}</blockquote></mx-reply>${options?.formattedBody ?? body}`
+
+    const content: Record<string, unknown> = {
+      'msgtype': 'm.text',
+      'body': `> <${replyToSender}> ${replyToBody}\n\n${body}`,
+      'format': 'org.matrix.custom.html',
+      'formatted_body': fallbackHtml,
+      'm.relates_to': {
+        'm.in_reply_to': {
+          event_id: replyToEventId,
+        },
+      },
     }
 
     const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)

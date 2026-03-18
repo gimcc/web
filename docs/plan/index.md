@@ -39,3 +39,4 @@
 - [-] [**PLAN-008 Phase 5 — Emoji Reactions (FEAT-015)**](PLAN-008.md) `2026-03-17`
 - [x] [**PLAN-009 邀请通知系统**](PLAN-009.md) `2026-03-17`
 - [x] [**PLAN-010 i18n internationalization and custom theme system**](PLAN-010.md) `2026-03-17`
+- [-] [**PLAN-011 Phase 7-8: Core Chat Completion & UX Enhancements**](PLAN-011.md) `2026-03-18`

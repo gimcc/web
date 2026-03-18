@@ -76,10 +76,13 @@ export {
 
 // Services — messages
 export {
+  deleteMessage,
+  editMessage,
   loadInitialTimeline,
   loadRoomHistory,
   matrixEventToTimelineMessage,
   resendMessage,
+  sendReply,
   sendTextMessage,
 } from './services/message-service'
 export {
@@ -104,11 +107,40 @@ export {
 export {
   createDmRoom,
   createGroupRoom,
+  createRoom,
   extractNewRoomSummary,
   getKnownUsers,
+  joinRoom,
+  leaveRoom,
+  searchPublicRooms,
   searchUsers,
+  updateRoomName,
+  updateRoomTopic,
 } from './services/room-service'
-export type { CreateDmOptions, CreateGroupOptions, KnownUser, UserSearchResult } from './services/room-service'
+export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, UserSearchResult } from './services/room-service'
+
+// Services — members
+export {
+  banUser,
+  getMyPowerLevel,
+  getRoomMembers,
+  inviteUser,
+  kickUser,
+  unbanUser,
+} from './services/member-service'
+export type { RoomMemberInfo } from './services/member-service'
+
+// Services — search
+export { searchMessages } from './services/search-service'
+export type { SearchResult } from './services/search-service'
+
+// Services — permissions
+export {
+  getRoomPowerLevels,
+  setUserPowerLevel,
+  updatePowerLevels,
+} from './services/permission-service'
+export type { PowerLevels } from './services/permission-service'
 export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,
@@ -124,8 +156,10 @@ export { useCryptoStore } from './stores/crypto-store'
 export type { CryptoState, KeyBackupProgress } from './stores/crypto-store'
 export { useLockStore } from './stores/lock-store'
 export type { LockState } from './stores/lock-store'
+export { useDraftsStore } from './stores/drafts-store'
+export type { DraftsState } from './stores/drafts-store'
 export { useMessagesStore } from './stores/messages-store'
-export type { MessagesState, MessageStatus, Reaction, TimelineMessage } from './stores/messages-store'
+export type { MessagesState, MessageStatus, Reaction, ReplyTo, TimelineMessage } from './stores/messages-store'
 export { usePresenceStore } from './stores/presence-store'
 export type { PresenceInfo, PresenceState, PresenceStatus } from './stores/presence-store'
 export { useRoomsStore } from './stores/rooms-store'

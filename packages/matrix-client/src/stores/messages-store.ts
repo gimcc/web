@@ -9,6 +9,13 @@ export interface Reaction {
   eventIds?: Record<string, string>
 }
 
+export interface ReplyTo {
+  eventId: string
+  senderId: string
+  senderName: string
+  body: string
+}
+
 export interface TimelineMessage {
   eventId: string
   roomId: string
@@ -21,6 +28,11 @@ export interface TimelineMessage {
   timestamp: number
   status: MessageStatus
   reactions?: Reaction[]
+  // Edit/delete/reply fields
+  edited?: boolean
+  editedAt?: number
+  redacted?: boolean
+  replyTo?: ReplyTo
   // Media fields
   url?: string
   thumbnailUrl?: string
@@ -59,6 +71,8 @@ export interface MessagesState {
   updateReactionEventId: (roomId: string, targetEventId: string, emoji: string, senderId: string, reactionEventId: string) => void
   removeReaction: (roomId: string, targetEventId: string, emoji: string, senderId: string) => void
   removeReactionByEventId: (roomId: string, reactionEventId: string) => void
+  updateMessage: (roomId: string, eventId: string, updates: Partial<TimelineMessage>) => void
+  redactMessage: (roomId: string, eventId: string) => void
   getTimeline: (roomId: string) => TimelineMessage[]
   clearRoom: (roomId: string) => void
   reset: () => void
@@ -239,6 +253,38 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
           .filter((r): r is Reaction => r !== null)
         return { ...m, reactions: reactions.length > 0 ? reactions : undefined }
       }),
+    )
+    set({ timelines })
+  },
+
+  updateMessage: (roomId, eventId, updates) => {
+    const timelines = new Map(get().timelines)
+    const existing = timelines.get(roomId)
+    if (!existing)
+      return
+
+    timelines.set(
+      roomId,
+      existing.map(m =>
+        m.eventId === eventId ? { ...m, ...updates } : m,
+      ),
+    )
+    set({ timelines })
+  },
+
+  redactMessage: (roomId, eventId) => {
+    const timelines = new Map(get().timelines)
+    const existing = timelines.get(roomId)
+    if (!existing)
+      return
+
+    timelines.set(
+      roomId,
+      existing.map(m =>
+        m.eventId === eventId
+          ? { ...m, redacted: true, body: '', formattedBody: undefined, url: undefined, filename: undefined }
+          : m,
+      ),
     )
     set({ timelines })
   },
