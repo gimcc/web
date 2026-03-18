@@ -108,8 +108,10 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage }: Messa
   const handleDelete = useCallback((message: TimelineMessage) => {
     if (mockMode)
       return
+    if (!window.confirm(t('message.confirm_delete')))
+      return
     void deleteMessage(roomId, message.eventId)
-  }, [roomId, mockMode])
+  }, [roomId, mockMode, t])
 
   if (messages.length === 0) {
     return (

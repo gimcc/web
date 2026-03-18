@@ -4,6 +4,10 @@ import { Direction, EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useMessagesStore } from '../stores/messages-store'
 
+function escapeHtml(str: string): string {
+  return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+}
+
 let tempIdCounter = 0
 
 function generateTempEventId(): string {
@@ -242,6 +246,8 @@ export async function sendReply(
   const userId = client.getUserId() ?? ''
   const room = client.getRoom(roomId)
   const member = room?.getMember(userId)
+  const replyToMember = room?.getMember(replyToSender)
+  const replyToDisplayName = replyToMember?.name ?? replyToSender
 
   const optimistic: TimelineMessage = {
     eventId: tempEventId,
@@ -257,7 +263,7 @@ export async function sendReply(
     replyTo: {
       eventId: replyToEventId,
       senderId: replyToSender,
-      senderName: replyToSender,
+      senderName: replyToDisplayName,
       body: replyToBody,
     },
   }
@@ -265,7 +271,7 @@ export async function sendReply(
   useMessagesStore.getState().addOptimisticMessage(optimistic)
 
   try {
-    const fallbackHtml = `<mx-reply><blockquote><a href="https://matrix.to/#/${roomId}/${replyToEventId}">In reply to</a> <a href="https://matrix.to/#/${replyToSender}">${replyToSender}</a><br/>${replyToBody}</blockquote></mx-reply>${options?.formattedBody ?? body}`
+    const fallbackHtml = `<mx-reply><blockquote><a href="https://matrix.to/#/${escapeHtml(roomId)}/${escapeHtml(replyToEventId)}">In reply to</a> <a href="https://matrix.to/#/${escapeHtml(replyToSender)}">${escapeHtml(replyToDisplayName)}</a><br/>${escapeHtml(replyToBody)}</blockquote></mx-reply>${options?.formattedBody ?? escapeHtml(body)}`
 
     const content: Record<string, unknown> = {
       'msgtype': 'm.text',

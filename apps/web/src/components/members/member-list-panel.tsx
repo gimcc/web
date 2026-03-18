@@ -22,14 +22,6 @@ interface MemberListPanelProps {
 
 type SortMode = 'name' | 'role'
 
-function getRoleName(powerLevel: number): string {
-  if (powerLevel >= 100)
-    return 'Admin'
-  if (powerLevel >= 50)
-    return 'Moderator'
-  return 'Member'
-}
-
 function getRoleIcon(powerLevel: number) {
   if (powerLevel >= 100)
     return <Crown className="h-3 w-3 text-amber-500" />

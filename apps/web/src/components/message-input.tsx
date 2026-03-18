@@ -13,6 +13,7 @@ import {
   uploadMockFile,
   useAuthStore,
   useDraftsStore,
+  useMessagesStore,
 } from '@matrix-web/matrix-client'
 import { CornerUpLeft, Paperclip, Pencil, Send, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -64,12 +65,16 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     return getRoomMembers(client, roomId)
   }, [roomId])
 
+  // Keep a ref to current text for cleanup
+  const textRef = useRef(text)
+  textRef.current = text
+
   // Drafts: save on room switch, restore on enter
   useEffect(() => {
     if (prevRoomIdRef.current !== roomId) {
       // Save draft for previous room
       if (prevRoomIdRef.current && !editingMessage) {
-        setDraft(prevRoomIdRef.current, text)
+        setDraft(prevRoomIdRef.current, textRef.current)
       }
       prevRoomIdRef.current = roomId
     }
@@ -77,6 +82,12 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     if (!editingMessage && !replyingTo) {
       const draft = getDraft(roomId)
       setText(draft)
+    }
+    // Save draft on unmount
+    return () => {
+      if (textRef.current.trim()) {
+        setDraft(roomId, textRef.current)
+      }
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomId])
@@ -156,9 +167,14 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     try {
       // Handle edit mode
       if (editingMessage && trimmed) {
-        const htmlBody = renderMarkdown(trimmed)
-        const hasFormatting = htmlBody !== `<p>${trimmed}</p>\n` && htmlBody !== `<p>${trimmed}</p>`
-        await editMessage(roomId, editingMessage.eventId, trimmed, hasFormatting ? { formattedBody: htmlBody } : undefined)
+        if (!mockMode) {
+          const htmlBody = renderMarkdown(trimmed)
+          const hasFormatting = htmlBody !== `<p>${trimmed}</p>\n` && htmlBody !== `<p>${trimmed}</p>`
+          await editMessage(roomId, editingMessage.eventId, trimmed, hasFormatting ? { formattedBody: htmlBody } : undefined)
+        }
+        else {
+          useMessagesStore.getState().updateMessage(roomId, editingMessage.eventId, { body: trimmed, edited: true })
+        }
         setText('')
         onCancelEdit?.()
         return
