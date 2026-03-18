@@ -162,12 +162,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 }
 
 export function SidebarToggle({ onToggle }: { onToggle: () => void }) {
+  const { t } = useTranslation()
   return (
     <button
       type="button"
       onClick={onToggle}
       className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
-      aria-label="Open sidebar"
+      aria-label={t('sidebar.open')}
     >
       <Menu className="h-5 w-5" />
     </button>

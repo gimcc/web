@@ -200,7 +200,7 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
 
       {/* Hover action bar */}
       {message.status === 'sent' && onReaction && (
-        <div className="absolute -top-3 right-2 hidden group-hover:block">
+        <div className="absolute right-2 top-1 hidden group-hover:block">
           <MessageActions
             onReaction={handleReaction}
             isSelf={isSelf}
