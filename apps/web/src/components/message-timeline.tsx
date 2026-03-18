@@ -1,5 +1,6 @@
 import type { TimelineMessage } from '@matrix-web/matrix-client'
 import {
+  deleteMessage,
   loadInitialTimeline,
   loadMockTimeline,
   loadRoomHistory,
@@ -19,9 +20,11 @@ const EMPTY_TIMELINE: TimelineMessage[] = []
 
 interface MessageTimelineProps {
   roomId: string
+  onEditMessage?: (message: TimelineMessage) => void
+  onReplyMessage?: (message: TimelineMessage) => void
 }
 
-export function MessageTimeline({ roomId }: MessageTimelineProps) {
+export function MessageTimeline({ roomId, onEditMessage, onReplyMessage }: MessageTimelineProps) {
   const { t } = useTranslation()
   const messages = useMessagesStore(s => s.timelines.get(roomId) ?? EMPTY_TIMELINE)
   const hasMore = useMessagesStore(s => s.hasMore.get(roomId) ?? false)
@@ -102,6 +105,24 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
     }
   }, [roomId, mockMode])
 
+  const [pendingDelete, setPendingDelete] = useState<string | null>(null)
+
+  const handleDelete = useCallback((message: TimelineMessage) => {
+    if (mockMode)
+      return
+    if (pendingDelete === message.eventId) {
+      // Second click confirms
+      void deleteMessage(roomId, message.eventId)
+      setPendingDelete(null)
+    }
+    else {
+      // First click sets pending
+      setPendingDelete(message.eventId)
+      // Auto-clear after 3 seconds
+      setTimeout(setPendingDelete, 3000, null)
+    }
+  }, [roomId, mockMode, pendingDelete])
+
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
@@ -141,6 +162,9 @@ export function MessageTimeline({ roomId }: MessageTimelineProps) {
                   message={message}
                   onResend={handleResend}
                   onReaction={handleReaction}
+                  onEdit={onEditMessage}
+                  onDelete={handleDelete}
+                  onReply={onReplyMessage}
                 />
               </div>
             )

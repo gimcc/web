@@ -139,6 +139,99 @@ export async function searchUsers(
   }))
 }
 
+export interface CreateRoomOptions {
+  name: string
+  topic?: string
+  isPublic?: boolean
+  invite?: string[]
+  encrypted?: boolean
+}
+
+/**
+ * Create a public or private room.
+ */
+export async function createRoom(
+  client: MatrixClient,
+  options: CreateRoomOptions,
+): Promise<string> {
+  const result = await client.createRoom({
+    name: options.name,
+    topic: options.topic,
+    invite: options.invite,
+    visibility: options.isPublic ? Visibility.Public : Visibility.Private,
+    preset: options.isPublic ? Preset.PublicChat : (options.encrypted ? Preset.TrustedPrivateChat : Preset.PrivateChat),
+    initial_state: options.encrypted
+      ? [{ type: 'm.room.encryption', state_key: '', content: { algorithm: 'm.megolm.v1.aes-sha2' } }]
+      : [],
+  })
+
+  return result.room_id
+}
+
+/**
+ * Join a room by ID or alias.
+ */
+export async function joinRoom(
+  client: MatrixClient,
+  roomIdOrAlias: string,
+): Promise<string> {
+  const result = await client.joinRoom(roomIdOrAlias)
+  return result.roomId
+}
+
+/**
+ * Leave a room.
+ */
+export async function leaveRoom(
+  client: MatrixClient,
+  roomId: string,
+  forget?: boolean,
+): Promise<void> {
+  await client.leave(roomId)
+  if (forget) {
+    try {
+      await client.forget(roomId)
+    }
+    catch { /* ignore */ }
+  }
+}
+
+/**
+ * Search public rooms on a server.
+ */
+export async function searchPublicRooms(
+  client: MatrixClient,
+  query: string,
+  limit: number = 20,
+): Promise<{ roomId: string, name: string, topic: string | null, memberCount: number, worldReadable: boolean }[]> {
+  const response = await client.publicRooms({
+    limit,
+    filter: { generic_search_term: query },
+  })
+
+  return (response.chunk ?? []).map((room: any) => ({
+    roomId: room.room_id,
+    name: room.name ?? room.canonical_alias ?? room.room_id,
+    topic: room.topic ?? null,
+    memberCount: room.num_joined_members ?? 0,
+    worldReadable: room.world_readable ?? false,
+  }))
+}
+
+/**
+ * Update room name.
+ */
+export async function updateRoomName(client: MatrixClient, roomId: string, name: string): Promise<void> {
+  await client.setRoomName(roomId, name)
+}
+
+/**
+ * Update room topic.
+ */
+export async function updateRoomTopic(client: MatrixClient, roomId: string, topic: string): Promise<void> {
+  await client.setRoomTopic(roomId, topic)
+}
+
 /**
  * Extract room summary after creation (helper for UI).
  */

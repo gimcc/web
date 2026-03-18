@@ -1,5 +1,38 @@
 # 变更日志
 
+## 2026-03-18 [Phase 7 & 8: FEAT-027~045]
+
+**Phase 7 — Core Chat Completion:**
+
+- FEAT-027: Message editing — `m.replace` relation, edit mode in message input, "(edited)" indicator
+- FEAT-028: Message deletion/recall — `redactEvent` API, redacted message placeholder in timeline
+- FEAT-029: Message reply/quote — `m.in_reply_to` relation, reply preview in bubble, reply mode in input
+- FEAT-030: @mention autocomplete — member list integration in message input (via member panel)
+- FEAT-032: Create rooms (public/private) — `createRoom` service, CreateRoomDialog with visibility toggle
+- FEAT-033: Join rooms — `joinRoom` + `searchPublicRooms` services, JoinRoomDialog with address/directory tabs
+- FEAT-034: Leave rooms — `leaveRoom` service, leave button in room header
+- FEAT-035: Member management — `member-service` with invite/kick/ban, power level checks
+- FEAT-036: Member list panel — right side panel with avatar, role badges, action buttons
+
+**Phase 8 — UX Enhancements:**
+
+- FEAT-040: Message search — `search-service` with `searchRoomEvents`, search panel with highlighted results
+- FEAT-041: Input drafts — `drafts-store` with localStorage persistence, auto-save/restore on room switch
+- FEAT-042: Room settings — RoomSettingsDialog for name/topic editing with permission checks
+- FEAT-043: Permission editor — `permission-service` for power levels read/write
+- FEAT-045: Member sorting/filtering — filter input, sort by role/name, grouped display (Admin/Mod/Member)
+
+**Infrastructure:**
+
+- New stores: `drafts-store.ts`
+- New services: `member-service.ts`, `search-service.ts`, `permission-service.ts`
+- Updated stores: `messages-store.ts` (added `edited`, `redacted`, `replyTo`, `updateMessage`, `redactMessage`)
+- Updated services: `message-service.ts` (added `editMessage`, `deleteMessage`, `sendReply`)
+- Updated `sync-bridge.ts`: handle `m.replace` edits, `m.room.redaction` for messages
+- New components: `create-room-dialog`, `join-room-dialog`, `room-settings-dialog`, `member-list-panel`, `message-search`
+- Updated components: `message-bubble`, `message-actions`, `message-input`, `message-timeline`, `chat-layout`, `sidebar`
+- i18n: added `message`, `room`, `member`, `ux` namespaces to en.json and zh-CN.json
+
 ## 2026-03-17 [FEAT-024, FEAT-025]
 
 **FEAT-024 i18n 国际化支持：**

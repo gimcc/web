@@ -13,6 +13,9 @@ interface MessageBubbleProps {
   message: TimelineMessage
   onResend?: (eventId: string) => void
   onReaction?: (eventId: string, emoji: string) => void
+  onEdit?: (message: TimelineMessage) => void
+  onDelete?: (message: TimelineMessage) => void
+  onReply?: (message: TimelineMessage) => void
 }
 
 function MessageStatusIcon({ status }: { status: TimelineMessage['status'] }) {
@@ -35,7 +38,20 @@ function formatTime(timestamp: number): string {
   })
 }
 
-export function MessageBubble({ message, onResend, onReaction }: MessageBubbleProps) {
+function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessage['replyTo']> }) {
+  return (
+    <div className="mb-1 flex items-center gap-1.5 rounded border-l-2 border-primary/50 bg-accent/30 px-2 py-1">
+      <span className="text-xs font-medium text-primary">
+        {replyTo.senderName || replyTo.senderId}
+      </span>
+      <span className="truncate text-xs text-muted-foreground">
+        {replyTo.body || '...'}
+      </span>
+    </div>
+  )
+}
+
+export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete, onReply }: MessageBubbleProps) {
   const { t } = useTranslation()
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
@@ -47,6 +63,36 @@ export function MessageBubble({ message, onResend, onReaction }: MessageBubblePr
   const handleReaction = useCallback((emoji: string) => {
     onReaction?.(message.eventId, emoji)
   }, [message.eventId, onReaction])
+
+  const handleEdit = useCallback(() => {
+    onEdit?.(message)
+  }, [message, onEdit])
+
+  const handleDelete = useCallback(() => {
+    onDelete?.(message)
+  }, [message, onDelete])
+
+  const handleReply = useCallback(() => {
+    onReply?.(message)
+  }, [message, onReply])
+
+  // Redacted message
+  if (message.redacted) {
+    return (
+      <div className="group relative flex gap-3 px-4 py-1.5 opacity-50">
+        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
+          {message.senderName.charAt(0).toUpperCase()}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-baseline gap-2">
+            <span className="text-sm font-semibold text-muted-foreground">{message.senderName}</span>
+            <span className="text-xs text-muted-foreground">{timeStr}</span>
+          </div>
+          <p className="text-sm italic text-muted-foreground">{t('message.deleted')}</p>
+        </div>
+      </div>
+    )
+  }
 
   if (isEmote) {
     return (
@@ -67,7 +113,13 @@ export function MessageBubble({ message, onResend, onReaction }: MessageBubblePr
         {/* Hover action bar */}
         {message.status === 'sent' && onReaction && (
           <div className="absolute -top-3 right-2 hidden group-hover:block">
-            <MessageActions onReaction={handleReaction} />
+            <MessageActions
+              onReaction={handleReaction}
+              isSelf={isSelf}
+              onEdit={isSelf && onEdit ? handleEdit : undefined}
+              onDelete={isSelf && onDelete ? handleDelete : undefined}
+              onReply={onReply ? handleReply : undefined}
+            />
           </div>
         )}
       </div>
@@ -98,7 +150,13 @@ export function MessageBubble({ message, onResend, onReaction }: MessageBubblePr
           </span>
           <span className="text-xs text-muted-foreground">{timeStr}</span>
           {isSelf && <MessageStatusIcon status={message.status} />}
+          {message.edited && (
+            <span className="text-xs text-muted-foreground">{`(${t('message.edited')})`}</span>
+          )}
         </div>
+
+        {/* Reply preview */}
+        {message.replyTo && <ReplyPreview replyTo={message.replyTo} />}
 
         {/* Message content */}
         {isMedia
@@ -125,7 +183,13 @@ export function MessageBubble({ message, onResend, onReaction }: MessageBubblePr
       {/* Hover action bar */}
       {message.status === 'sent' && onReaction && (
         <div className="absolute -top-3 right-2 hidden group-hover:block">
-          <MessageActions onReaction={handleReaction} />
+          <MessageActions
+            onReaction={handleReaction}
+            isSelf={isSelf}
+            onEdit={isSelf && onEdit ? handleEdit : undefined}
+            onDelete={isSelf && onDelete ? handleDelete : undefined}
+            onReply={onReply ? handleReply : undefined}
+          />
         </div>
       )}
     </div>

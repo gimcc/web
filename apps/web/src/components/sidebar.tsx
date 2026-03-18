@@ -1,8 +1,10 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
-import { LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
+import { DoorOpen, LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
+import { CreateRoomDialog } from './compose/create-room-dialog'
+import { JoinRoomDialog } from './compose/join-room-dialog'
 import { NewChatDialog } from './compose/new-chat-dialog'
 import { ContactsDialog } from './contacts/contacts-dialog'
 import { InviteBell } from './invite-panel'
@@ -43,6 +45,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [contactsOpen, setContactsOpen] = useState(false)
   const [newChatOpen, setNewChatOpen] = useState(false)
+  const [createRoomOpen, setCreateRoomOpen] = useState(false)
+  const [joinRoomOpen, setJoinRoomOpen] = useState(false)
 
   return (
     <>
@@ -75,6 +79,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               aria-label={t('sidebar.new_chat')}
             >
               <Plus className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setJoinRoomOpen(true)}
+              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              aria-label={t('room.join_title')}
+            >
+              <DoorOpen className="h-5 w-5" />
             </button>
             <button
               type="button"
@@ -112,6 +124,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               </button>
               <button
                 type="button"
+                onClick={() => setCreateRoomOpen(true)}
+                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+                aria-label={t('room.create_title')}
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
                 onClick={() => setSettingsOpen(true)}
                 className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
                 aria-label={t('sidebar.settings')}
@@ -135,6 +155,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ContactsDialog open={contactsOpen} onClose={() => setContactsOpen(false)} />
       <NewChatDialog open={newChatOpen} onClose={() => setNewChatOpen(false)} />
+      <CreateRoomDialog open={createRoomOpen} onClose={() => setCreateRoomOpen(false)} />
+      <JoinRoomDialog open={joinRoomOpen} onClose={() => setJoinRoomOpen(false)} />
     </>
   )
 }

@@ -27,8 +27,25 @@ export function createSyncBridge(
 
     // Append message to messages store if it's a room message
     if (event.getType() === 'm.room.message') {
-      const message = matrixEventToTimelineMessage(event, client)
-      useMessagesStore.getState().appendMessages(room.roomId, [message])
+      const content = event.getContent()
+      const relatesTo = content['m.relates_to']
+
+      // Handle message edit (m.replace)
+      if (relatesTo?.rel_type === 'm.replace' && relatesTo.event_id) {
+        const newContent = content['m.new_content']
+        if (newContent) {
+          useMessagesStore.getState().updateMessage(room.roomId, relatesTo.event_id, {
+            body: newContent.body ?? '',
+            formattedBody: newContent.formatted_body,
+            edited: true,
+            editedAt: event.getTs(),
+          })
+        }
+      }
+      else {
+        const message = matrixEventToTimelineMessage(event, client)
+        useMessagesStore.getState().appendMessages(room.roomId, [message])
+      }
     }
 
     // Handle reaction events
@@ -48,11 +65,12 @@ export function createSyncBridge(
       }
     }
 
-    // Handle redaction events (remove reactions)
+    // Handle redaction events (remove reactions + mark messages as redacted)
     if (event.getType() === 'm.room.redaction') {
       const redactedId = event.getAssociatedId()
       if (redactedId) {
         useMessagesStore.getState().removeReactionByEventId(room.roomId, redactedId)
+        useMessagesStore.getState().redactMessage(room.roomId, redactedId)
       }
     }
 
