@@ -2,6 +2,10 @@ import { resolveUserId } from '@matrix-web/matrix-client'
 import { sanitizeHtml } from './markdown'
 
 const WHITESPACE_RE = /\s+/
+const RE_AMP = /&/g
+const RE_LT = /</g
+const RE_GT = />/g
+const RE_QUOT = /"/g
 
 export interface CommandDefinition {
   name: string
@@ -200,7 +204,7 @@ const commands: CommandDefinition[] = [
       const text = ctx.args.trim()
       if (!text)
         return fail('Usage: /spoiler <text>')
-      const escaped = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+      const escaped = text.replace(RE_AMP, '&amp;').replace(RE_LT, '&lt;').replace(RE_GT, '&gt;').replace(RE_QUOT, '&quot;')
       const formattedBody = `<span data-mx-spoiler>${escaped}</span>`
       await ctx.sendMessage(text, { formattedBody })
       return ok()

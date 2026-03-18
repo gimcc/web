@@ -18,7 +18,8 @@ export function NotificationsPanel() {
       if (granted) {
         setEnabled(true)
       }
-    } else {
+    }
+    else {
       setEnabled(false)
     }
   }, [enabled, setEnabled])
@@ -56,7 +57,8 @@ export function NotificationsPanel() {
         {/* Status */}
         <div className="rounded-lg border border-border p-4">
           <p className="text-sm text-muted-foreground">
-            {t('settings.notifications.permission')}:
+            {t('settings.notifications.permission')}
+            :
             {' '}
             <span className="font-medium text-foreground">
               {permission === 'granted' && t('settings.notifications.permission_granted')}

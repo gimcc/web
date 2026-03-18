@@ -189,7 +189,8 @@ function AudioMessage({ message }: MediaMessageProps) {
     [message.url, homeserverUrl],
   )
 
-  if (!audioSrc) return null
+  if (!audioSrc)
+    return null
 
   return (
     <div className="mt-1 max-w-[320px]">

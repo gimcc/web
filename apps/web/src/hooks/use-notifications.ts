@@ -24,7 +24,8 @@ export function useNotificationListener(): void {
     initializedRef.current = true
 
     const unsub = useMessagesStore.subscribe((state, prevState) => {
-      if (!initializedRef.current) return
+      if (!initializedRef.current)
+        return
 
       const userId = useAuthStore.getState().session?.userId
 
@@ -32,16 +33,19 @@ export function useNotificationListener(): void {
         const prevMessages = prevState.timelines.get(roomId)
         const prevLength = prevMessages?.length ?? 0
 
-        if (messages.length <= prevLength) continue
+        if (messages.length <= prevLength)
+          continue
 
         // Check new messages at the end
         for (let i = prevLength; i < messages.length; i++) {
           const msg = messages[i]!
-          if (seenMessages.has(msg.eventId)) continue
+          if (seenMessages.has(msg.eventId))
+            continue
           seenMessages.add(msg.eventId)
 
           // Don't notify for own messages
-          if (msg.senderId === userId) continue
+          if (msg.senderId === userId)
+            continue
 
           showMessageNotification(roomId, msg.senderName, msg.body)
         }

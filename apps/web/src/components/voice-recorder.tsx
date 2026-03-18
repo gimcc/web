@@ -29,10 +29,22 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
 
   /** Release all hardware resources */
   const cleanup = useCallback(() => {
-    if (timerRef.current) { clearInterval(timerRef.current); timerRef.current = undefined }
-    if (animFrameRef.current) { cancelAnimationFrame(animFrameRef.current); animFrameRef.current = undefined }
-    if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null }
-    if (audioCtxRef.current) { void audioCtxRef.current.close(); audioCtxRef.current = null }
+    if (timerRef.current) {
+      clearInterval(timerRef.current)
+      timerRef.current = undefined
+    }
+    if (animFrameRef.current) {
+      cancelAnimationFrame(animFrameRef.current)
+      animFrameRef.current = undefined
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop())
+      streamRef.current = null
+    }
+    if (audioCtxRef.current) {
+      void audioCtxRef.current.close()
+      audioCtxRef.current = null
+    }
     mediaRecorderRef.current = null
   }, [])
 
@@ -58,7 +70,8 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
       source.connect(analyser)
 
       mediaRecorder.ondataavailable = (e) => {
-        if (e.data.size > 0) chunksRef.current.push(e.data)
+        if (e.data.size > 0)
+          chunksRef.current.push(e.data)
       }
 
       mediaRecorder.start(100)
@@ -72,7 +85,8 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
       }, 100)
 
       function updateWaveform() {
-        if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') return
+        if (!audioCtxRef.current || audioCtxRef.current.state === 'closed')
+          return
         const data = new Uint8Array(analyser.frequencyBinCount)
         analyser.getByteFrequencyData(data)
         const avg = data.reduce((sum, v) => sum + v, 0) / data.length
@@ -90,7 +104,8 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
 
   const stopAndSend = useCallback(() => {
     const recorder = mediaRecorderRef.current
-    if (!recorder || recorder.state !== 'recording') return
+    if (!recorder || recorder.state !== 'recording')
+      return
 
     const durationMs = Date.now() - startTimeRef.current
 

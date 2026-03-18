@@ -1,7 +1,7 @@
+import type { TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useMessagesStore } from '../stores/messages-store'
-import type { TimelineMessage } from '../stores/messages-store'
 import { useThreadsStore } from '../stores/threads-store'
 import { matrixEventToTimelineMessage } from './message-service'
 
@@ -18,7 +18,8 @@ export async function sendThreadMessage(
   options?: { formattedBody?: string },
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
   const room = client.getRoom(roomId)
@@ -43,15 +44,15 @@ export async function sendThreadMessage(
 
   try {
     const content: Record<string, unknown> = {
-      msgtype: 'm.text',
+      'msgtype': 'm.text',
       body,
       ...(options?.formattedBody
         ? { format: 'org.matrix.custom.html', formatted_body: options.formattedBody }
         : {}),
       'm.relates_to': {
-        rel_type: 'm.thread',
-        event_id: threadRootId,
-        is_falling_back: true,
+        'rel_type': 'm.thread',
+        'event_id': threadRootId,
+        'is_falling_back': true,
         'm.in_reply_to': {
           event_id: threadRootId,
         },
@@ -95,14 +96,15 @@ export async function sendThreadMessage(
 
 export function loadThreadTimeline(roomId: string, threadRootId: string): void {
   const client = getMatrixClient()
-  if (!client) return
+  if (!client)
+    return
 
   const room = client.getRoom(roomId)
-  if (!room) return
+  if (!room)
+    return
 
   // Get the root message from main timeline
-  const rootMessage = useMessagesStore.getState().getTimeline(roomId)
-    .find(m => m.eventId === threadRootId)
+  const rootMessage = useMessagesStore.getState().getTimeline(roomId).find(m => m.eventId === threadRootId)
 
   // Find thread replies from the room timeline events
   const events = room.getLiveTimeline().getEvents()
@@ -115,7 +117,8 @@ export function loadThreadTimeline(roomId: string, threadRootId: string): void {
 
   // Gather replies that are part of this thread
   for (const event of events) {
-    if (event.getType() !== 'm.room.message') continue
+    if (event.getType() !== 'm.room.message')
+      continue
     const content = event.getContent()
     const relatesTo = content['m.relates_to']
     if (relatesTo?.rel_type === 'm.thread' && relatesTo.event_id === threadRootId) {
@@ -135,7 +138,8 @@ function updateThreadReplyCount(roomId: string, threadRootId: string, delta: num
   const store = useMessagesStore.getState()
   const timeline = store.getTimeline(roomId)
   const rootIdx = timeline.findIndex(m => m.eventId === threadRootId)
-  if (rootIdx === -1) return
+  if (rootIdx === -1)
+    return
 
   const root = timeline[rootIdx]!
   const updated = { ...root, threadReplyCount: (root.threadReplyCount ?? 0) + delta, isThreadRoot: true }

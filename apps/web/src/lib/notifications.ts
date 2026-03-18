@@ -17,7 +17,7 @@ export const useNotificationStore = create<NotificationSettings>()(
       enabled: false,
       mutedRooms: new Set<string>(),
 
-      setEnabled: (enabled) => set({ enabled }),
+      setEnabled: enabled => set({ enabled }),
 
       muteRoom: (roomId) => {
         const muted = new Set(get().mutedRooms)
@@ -31,7 +31,7 @@ export const useNotificationStore = create<NotificationSettings>()(
         set({ mutedRooms: muted })
       },
 
-      isRoomMuted: (roomId) => get().mutedRooms.has(roomId),
+      isRoomMuted: roomId => get().mutedRooms.has(roomId),
     }),
     {
       name: 'matrix-web-notifications',
@@ -52,16 +52,20 @@ export const useNotificationStore = create<NotificationSettings>()(
 )
 
 export async function requestNotificationPermission(): Promise<boolean> {
-  if (!('Notification' in window)) return false
-  if (Notification.permission === 'granted') return true
-  if (Notification.permission === 'denied') return false
+  if (!('Notification' in window))
+    return false
+  if (Notification.permission === 'granted')
+    return true
+  if (Notification.permission === 'denied')
+    return false
 
   const result = await Notification.requestPermission()
   return result === 'granted'
 }
 
 export function getNotificationPermission(): NotificationPermission | 'unsupported' {
-  if (!('Notification' in window)) return 'unsupported'
+  if (!('Notification' in window))
+    return 'unsupported'
   return Notification.permission
 }
 
@@ -71,17 +75,22 @@ export function showMessageNotification(
   body: string,
 ): void {
   const { enabled, isRoomMuted } = useNotificationStore.getState()
-  if (!enabled) return
-  if (isRoomMuted(roomId)) return
-  if (!('Notification' in window) || Notification.permission !== 'granted') return
+  if (!enabled)
+    return
+  if (isRoomMuted(roomId))
+    return
+  if (!('Notification' in window) || Notification.permission !== 'granted')
+    return
 
   // Don't notify for the active room
   const activeRoomId = useRoomsStore.getState().activeRoomId
-  if (activeRoomId === roomId) return
+  if (activeRoomId === roomId)
+    return
 
   // Don't notify if the page is visible and focused
   if (document.visibilityState === 'visible' && document.hasFocus()) {
-    if (activeRoomId === roomId) return
+    if (activeRoomId === roomId)
+      return
   }
 
   const room = useRoomsStore.getState().rooms.get(roomId)

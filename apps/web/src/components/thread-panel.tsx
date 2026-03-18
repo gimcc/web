@@ -43,7 +43,8 @@ export function ThreadPanel({ roomId, threadRootId, onClose, onReaction }: Threa
 
   const handleSend = useCallback(async () => {
     const trimmed = text.trim()
-    if (!trimmed) return
+    if (!trimmed)
+      return
 
     setIsSending(true)
     try {

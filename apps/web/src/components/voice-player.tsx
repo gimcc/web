@@ -47,7 +47,8 @@ export function VoicePlayer({ url, duration: durationHint }: VoicePlayerProps) {
 
   const togglePlay = useCallback(() => {
     const audio = audioRef.current
-    if (!audio) return
+    if (!audio)
+      return
 
     if (isPlaying) {
       audio.pause()
@@ -61,7 +62,8 @@ export function VoicePlayer({ url, duration: durationHint }: VoicePlayerProps) {
 
   const handleSeek = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const audio = audioRef.current
-    if (!audio || !audio.duration) return
+    if (!audio || !audio.duration)
+      return
 
     const rect = e.currentTarget.getBoundingClientRect()
     const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width))

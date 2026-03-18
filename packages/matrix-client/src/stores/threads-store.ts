@@ -1,5 +1,5 @@
-import { create } from 'zustand'
 import type { TimelineMessage } from './messages-store'
+import { create } from 'zustand'
 
 export interface ThreadsState {
   /** threadRootId -> thread messages (sorted by timestamp ascending) */
@@ -22,7 +22,7 @@ const initialState = {
 export const useThreadsStore = create<ThreadsState>((set, get) => ({
   ...initialState,
 
-  setActiveThread: (threadRootId) => set({ activeThreadId: threadRootId }),
+  setActiveThread: threadRootId => set({ activeThreadId: threadRootId }),
 
   setThreadMessages: (threadRootId, messages) => {
     const threads = new Map(get().threads)
