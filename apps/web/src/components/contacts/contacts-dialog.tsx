@@ -13,6 +13,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
 import { Avatar } from '../ui/avatar'
+import { Dialog, DialogClose, DialogContent, DialogTitle } from '../ui/dialog'
 import { Input } from '../ui/input'
 
 interface ContactsDialogProps {
@@ -44,6 +45,12 @@ export function ContactsDialog({ open, onClose }: ContactsDialogProps) {
       }
     }
   }, [open, mockMode])
+
+  useEffect(() => {
+    if (open) {
+      setSearchQuery('')
+    }
+  }, [open])
 
   const filteredUsers = useMemo(() => {
     if (!searchQuery.trim())
@@ -97,52 +104,24 @@ export function ContactsDialog({ open, onClose }: ContactsDialogProps) {
     }
   }, [mockMode, setActiveRoom, upsertRoom, onClose, t])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape')
-      onClose()
-  }, [onClose])
-
-  useEffect(() => {
-    if (!open)
-      return
-
-    document.addEventListener('keydown', handleKeyDown)
-    document.body.style.overflow = 'hidden'
-    setSearchQuery('')
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [open, handleKeyDown])
-
-  if (!open)
-    return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-label={t('contacts.close')}
-      />
-
-      <div role="dialog" aria-modal="true" aria-label={t('contacts.title')} className="relative z-10 flex h-[min(80vh,560px)] w-[min(95vw,440px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
+      <DialogContent className="flex h-[min(80vh,560px)] flex-col overflow-hidden p-0 sm:max-w-[440px]" showCloseButton={false}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <div className="flex items-center gap-2">
             <Users className="h-5 w-5 text-muted-foreground" />
-            <h2 className="text-base font-semibold text-foreground">{t('contacts.title')}</h2>
+            <DialogTitle className="text-base">{t('contacts.title')}</DialogTitle>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label={t('common.close')}
-          >
+          <DialogClose className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
             <X className="h-5 w-5" />
-          </button>
+          </DialogClose>
         </div>
 
         {/* Search */}
@@ -210,7 +189,7 @@ export function ContactsDialog({ open, onClose }: ContactsDialogProps) {
             {t('contacts.count_other', { count: filteredUsers.length })}
           </p>
         </div>
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

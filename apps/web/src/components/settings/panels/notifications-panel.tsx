@@ -5,6 +5,7 @@ import {
   requestNotificationPermission,
   useNotificationStore,
 } from '../../../lib/notifications'
+import { Switch } from '../../ui/switch'
 
 export function NotificationsPanel() {
   const { t } = useTranslation()
@@ -12,8 +13,8 @@ export function NotificationsPanel() {
   const setEnabled = useNotificationStore(s => s.setEnabled)
   const permission = getNotificationPermission()
 
-  const handleToggle = useCallback(async () => {
-    if (!enabled) {
+  const handleCheckedChange = useCallback(async (checked: boolean) => {
+    if (checked) {
       const granted = await requestNotificationPermission()
       if (granted) {
         setEnabled(true)
@@ -22,7 +23,7 @@ export function NotificationsPanel() {
     else {
       setEnabled(false)
     }
-  }, [enabled, setEnabled])
+  }, [setEnabled])
 
   return (
     <div className="space-y-6">
@@ -42,16 +43,11 @@ export function NotificationsPanel() {
                 : t('notifications.enable_desc')}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => void handleToggle()}
+          <Switch
+            checked={enabled}
+            onCheckedChange={checked => void handleCheckedChange(checked)}
             disabled={permission === 'denied'}
-            className={`relative h-6 w-11 rounded-full transition-colors ${enabled ? 'bg-primary' : 'bg-muted'} disabled:opacity-50`}
-          >
-            <span
-              className={`absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform ${enabled ? 'translate-x-5' : 'translate-x-0.5'}`}
-            />
-          </button>
+          />
         </div>
 
         {/* Status */}

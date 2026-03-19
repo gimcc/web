@@ -2,6 +2,7 @@ import { getMatrixClient, useCryptoStore } from '@matrix-web/matrix-client'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
+import { Progress } from '../ui/progress'
 
 type SetupPhase = 'idle' | 'creating' | 'restoring' | 'error'
 
@@ -68,14 +69,7 @@ export function KeyBackupSetup() {
 
       {keyBackupProgress && (
         <div className="space-y-1">
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className="h-full rounded-full bg-primary transition-all"
-              style={{
-                width: `${Math.round((keyBackupProgress.current / keyBackupProgress.total) * 100)}%`,
-              }}
-            />
-          </div>
+          <Progress value={Math.round((keyBackupProgress.current / keyBackupProgress.total) * 100)} />
           <p className="text-xs text-muted-foreground">
             {t('key_backup.progress', { current: keyBackupProgress.current, total: keyBackupProgress.total })}
           </p>

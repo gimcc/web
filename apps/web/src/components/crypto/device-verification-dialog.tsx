@@ -3,6 +3,14 @@ import { VerifierEvent } from '@matrix-web/matrix-client'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog'
 
 type VerificationPhase = 'request' | 'sas' | 'done' | 'cancelled'
 
@@ -87,28 +95,34 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
   }, [request, onClose])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="mx-4 w-full max-w-md rounded-lg bg-background p-6 shadow-lg">
+    <Dialog
+      open
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
+      <DialogContent className="sm:max-w-md">
         {phase === 'request' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.request_title')}</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {t('device_verification.request_message')}
-            </p>
-            <div className="flex justify-end gap-2">
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.request_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.request_message')}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
               <Button variant="outline" onClick={handleReject}>{t('device_verification.decline')}</Button>
               <Button onClick={handleAccept}>{t('device_verification.accept')}</Button>
-            </div>
+            </DialogFooter>
           </>
         )}
 
         {phase === 'sas' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.sas_title')}</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {t('device_verification.sas_message')}
-            </p>
-            <div className="mb-4 grid grid-cols-7 gap-2">
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.sas_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.sas_message')}</DialogDescription>
+            </DialogHeader>
+            <div className="grid grid-cols-7 gap-2">
               {emojis.map(item => (
                 <div key={item.description} className="flex flex-col items-center gap-1">
                   <span className="text-2xl">{item.emoji}</span>
@@ -116,37 +130,37 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
                 </div>
               ))}
             </div>
-            <div className="flex justify-end gap-2">
+            <DialogFooter>
               <Button variant="outline" onClick={handleReject}>{t('device_verification.no_match')}</Button>
               <Button onClick={handleConfirmSas}>{t('device_verification.match')}</Button>
-            </div>
+            </DialogFooter>
           </>
         )}
 
         {phase === 'done' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.done_title')}</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {t('device_verification.done_message')}
-            </p>
-            <div className="flex justify-end">
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.done_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.done_message')}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
               <Button onClick={onClose}>{t('common.done')}</Button>
-            </div>
+            </DialogFooter>
           </>
         )}
 
         {phase === 'cancelled' && (
           <>
-            <h2 className="mb-2 text-lg font-semibold">{t('device_verification.cancelled_title')}</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
-              {t('device_verification.cancelled_message')}
-            </p>
-            <div className="flex justify-end">
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.cancelled_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.cancelled_message')}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
               <Button variant="outline" onClick={onClose}>{t('common.close')}</Button>
-            </div>
+            </DialogFooter>
           </>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
