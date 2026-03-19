@@ -101,10 +101,12 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
   },
 
   appendMessages: (roomId, messages) => {
-    const timelines = new Map(get().timelines)
-    const existing = timelines.get(roomId) ?? []
+    const existing = get().timelines.get(roomId) ?? []
     const existingIds = new Set(existing.map(m => m.eventId))
     const newMessages = messages.filter(m => !existingIds.has(m.eventId))
+    if (newMessages.length === 0)
+      return
+    const timelines = new Map(get().timelines)
     timelines.set(roomId, [...existing, ...newMessages])
     set({ timelines })
   },

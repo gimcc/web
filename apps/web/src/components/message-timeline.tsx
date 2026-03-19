@@ -34,8 +34,12 @@ interface MessageTimelineProps {
 
 export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread, onPinChange }: MessageTimelineProps) {
   const { t } = useTranslation()
-  const messages = useMessagesStore(s => s.timelines.get(roomId) ?? EMPTY_TIMELINE)
-  const hasMore = useMessagesStore(s => s.hasMore.get(roomId) ?? false)
+  // Subscribe to the Map reference directly so any appendMessages/setTimeline
+  // update (which creates a new Map) reliably triggers a re-render.
+  const timelines = useMessagesStore(s => s.timelines)
+  const hasMoreMap = useMessagesStore(s => s.hasMore)
+  const messages = timelines.get(roomId) ?? EMPTY_TIMELINE
+  const hasMore = hasMoreMap.get(roomId) ?? false
   const mockMode = useAuthStore(s => s.mockMode)
   const roomReceipts = useReceiptsStore(s => s.receipts.get(roomId))
   const receiptsByEvent = useMemo(() => {
