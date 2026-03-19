@@ -37,8 +37,8 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           onClose()
       }}
     >
-      <DialogContent showCloseButton className="h-[min(90vh,640px)] w-[min(95vw,768px)] max-w-none overflow-hidden p-0">
-        <DialogHeader className="border-b border-border px-6 py-4">
+      <DialogContent className="sm:max-w-[90vw] md:max-w-2xl">
+        <DialogHeader>
           <DialogTitle>{t('settings.title')}</DialogTitle>
         </DialogHeader>
 

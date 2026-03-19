@@ -57,7 +57,7 @@ export function KeyBackupSetup() {
   }, [t])
 
   return (
-    <div className="space-y-4 rounded-lg border p-4">
+    <div className="space-y-4 rounded-lg border border-border p-4">
       <div>
         <h3 className="text-sm font-semibold">{t('key_backup.title')}</h3>
         <p className="text-xs text-muted-foreground">
