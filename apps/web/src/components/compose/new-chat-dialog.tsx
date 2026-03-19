@@ -17,8 +17,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
 import { Avatar } from '../ui/avatar'
+import { Badge } from '../ui/badge'
 import { Button } from '../ui/button'
+import { Dialog, DialogClose, DialogContent } from '../ui/dialog'
 import { Input } from '../ui/input'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 
 type Mode = 'dm' | 'group'
 
@@ -215,93 +218,54 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
     }
   }, [mockMode, groupName, selectedUsers, setActiveRoom, upsertRoom, onClose, t])
 
-  const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape')
-      onClose()
-  }, [onClose])
-
+  // Reset state on open
   useEffect(() => {
     if (!open)
       return
-
-    document.addEventListener('keydown', handleKeyDown)
-    document.body.style.overflow = 'hidden'
-
-    // Reset state
     setSearchQuery('')
     setSelectedUsers([])
     setGroupName('')
     setError(null)
     setMode('dm')
-
-    return () => {
-      document.removeEventListener('keydown', handleKeyDown)
-      document.body.style.overflow = ''
-    }
-  }, [open, handleKeyDown])
-
-  if (!open)
-    return null
+  }, [open])
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <button
-        type="button"
-        className="absolute inset-0 bg-black/50"
-        onClick={onClose}
-        aria-label={t('common.close')}
-      />
-
-      <div role="dialog" aria-modal="true" aria-label={t('new_chat.title')} className="relative z-10 flex h-[min(85vh,600px)] w-[min(95vw,480px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
+      <DialogContent className="flex h-[min(85vh,600px)] flex-col overflow-hidden p-0 sm:max-w-[480px]" showCloseButton={false}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="text-base font-semibold text-foreground">{t('new_chat.title')}</h2>
-          <button
-            type="button"
-            onClick={onClose}
-            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-            aria-label={t('common.close')}
-          >
+          <DialogClose className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
             <X className="h-5 w-5" />
-          </button>
+          </DialogClose>
         </div>
 
         {/* Mode tabs */}
-        <div role="tablist" className="flex border-b border-border">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'dm'}
-            onClick={() => {
-              setMode('dm')
+        <Tabs
+          value={mode}
+          onValueChange={(v) => {
+            setMode(v as Mode)
+            if (v === 'dm')
               setSelectedUsers([])
-            }}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-2 px-4 py-2.5 text-sm transition-colors',
-              mode === 'dm'
-                ? 'border-b-2 border-primary font-medium text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <UserPlus className="h-4 w-4" />
-            {t('new_chat.mode_dm')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={mode === 'group'}
-            onClick={() => setMode('group')}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-2 px-4 py-2.5 text-sm transition-colors',
-              mode === 'group'
-                ? 'border-b-2 border-primary font-medium text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Users className="h-4 w-4" />
-            {t('new_chat.mode_group')}
-          </button>
-        </div>
+          }}
+        >
+          <TabsList variant="line" className="h-auto w-full rounded-none border-b border-border bg-transparent p-0">
+            <TabsTrigger value="dm" className="flex-1 gap-2 rounded-none py-2.5">
+              <UserPlus className="h-4 w-4" />
+              {t('new_chat.mode_dm')}
+            </TabsTrigger>
+            <TabsTrigger value="group" className="flex-1 gap-2 rounded-none py-2.5">
+              <Users className="h-4 w-4" />
+              {t('new_chat.mode_group')}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* Group name input (group mode only) */}
         {mode === 'group' && (
@@ -314,10 +278,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
             {selectedUsers.length > 0 && (
               <div className="mt-2 flex flex-wrap gap-1">
                 {selectedUsers.map(user => (
-                  <span
-                    key={user.userId}
-                    className="inline-flex items-center gap-1 rounded-full bg-accent px-2 py-0.5 text-xs text-foreground"
-                  >
+                  <Badge key={user.userId} variant="secondary" className="gap-1">
                     {user.displayName}
                     <button
                       type="button"
@@ -327,7 +288,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
                     >
                       <X className="h-3 w-3" />
                     </button>
-                  </span>
+                  </Badge>
                 ))}
               </div>
             )}
@@ -406,7 +367,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
             </Button>
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

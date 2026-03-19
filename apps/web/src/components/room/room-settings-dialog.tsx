@@ -8,9 +8,11 @@ import {
 import { Settings, Shield, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
+import { Dialog, DialogClose, DialogContent, DialogTitle } from '../ui/dialog'
 import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 import { PermissionEditor } from './permission-editor'
 
 interface RoomSettingsDialogProps {
@@ -41,18 +43,7 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
     if (client) {
       setCanEdit(getMyPowerLevel(client, roomId) >= 50)
     }
-
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape')
-        onClose()
-    }
-    document.addEventListener('keydown', handleEsc)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', handleEsc)
-      document.body.style.overflow = ''
-    }
-  }, [open, room, roomId, onClose])
+  }, [open, room, roomId])
 
   const handleSave = useCallback(async () => {
     const client = getMatrixClient()
@@ -79,64 +70,50 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
     }
   }, [name, topic, room, roomId, onClose, t])
 
-  if (!open)
-    return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <button type="button" className="absolute inset-0 bg-black/50" onClick={onClose} aria-label={t('common.close')} />
-      <div role="dialog" aria-modal="true" className="relative z-10 w-[min(95vw,440px)] rounded-lg border border-border bg-background shadow-lg">
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
+      <DialogContent className="p-0 sm:max-w-[440px]" showCloseButton={false}>
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
-          <h2 className="text-base font-semibold text-foreground">{t('room.settings_title')}</h2>
-          <button type="button" onClick={onClose} className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
+          <DialogTitle className="text-base">{t('room.settings_title')}</DialogTitle>
+          <DialogClose className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
             <X className="h-5 w-5" />
-          </button>
+          </DialogClose>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-border">
-          <button
-            type="button"
-            onClick={() => setActiveTab('general')}
-            className={cn(
-              'flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors',
-              activeTab === 'general'
-                ? 'border-b-2 border-primary text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Settings className="h-4 w-4" />
-            {t('permission.tab_general')}
-          </button>
-          <button
-            type="button"
-            onClick={() => setActiveTab('permissions')}
-            className={cn(
-              'flex items-center gap-1.5 px-4 py-2 text-sm font-medium transition-colors',
-              activeTab === 'permissions'
-                ? 'border-b-2 border-primary text-foreground'
-                : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Shield className="h-4 w-4" />
-            {t('permission.tab_permissions')}
-          </button>
-        </div>
+        <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'general' | 'permissions')}>
+          <TabsList variant="line" className="h-auto w-full rounded-none border-b border-border bg-transparent p-0">
+            <TabsTrigger value="general" className="gap-1.5 rounded-none">
+              <Settings className="h-4 w-4" />
+              {t('permission.tab_general')}
+            </TabsTrigger>
+            <TabsTrigger value="permissions" className="gap-1.5 rounded-none">
+              <Shield className="h-4 w-4" />
+              {t('permission.tab_permissions')}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {activeTab === 'general' && (
           <>
             <div className="space-y-4 px-4 py-4">
               <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">{t('room.name_label')}</label>
+                <Label className="mb-1">{t('room.name_label')}</Label>
                 <Input value={name} onChange={e => setName(e.target.value)} disabled={!canEdit} />
               </div>
               <div>
-                <label className="mb-1 block text-sm font-medium text-foreground">{t('room.topic_label')}</label>
+                <Label className="mb-1">{t('room.topic_label')}</Label>
                 <Input value={topic} onChange={e => setTopic(e.target.value)} disabled={!canEdit} placeholder={t('room.topic_placeholder')} />
               </div>
               <div>
-                <label className="mb-1 block text-sm text-muted-foreground">{t('room.room_id')}</label>
-                <p className="text-sm font-mono text-foreground">{roomId}</p>
+                <Label className="mb-1 text-muted-foreground">{t('room.room_id')}</Label>
+                <p className="font-mono text-sm text-foreground">{roomId}</p>
               </div>
               {error && (
                 <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
@@ -158,7 +135,7 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
             <PermissionEditor roomId={roomId} />
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -8,9 +8,11 @@ import {
 import { Hash, Search, Users, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { cn } from '../../lib/utils'
 import { Button } from '../ui/button'
+import { Dialog, DialogClose, DialogContent } from '../ui/dialog'
 import { Input } from '../ui/input'
+import { Label } from '../ui/label'
+import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
 
 interface JoinRoomDialogProps {
   open: boolean
@@ -47,18 +49,7 @@ export function JoinRoomDialog({ open, onClose }: JoinRoomDialogProps) {
     setPublicRooms([])
     setError(null)
     setTab('address')
-
-    const handleEsc = (e: KeyboardEvent) => {
-      if (e.key === 'Escape')
-        onClose()
-    }
-    document.addEventListener('keydown', handleEsc)
-    document.body.style.overflow = 'hidden'
-    return () => {
-      document.removeEventListener('keydown', handleEsc)
-      document.body.style.overflow = ''
-    }
-  }, [open, onClose])
+  }, [open])
 
   // Search public rooms with debounce
   useEffect(() => {
@@ -117,49 +108,35 @@ export function JoinRoomDialog({ open, onClose }: JoinRoomDialogProps) {
     }
   }, [setActiveRoom, onClose, t])
 
-  if (!open)
-    return null
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <button type="button" className="absolute inset-0 bg-black/50" onClick={onClose} aria-label={t('common.close')} />
-      <div role="dialog" aria-modal="true" className="relative z-10 flex h-[min(85vh,550px)] w-[min(95vw,480px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-lg">
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
+      <DialogContent className="flex h-[min(85vh,550px)] flex-col overflow-hidden p-0 sm:max-w-[480px]" showCloseButton={false}>
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h2 className="text-base font-semibold text-foreground">{t('room.join_title')}</h2>
-          <button type="button" onClick={onClose} className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
+          <DialogClose className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
             <X className="h-5 w-5" />
-          </button>
+          </DialogClose>
         </div>
 
         {/* Tabs */}
-        <div role="tablist" className="flex border-b border-border">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'address'}
-            onClick={() => setTab('address')}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-2 px-4 py-2.5 text-sm transition-colors',
-              tab === 'address' ? 'border-b-2 border-primary font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Hash className="h-4 w-4" />
-            {t('room.by_address')}
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={tab === 'directory'}
-            onClick={() => setTab('directory')}
-            className={cn(
-              'flex flex-1 items-center justify-center gap-2 px-4 py-2.5 text-sm transition-colors',
-              tab === 'directory' ? 'border-b-2 border-primary font-medium text-foreground' : 'text-muted-foreground hover:text-foreground',
-            )}
-          >
-            <Search className="h-4 w-4" />
-            {t('room.directory')}
-          </button>
-        </div>
+        <Tabs value={tab} onValueChange={v => setTab(v as Tab)}>
+          <TabsList variant="line" className="h-auto w-full rounded-none border-b border-border bg-transparent p-0">
+            <TabsTrigger value="address" className="flex-1 gap-2 rounded-none py-2.5">
+              <Hash className="h-4 w-4" />
+              {t('room.by_address')}
+            </TabsTrigger>
+            <TabsTrigger value="directory" className="flex-1 gap-2 rounded-none py-2.5">
+              <Search className="h-4 w-4" />
+              {t('room.directory')}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {error && (
           <div className="mx-4 mt-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</div>
@@ -168,7 +145,7 @@ export function JoinRoomDialog({ open, onClose }: JoinRoomDialogProps) {
         {tab === 'address' && (
           <div className="flex flex-1 flex-col gap-4 p-4">
             <div>
-              <label className="mb-1 block text-sm font-medium text-foreground">{t('room.address_label')}</label>
+              <Label className="mb-1">{t('room.address_label')}</Label>
               <Input
                 value={address}
                 onChange={e => setAddress(e.target.value)}
@@ -226,7 +203,7 @@ export function JoinRoomDialog({ open, onClose }: JoinRoomDialogProps) {
             </div>
           </>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
