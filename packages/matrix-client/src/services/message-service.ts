@@ -394,20 +394,22 @@ export function loadInitialTimeline(roomId: string): void {
   if (!room)
     return
 
-  // Skip if timeline already loaded (avoid overwriting live-sync reactions)
-  const store = useMessagesStore.getState()
-  if ((store.timelines.get(roomId)?.length ?? 0) > 0)
-    return
-
   const timeline = room.getLiveTimeline()
   const events = timeline.getEvents()
-  const messages = applyReactionsToMessages(
+  const sdkMessages = applyReactionsToMessages(
     events
       .filter(e => e.getType() === 'm.room.message')
       .map(e => matrixEventToTimelineMessage(e, client)),
     events,
   )
 
+  // Merge: keep any sync-appended messages not yet in the SDK timeline
+  const store = useMessagesStore.getState()
+  const existing = store.timelines.get(roomId) ?? []
+  const sdkIds = new Set(sdkMessages.map(m => m.eventId))
+  const extraFromSync = existing.filter(m => !sdkIds.has(m.eventId))
+  const merged = mergeStoreReactions(roomId, [...sdkMessages, ...extraFromSync])
+
   const hasMore = timeline.getPaginationToken(Direction.Backward) !== null
-  store.setTimeline(roomId, messages, hasMore)
+  store.setTimeline(roomId, merged, hasMore)
 }
