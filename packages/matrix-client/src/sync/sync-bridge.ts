@@ -2,6 +2,7 @@ import type { MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
 import { ClientEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
 import { matrixEventToTimelineMessage } from '../services/message-service'
+import { syncRoomReceipts } from '../services/receipt-service'
 import { handleThreadEvent } from '../services/thread-service'
 import { useMessagesStore } from '../stores/messages-store'
 import { useRoomsStore } from '../stores/rooms-store'
@@ -17,6 +18,11 @@ export function createSyncBridge(
   function onSync(state: string): void {
     if (state === 'PREPARED') {
       syncRoomList(client)
+      // Sync read receipts for all joined rooms
+      const rooms = client.getRooms()
+      for (const room of rooms) {
+        syncRoomReceipts(room)
+      }
       onQueryInvalidation?.('sync.prepared')
     }
   }
@@ -126,6 +132,7 @@ export function createSyncBridge(
   // Room receipt (read markers)
   function onReceipt(_event: MatrixEvent, room: Room): void {
     updateRoomUnread(room)
+    syncRoomReceipts(room)
     onQueryInvalidation?.('room.receipt', room.roomId)
   }
 

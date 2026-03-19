@@ -108,7 +108,9 @@ export {
   getMockKnownUsers,
   searchMockUsers,
 } from './services/mock-room-service'
-
+// Services — notification levels
+export { getRoomNotificationLevel, setRoomNotificationLevel } from './services/notification-level-service'
+export type { RoomNotificationLevel } from './services/notification-level-service'
 // Services — permissions
 export {
   getRoomPowerLevels,
@@ -116,12 +118,22 @@ export {
   updatePowerLevels,
 } from './services/permission-service'
 export type { PowerLevels } from './services/permission-service'
+// Services — pins
+export {
+  getPinnedEventIds,
+  getPinnedMessages,
+  pinMessage,
+  unpinMessage,
+} from './services/pin-service'
 export type { PresenceService } from './services/presence-service'
+
 export {
   redactReaction,
   sendReaction,
   toggleReaction,
 } from './services/reaction-service'
+// Services — receipts
+export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
 export {
   createDmRoom,
   createGroupRoom,
@@ -138,13 +150,13 @@ export {
 export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, UserSearchResult } from './services/room-service'
 // Services — search
 export { searchMessages } from './services/search-service'
-
 export type { SearchResult } from './services/search-service'
 export {
   handleThreadEvent,
   loadThreadTimeline,
   sendThreadMessage,
 } from './services/thread-service'
+
 export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,
@@ -152,6 +164,9 @@ export {
   uploadAndSendFile,
 } from './services/upload-service'
 export type { UploadOptions, UploadResult } from './services/upload-service'
+// Services — URL preview
+export { extractUrls, fetchUrlPreview } from './services/url-preview-service'
+export type { UrlPreview } from './services/url-preview-service'
 
 // Stores
 export { useConnectionStore } from './stores/connection-store'
@@ -166,6 +181,8 @@ export { useMessagesStore } from './stores/messages-store'
 export type { MessagesState, MessageStatus, Reaction, ReplyTo, TimelineMessage } from './stores/messages-store'
 export { usePresenceStore } from './stores/presence-store'
 export type { PresenceInfo, PresenceState, PresenceStatus } from './stores/presence-store'
+export { useReceiptsStore } from './stores/receipts-store'
+export type { ReceiptInfo, ReceiptsState } from './stores/receipts-store'
 export { useRoomsStore } from './stores/rooms-store'
 export type { LastMessagePreview, RoomsState, RoomSummary } from './stores/rooms-store'
 export { useThreadsStore } from './stores/threads-store'

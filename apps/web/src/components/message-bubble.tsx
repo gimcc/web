@@ -1,4 +1,4 @@
-import type { TimelineMessage } from '@matrix-web/matrix-client'
+import type { ReceiptInfo, TimelineMessage } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { AlertCircle, Check, Loader2, MessageSquare } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
@@ -8,15 +8,20 @@ import { MediaMessage } from './media-message'
 import { MessageActions } from './message-actions'
 import { MessageContent } from './message-content'
 import { ReactionBar } from './reaction-bar'
+import { ReadReceipts } from './read-receipts'
+import { UrlPreviewCards } from './url-preview-card'
 
 interface MessageBubbleProps {
   message: TimelineMessage
+  receipts?: ReceiptInfo[]
+  isPinned?: boolean
   onResend?: (eventId: string) => void
   onReaction?: (eventId: string, emoji: string) => void
   onEdit?: (message: TimelineMessage) => void
   onDelete?: (message: TimelineMessage) => void
   onReply?: (message: TimelineMessage) => void
   onThread?: (eventId: string) => void
+  onPin?: (eventId: string) => void
 }
 
 function MessageStatusIcon({ status }: { status: TimelineMessage['status'] }) {
@@ -52,7 +57,7 @@ function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessage['reply
   )
 }
 
-export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete, onReply, onThread }: MessageBubbleProps) {
+export function MessageBubble({ message, receipts, isPinned, onResend, onReaction, onEdit, onDelete, onReply, onThread, onPin }: MessageBubbleProps) {
   const { t } = useTranslation()
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
@@ -80,6 +85,10 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
   const handleThread = useCallback(() => {
     onThread?.(message.eventId)
   }, [message.eventId, onThread])
+
+  const handlePin = useCallback(() => {
+    onPin?.(message.eventId)
+  }, [message.eventId, onPin])
 
   // Redacted message
   if (message.redacted) {
@@ -114,6 +123,7 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
           {message.reactions && message.reactions.length > 0 && (
             <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
           )}
+          {receipts && receipts.length > 0 && <ReadReceipts receipts={receipts} />}
         </div>
         {/* Hover action bar */}
         {message.status === 'sent' && onReaction && (
@@ -121,10 +131,12 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
             <MessageActions
               onReaction={handleReaction}
               isSelf={isSelf}
+              isPinned={isPinned}
               onEdit={isSelf && onEdit ? handleEdit : undefined}
               onDelete={isSelf && onDelete ? handleDelete : undefined}
               onReply={onReply ? handleReply : undefined}
               onThread={onThread ? handleThread : undefined}
+              onPin={onPin ? handlePin : undefined}
             />
           </div>
         )}
@@ -169,6 +181,11 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
           ? <MediaMessage message={message} />
           : <MessageContent message={message} />}
 
+        {/* URL preview cards */}
+        {!isMedia && message.msgtype === 'm.text' && message.body && (
+          <UrlPreviewCards body={message.body} />
+        )}
+
         {/* Thread reply count */}
         {message.isThreadRoot && (message.threadReplyCount ?? 0) > 0 && onThread && (
           <button
@@ -185,6 +202,9 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
         {message.reactions && message.reactions.length > 0 && (
           <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
         )}
+
+        {/* Read receipts */}
+        {receipts && receipts.length > 0 && <ReadReceipts receipts={receipts} />}
 
         {/* Failed message actions */}
         {message.status === 'failed' && onResend && (
@@ -204,10 +224,12 @@ export function MessageBubble({ message, onResend, onReaction, onEdit, onDelete,
           <MessageActions
             onReaction={handleReaction}
             isSelf={isSelf}
+            isPinned={isPinned}
             onEdit={isSelf && onEdit ? handleEdit : undefined}
             onDelete={isSelf && onDelete ? handleDelete : undefined}
             onReply={onReply ? handleReply : undefined}
             onThread={onThread ? handleThread : undefined}
+            onPin={onPin ? handlePin : undefined}
           />
         </div>
       )}

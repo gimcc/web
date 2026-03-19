@@ -315,7 +315,13 @@
     "edit_placeholder": "编辑消息...",
     "confirm_delete": "确定要删除这条消息吗？",
     "replying_to": "回复 {{name}}",
-    "thread": "在线程中回复"
+    "thread": "在线程中回复",
+    "read_by_list": "已读: {{names}}",
+    "read_by_count": "{{count}} 人已读",
+    "reaction_count": "{{count}} 个回应",
+    "pin": "置顶消息",
+    "unpin": "取消置顶",
+    "pinned_count": "{{count}} 条置顶消息"
   },
   "room": {
     "create_title": "创建房间",
@@ -391,6 +397,12 @@
     "record": "录制语音消息",
     "cancel": "取消录制",
     "send": "发送语音消息"
+  },
+  "notification_level": {
+    "title": "通知级别",
+    "all": "所有消息",
+    "mentions": "仅提及",
+    "mute": "静音"
   },
   "pwa": {
     "update_available": "新版本可用",
