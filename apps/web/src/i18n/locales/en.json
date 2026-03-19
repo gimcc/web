@@ -315,7 +315,13 @@
     "edit_placeholder": "Edit message...",
     "confirm_delete": "Are you sure you want to delete this message?",
     "replying_to": "Replying to {{name}}",
-    "thread": "Reply in thread"
+    "thread": "Reply in thread",
+    "read_by_list": "Read by {{names}}",
+    "read_by_count": "Read by {{count}} people",
+    "reaction_count": "{{count}} reaction(s)",
+    "pin": "Pin message",
+    "unpin": "Unpin message",
+    "pinned_count": "{{count}} pinned message(s)"
   },
   "room": {
     "create_title": "Create Room",
@@ -391,6 +397,12 @@
     "record": "Record voice message",
     "cancel": "Cancel recording",
     "send": "Send voice message"
+  },
+  "notification_level": {
+    "title": "Notification level",
+    "all": "All messages",
+    "mentions": "Mentions only",
+    "mute": "Mute"
   },
   "pwa": {
     "update_available": "A new version is available",

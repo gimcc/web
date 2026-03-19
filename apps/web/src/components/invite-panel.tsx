@@ -1,10 +1,11 @@
 import type { RoomSummary } from '@matrix-web/matrix-client'
 import { getMatrixClient, useRoomsStore } from '@matrix-web/matrix-client'
 import { Bell, Check, X } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { Avatar } from './ui/avatar'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
 
 function useInviteRooms(): RoomSummary[] {
   const rooms = useRoomsStore(s => s.rooms)
@@ -100,79 +101,53 @@ function InviteItem({ room }: { room: RoomSummary }) {
 export function InviteBell() {
   const { t } = useTranslation()
   const invites = useInviteRooms()
-  const [open, setOpen] = useState(false)
-  const panelRef = useRef<HTMLDivElement>(null)
-
-  // Close on outside click or Escape key
-  useEffect(() => {
-    if (!open)
-      return
-    function handleClick(e: MouseEvent) {
-      if (panelRef.current && !panelRef.current.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === 'Escape') {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('mousedown', handleClick)
-    document.addEventListener('keydown', handleKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', handleClick)
-      document.removeEventListener('keydown', handleKeyDown)
-    }
-  }, [open])
 
   return (
-    <div className="relative" ref={panelRef}>
-      <button
-        type="button"
-        onClick={() => setOpen(prev => !prev)}
-        className="relative rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-        aria-label={t('invite.invitations')}
-      >
-        <Bell className="h-5 w-5" />
-        {invites.length > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-white">
-            {invites.length > 99 ? '99+' : invites.length}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <div className="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-xl border border-border bg-popover shadow-xl">
-          <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
-            <p className="text-sm font-semibold text-foreground">
-              {t('invite.invitations')}
-            </p>
-            {invites.length > 0 && (
-              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
-                {invites.length}
-              </span>
-            )}
-          </div>
-          <div className="max-h-72 overflow-y-auto">
-            {invites.length === 0
-              ? (
-                  <div className="flex flex-col items-center gap-2 px-4 py-8">
-                    <Bell className="h-8 w-8 text-muted-foreground/40" />
-                    <p className="text-sm text-muted-foreground">
-                      {t('invite.no_pending')}
-                    </p>
-                  </div>
-                )
-              : (
-                  <div className="divide-y divide-border">
-                    {invites.map(room => (
-                      <InviteItem key={room.roomId} room={room} />
-                    ))}
-                  </div>
-                )}
-          </div>
+    <Popover>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          className="relative rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+          aria-label={t('invite.invitations')}
+        >
+          <Bell className="h-5 w-5" />
+          {invites.length > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-white">
+              {invites.length > 99 ? '99+' : invites.length}
+            </span>
+          )}
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="w-80 overflow-hidden p-0" side="bottom" align="end">
+        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
+          <p className="text-sm font-semibold text-foreground">
+            {t('invite.invitations')}
+          </p>
+          {invites.length > 0 && (
+            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
+              {invites.length}
+            </span>
+          )}
         </div>
-      )}
-    </div>
+        <div className="max-h-72 overflow-y-auto">
+          {invites.length === 0
+            ? (
+                <div className="flex flex-col items-center gap-2 px-4 py-8">
+                  <Bell className="h-8 w-8 text-muted-foreground/40" />
+                  <p className="text-sm text-muted-foreground">
+                    {t('invite.no_pending')}
+                  </p>
+                </div>
+              )
+            : (
+                <div className="divide-y divide-border">
+                  {invites.map(room => (
+                    <InviteItem key={room.roomId} room={room} />
+                  ))}
+                </div>
+              )}
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }

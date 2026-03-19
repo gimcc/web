@@ -8,6 +8,8 @@ import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { MemberListPanel } from '../../components/members/member-list-panel'
 import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
+import { PinnedMessagesBar } from '../../components/pinned-messages-bar'
+import { RoomNotificationToggle } from '../../components/room-notification-toggle'
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
 import { ThreadPanel } from '../../components/thread-panel'
@@ -42,6 +44,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const [showSettings, setShowSettings] = useState(false)
   const [editingMessage, setEditingMessage] = useState<TimelineMessage | null>(null)
   const [replyingTo, setReplyingTo] = useState<TimelineMessage | null>(null)
+  const [pinRefreshKey, setPinRefreshKey] = useState(0)
 
   const handleEditMessage = useCallback((message: TimelineMessage) => {
     setEditingMessage(message)
@@ -60,6 +63,10 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const handleCloseThread = useCallback(() => {
     setActiveThread(null)
   }, [setActiveThread])
+
+  const handlePinChange = useCallback(() => {
+    setPinRefreshKey(k => k + 1)
+  }, [])
 
   const handleLeaveRoom = useCallback(async () => {
     if (mockMode)
@@ -88,6 +95,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
             </span>
           )}
           <div className="ml-auto flex items-center gap-1">
+            {!mockMode && <RoomNotificationToggle roomId={roomId} />}
             <button
               type="button"
               onClick={() => {
@@ -131,12 +139,16 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
           </div>
         </div>
 
+        {/* Pinned messages */}
+        {!mockMode && <PinnedMessagesBar roomId={roomId} refreshKey={pinRefreshKey} />}
+
         {/* Message timeline */}
         <MessageTimeline
           roomId={roomId}
           onEditMessage={handleEditMessage}
           onReplyMessage={handleReplyMessage}
           onThread={handleOpenThread}
+          onPinChange={handlePinChange}
         />
 
         {/* Typing indicator */}
