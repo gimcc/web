@@ -58,6 +58,22 @@ export function createSyncBridge(
         }
       }
       else {
+        // Skip server echo of our own sent messages — the optimistic update
+        // already added it and confirmMessage() will reconcile the event ID.
+        const sender = event.getSender()
+        const myUserId = client.getUserId()
+        if (sender === myUserId) {
+          const store = useMessagesStore.getState()
+          const timeline = store.getTimeline(room.roomId)
+          const eventId = event.getId()
+          const hasPending = timeline.some(
+            m => m.eventId === eventId || (m.status === 'sending' && m.senderId === myUserId),
+          )
+          if (hasPending) {
+            return
+          }
+        }
+
         const message = matrixEventToTimelineMessage(event, client)
         useMessagesStore.getState().appendMessages(room.roomId, [message])
       }
