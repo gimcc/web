@@ -17,7 +17,7 @@ import {
 } from '@matrix-web/matrix-client'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown } from 'lucide-react'
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MessageBubble } from './message-bubble'
 
@@ -37,7 +37,18 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
   const messages = useMessagesStore(s => s.timelines.get(roomId) ?? EMPTY_TIMELINE)
   const hasMore = useMessagesStore(s => s.hasMore.get(roomId) ?? false)
   const mockMode = useAuthStore(s => s.mockMode)
-  const receiptsByEvent = useReceiptsStore(s => s.getReceiptsByEvent(roomId)) ?? EMPTY_RECEIPTS
+  const roomReceipts = useReceiptsStore(s => s.receipts.get(roomId))
+  const receiptsByEvent = useMemo(() => {
+    if (!roomReceipts)
+      return EMPTY_RECEIPTS
+    const byEvent = new Map<string, ReceiptInfo[]>()
+    for (const info of roomReceipts.values()) {
+      const list = byEvent.get(info.eventId) ?? []
+      list.push(info)
+      byEvent.set(info.eventId, list)
+    }
+    return byEvent
+  }, [roomReceipts])
   const lastSentReceiptRef = useRef<string | null>(null)
 
   const [pinnedIds, setPinnedIds] = useState<Set<string>>(() =>
