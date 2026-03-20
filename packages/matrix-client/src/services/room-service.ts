@@ -1,11 +1,22 @@
 import type { MatrixClient, Room } from 'matrix-js-sdk'
-import { Preset, Visibility } from 'matrix-js-sdk'
+import { EventType, Preset, Visibility } from 'matrix-js-sdk'
 import { extractSingleRoomSummary } from '../client/client-manager'
 
 export interface KnownUser {
   userId: string
   displayName: string
   avatarUrl: string | null
+}
+
+/** Shape of a room entry from the public rooms directory API response. */
+interface PublicRoomChunk {
+  room_id: string
+  name?: string
+  canonical_alias?: string
+  topic?: string
+  num_joined_members?: number
+  world_readable?: boolean
+  avatar_url?: string
 }
 
 export interface CreateDmOptions {
@@ -236,7 +247,7 @@ export async function searchPublicRooms(
     filter: { generic_search_term: query },
   })
 
-  return (response.chunk ?? []).map((room: any) => ({
+  return (response.chunk ?? []).map((room: PublicRoomChunk) => ({
     roomId: room.room_id,
     name: room.name ?? room.canonical_alias ?? room.room_id,
     topic: room.topic ?? null,
@@ -259,20 +270,17 @@ export async function browsePublicRooms(
 ): Promise<BrowsePublicRoomsResult> {
   const { server, query, limit = 20, since } = options
 
-  const requestOptions: any = {
+  const requestOptions: Parameters<MatrixClient['publicRooms']>[0] = {
     limit,
     ...(query ? { filter: { generic_search_term: query } } : {}),
     ...(since ? { since } : {}),
-  }
-
-  if (server) {
-    requestOptions.server = server
+    ...(server ? { server } : {}),
   }
 
   const response = await client.publicRooms(requestOptions)
 
   return {
-    rooms: (response.chunk ?? []).map((room: any) => ({
+    rooms: (response.chunk ?? []).map((room: PublicRoomChunk) => ({
       roomId: room.room_id,
       name: room.name ?? room.canonical_alias ?? room.room_id,
       topic: room.topic ?? null,
@@ -342,7 +350,7 @@ export async function setCanonicalAlias(
   if (alias) {
     content.alias = alias
   }
-  await client.sendStateEvent(roomId, 'm.room.canonical_alias' as any, content)
+  await client.sendStateEvent(roomId, EventType.RoomCanonicalAlias, content)
 }
 
 /**

@@ -33,13 +33,26 @@ export function parseMatrixToUrl(url: string): MatrixLink | null {
   if (!captured)
     return null
 
-  const fragment = decodeURIComponent(captured)
+  let fragment: string
+  try {
+    fragment = decodeURIComponent(captured)
+  }
+  catch {
+    fragment = captured
+  }
   const parts = fragment.split('?')
   const path = parts[0] ?? ''
   const query = parts[1] ?? ''
 
   // Extract via servers from query string
-  const viaServers = Array.from(query.matchAll(VIA_REGEX), m => decodeURIComponent(m[1] ?? ''))
+  const viaServers = Array.from(query.matchAll(VIA_REGEX), (m) => {
+    try {
+      return decodeURIComponent(m[1] ?? '')
+    }
+    catch {
+      return m[1] ?? ''
+    }
+  })
 
   // Split path by / to separate room from event ID
   const segments = path.split('/')

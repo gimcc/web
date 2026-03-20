@@ -351,6 +351,7 @@
     "error_join": "Failed to join room",
     "error_leave": "Failed to leave room",
     "error_settings": "Failed to save settings",
+    "error_browse": "Failed to load room directory",
     "explore_title": "Explore Rooms",
     "explore": "Explore",
     "server_label": "Server",

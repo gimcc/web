@@ -6,14 +6,19 @@ import {
   useRoomsStore,
 } from '@matrix-web/matrix-client'
 import { useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 
 const MATRIX_TO_IN_HASH = /https?:\/\/matrix\.to\/#\/\S+/
+
+/** Delay before processing deep links, allowing client initialization */
+const DEEP_LINK_INIT_DELAY_MS = 1000
 
 /**
  * Handle matrix.to deep links from URL hash or search params.
  * Checks on mount and listens for hashchange events.
  */
 export function useDeepLinkHandler() {
+  const { t } = useTranslation()
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const processingRef = useRef(false)
 
@@ -52,7 +57,8 @@ export function useDeepLinkHandler() {
             targetRoomId = await joinRoom(client, parsed.identifier)
           }
           catch {
-            // Join failed
+            console.error(`[deep-link] Failed to join room: ${parsed.identifier}`)
+            window.alert(t('deep_link.error_join_failed'))
             return
           }
         }
@@ -68,7 +74,7 @@ export function useDeepLinkHandler() {
     finally {
       processingRef.current = false
     }
-  }, [setActiveRoom])
+  }, [setActiveRoom, t])
 
   // Check URL on mount
   useEffect(() => {
@@ -93,7 +99,7 @@ export function useDeepLinkHandler() {
     }
 
     // Delay to let the client initialize first
-    const timer = setTimeout(checkUrl, 1000)
+    const timer = setTimeout(checkUrl, DEEP_LINK_INIT_DELAY_MS)
     return () => clearTimeout(timer)
   }, [processLink])
 }
@@ -103,6 +109,7 @@ export function useDeepLinkHandler() {
  * Returns a click handler that intercepts matrix.to links.
  */
 export function useMatrixLinkClickHandler() {
+  const { t } = useTranslation()
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
 
   return useCallback((event: React.MouseEvent) => {
@@ -140,8 +147,9 @@ export function useMatrixLinkClickHandler() {
           setActiveRoom(roomId)
         })
         .catch(() => {
-          // Silently fail for now
+          console.error(`[deep-link] Failed to join room: ${parsed.identifier}`)
+          window.alert(t('deep_link.error_join_failed'))
         })
     }
-  }, [setActiveRoom])
+  }, [setActiveRoom, t])
 }

@@ -35,6 +35,7 @@ export function RoomDirectoryDialog({ open, onClose }: RoomDirectoryDialogProps)
   const [isJoining, setIsJoining] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const searchTimerRef = useRef<ReturnType<typeof setTimeout>>(null)
+  const loadRoomsRef = useRef<typeof loadRooms>(null!)
 
   const loadRooms = useCallback(async (opts: {
     query?: string
@@ -75,13 +76,16 @@ export function RoomDirectoryDialog({ open, onClose }: RoomDirectoryDialogProps)
       if (!isMore) {
         setRooms([])
       }
-      setError(t('room.error_join'))
+      setError(t('room.error_browse'))
     }
     finally {
       setIsLoading(false)
       setIsLoadingMore(false)
     }
   }, [server, t])
+
+  // Keep ref in sync so effects don't need loadRooms as a dependency
+  loadRoomsRef.current = loadRooms
 
   // Load featured rooms on open
   useEffect(() => {
@@ -92,8 +96,7 @@ export function RoomDirectoryDialog({ open, onClose }: RoomDirectoryDialogProps)
     setError(null)
     setRooms([])
     setNextBatch(null)
-    loadRooms()
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadRoomsRef.current()
   }, [open, mockMode])
 
   // Debounced search
@@ -106,7 +109,7 @@ export function RoomDirectoryDialog({ open, onClose }: RoomDirectoryDialogProps)
     }
 
     searchTimerRef.current = setTimeout(() => {
-      loadRooms({ query: searchQuery })
+      loadRoomsRef.current({ query: searchQuery })
     }, 400)
 
     return () => {
@@ -114,7 +117,6 @@ export function RoomDirectoryDialog({ open, onClose }: RoomDirectoryDialogProps)
         clearTimeout(searchTimerRef.current)
       }
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, open, mockMode])
 
   const handleServerChange = useCallback((newServer: string) => {
@@ -124,9 +126,8 @@ export function RoomDirectoryDialog({ open, onClose }: RoomDirectoryDialogProps)
       clearTimeout(searchTimerRef.current)
     }
     searchTimerRef.current = setTimeout(() => {
-      loadRooms({ query: searchQuery, serverOverride: newServer })
+      loadRoomsRef.current({ query: searchQuery, serverOverride: newServer })
     }, 600)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery])
 
   const handleJoin = useCallback(async (roomIdOrAlias: string) => {

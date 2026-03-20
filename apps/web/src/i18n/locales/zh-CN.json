@@ -351,6 +351,7 @@
     "error_join": "加入房间失败",
     "error_leave": "离开房间失败",
     "error_settings": "保存设置失败",
+    "error_browse": "加载房间目录失败",
     "explore_title": "探索房间",
     "explore": "探索",
     "server_label": "服务器",
