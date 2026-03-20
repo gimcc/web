@@ -29,7 +29,7 @@ export function UiaDialog({ challenge, onSubmit, onCancel, isLoading, error }: U
 
     if (currentStage === 'm.login.password' && session) {
       const auth = buildPasswordAuth(challenge.session, session.userId, password)
-      onSubmit(auth)
+      onSubmit(auth as unknown as Record<string, unknown>)
     }
   }
 

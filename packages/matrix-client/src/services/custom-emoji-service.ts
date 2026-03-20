@@ -86,7 +86,7 @@ export function getUserEmojiPacks(): ResolvedEmojiPack[] {
   const homeserverUrl = client.baseUrl
 
   // Try user account data
-  const userEmotes = client.getAccountData('im.ponies.user_emotes')
+  const userEmotes = client.getAccountData('im.ponies.user_emotes' as any)
   const packs: ResolvedEmojiPack[] = []
 
   if (userEmotes) {
@@ -163,7 +163,7 @@ export function getStickerMxcUrl(shortcode: string, roomId?: string): string | n
   }
 
   // Search user emotes
-  const userEmotes = client.getAccountData('im.ponies.user_emotes')
+  const userEmotes = client.getAccountData('im.ponies.user_emotes' as any)
   if (userEmotes) {
     const content = userEmotes.getContent() as EmojiPackContent
     const img = content.images?.[shortcode]
