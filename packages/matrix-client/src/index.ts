@@ -7,6 +7,7 @@ export type { AuthState } from './auth/auth-store'
 
 // Auth — password reset
 export {
+  checkEmailValidation,
   generateClientSecret,
   requestPasswordResetEmail,
   submitNewPassword,

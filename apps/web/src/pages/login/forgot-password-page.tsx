@@ -1,5 +1,6 @@
 import type { FormEvent } from 'react'
 import {
+  checkEmailValidation,
   generateClientSecret,
   requestPasswordResetEmail,
   submitNewPassword,
@@ -139,10 +140,33 @@ export function ForgotPasswordPage() {
 
             <button
               type="button"
-              onClick={() => setStep('new-password')}
-              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+              disabled={isLoading}
+              onClick={async () => {
+                setError(null)
+                setIsLoading(true)
+                try {
+                  const verified = await checkEmailValidation(
+                    serverUrl,
+                    sidRef.current,
+                    clientSecretRef.current,
+                  )
+                  if (verified) {
+                    setStep('new-password')
+                  }
+                  else {
+                    setError(t('forgot_password.email_not_verified'))
+                  }
+                }
+                catch {
+                  setError(t('forgot_password.error_verify'))
+                }
+                finally {
+                  setIsLoading(false)
+                }
+              }}
+              className="w-full rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             >
-              {t('forgot_password.email_confirmed')}
+              {isLoading ? t('forgot_password.verifying') : t('forgot_password.email_confirmed')}
             </button>
 
             <button

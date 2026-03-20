@@ -41,10 +41,10 @@ export type UiaAuth = UiaPasswordAuth | UiaDummyAuth
  */
 export function isUiaChallenge(error: unknown): error is { data: UiaChallenge; httpStatus: number } {
   if (typeof error !== 'object' || error === null) return false
-  const err = error as Record<string, unknown>
-  if (err.httpStatus !== 401) return false
-  const data = err.data as Record<string, unknown> | undefined
-  return !!data?.flows && !!data?.session
+  if (!('httpStatus' in error) || error.httpStatus !== 401) return false
+  if (!('data' in error) || typeof error.data !== 'object' || error.data === null) return false
+  const data = error.data as Record<string, unknown>
+  return Array.isArray(data.flows) && typeof data.session === 'string'
 }
 
 /**

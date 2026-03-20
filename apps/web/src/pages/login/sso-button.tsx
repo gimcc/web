@@ -7,15 +7,34 @@ interface SsoButtonProps {
   provider?: SsoIdentityProvider
 }
 
-function getSsoCallbackUrl(): string {
-  return `${window.location.origin}${window.location.pathname}?sso=1`
+function getSsoCallbackUrl(homeserverUrl: string): string {
+  const callback = new URL(`${window.location.origin}${window.location.pathname}`)
+  callback.searchParams.set('sso', '1')
+  callback.searchParams.set('homeserver', homeserverUrl)
+  return callback.toString()
+}
+
+function isValidRedirectUrl(url: string, homeserverUrl: string): boolean {
+  try {
+    const parsed = new URL(url)
+    const origin = new URL(window.location.origin)
+    if (parsed.origin === origin.origin) return true
+    const hs = new URL(homeserverUrl)
+    if (parsed.origin === hs.origin) return true
+    return false
+  }
+  catch {
+    return false
+  }
 }
 
 export function SsoButton({ homeserverUrl, provider }: SsoButtonProps) {
   const { t } = useTranslation()
 
   const handleClick = () => {
-    startSsoLogin(homeserverUrl, getSsoCallbackUrl(), provider?.id)
+    const callbackUrl = getSsoCallbackUrl(homeserverUrl)
+    if (!isValidRedirectUrl(callbackUrl, homeserverUrl)) return
+    startSsoLogin(homeserverUrl, callbackUrl, provider?.id)
   }
 
   const label = provider

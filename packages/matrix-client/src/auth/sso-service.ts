@@ -26,18 +26,23 @@ export async function getLoginFlows(homeserverUrl: string): Promise<LoginFlowsRe
   let supportsToken = false
   const ssoProviders: SsoIdentityProvider[] = []
 
-  for (const flow of response.flows) {
+  interface SsoLoginFlow {
+    type: string
+    identity_providers?: Array<{
+      id: string
+      name: string
+      icon?: string
+      brand?: string
+    }>
+  }
+
+  for (const flow of response.flows as SsoLoginFlow[]) {
     if (flow.type === 'm.login.password') {
       supportsPassword = true
     }
     if (flow.type === 'm.login.sso') {
       supportsSso = true
-      const idps = (flow as Record<string, unknown>).identity_providers as Array<{
-        id: string
-        name: string
-        icon?: string
-        brand?: string
-      }> | undefined
+      const idps = flow.identity_providers
 
       if (idps) {
         for (const idp of idps) {

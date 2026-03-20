@@ -36,14 +36,20 @@ export function LoginPage() {
   useEffect(() => {
     const loginToken = searchParams.get('loginToken')
     const hsUrl = searchParams.get('homeserver') || serverUrl
-    if (loginToken && hsUrl) {
-      loginWithToken(hsUrl, loginToken).then(() => {
-        if (useAuthStore.getState().isAuthenticated) {
-          navigate('/', { replace: true })
-        }
-      })
-    }
-  }, [searchParams, serverUrl, loginWithToken, navigate])
+    if (!loginToken || !hsUrl) return
+
+    // Clear sensitive token from URL immediately
+    const cleanUrl = new URL(window.location.href)
+    cleanUrl.searchParams.delete('loginToken')
+    window.history.replaceState(null, '', cleanUrl.toString())
+
+    loginWithToken(hsUrl, loginToken).then(() => {
+      if (useAuthStore.getState().isAuthenticated) {
+        navigate('/', { replace: true })
+      }
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- run only on mount to avoid re-execution with stale token
+  }, [])
 
   // Fetch login flows when server URL changes
   const fetchFlows = useCallback(async (url: string) => {
