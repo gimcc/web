@@ -1,7 +1,9 @@
 import { CornerUpLeft, MessageSquare, Pencil, Pin, SmilePlus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { EmojiPicker, QUICK_REACTIONS } from './emoji-picker'
+import { addRecentEmoji } from '../hooks/use-recent-emojis'
+import { QUICK_REACTIONS } from '../lib/emoji-data'
+import { EmojiPicker } from './emoji-picker'
 
 interface MessageActionsProps {
   onReaction: (emoji: string) => void
@@ -153,7 +155,7 @@ export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete,
           ref={pickerRef}
           className="absolute right-0 top-full z-50 mt-1"
         >
-          <EmojiPicker onSelect={onReaction} onClose={handleClose} />
+          <EmojiPicker onSelect={(emoji) => { addRecentEmoji(emoji); onReaction(emoji) }} onClose={handleClose} />
         </div>
       )}
     </div>

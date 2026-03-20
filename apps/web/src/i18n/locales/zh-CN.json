@@ -408,5 +408,32 @@
   "pwa": {
     "update_available": "新版本可用",
     "reload": "更新"
+  },
+  "emoji": {
+    "search_placeholder": "搜索表情...",
+    "skin_tone": "肤色",
+    "recent": "最近使用",
+    "no_recent": "暂无最近使用的表情",
+    "no_results": "未找到表情",
+    "empty_pack": "该表情包为空",
+    "picker": "表情选择器",
+    "categories": {
+      "smileys": "笑脸与表情",
+      "people": "人物与身体",
+      "nature": "动物与自然",
+      "food": "食物与饮料",
+      "activities": "活动",
+      "travel": "旅行与地点",
+      "objects": "物品",
+      "symbols": "符号"
+    }
+  },
+  "sticker": {
+    "send": "发送贴纸",
+    "picker": "贴纸选择器",
+    "search_placeholder": "搜索贴纸...",
+    "no_packs": "暂无贴纸包",
+    "no_packs_hint": "可以从房间设置或账户表情包中添加贴纸包。",
+    "no_stickers": "未找到贴纸"
   }
 }

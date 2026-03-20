@@ -3,11 +3,15 @@ import type { CommandDefinition } from '../lib/commands'
 import type { PendingUpload } from './upload-preview'
 import {
   editMessage,
+  getAllEmojiPacks,
   getMatrixClient,
   getRoomMembers,
+  getStickerMxcUrl,
+  getStickerPacks,
   parseUserId,
   sendMockMessage,
   sendReply,
+  sendSticker,
   sendTextMessage,
   uploadAndSendFile,
   uploadMockFile,
@@ -15,13 +19,17 @@ import {
   useDraftsStore,
   useMessagesStore,
 } from '@matrix-web/matrix-client'
-import { CornerUpLeft, Mic, Paperclip, Pencil, Send, X } from 'lucide-react'
+import { CornerUpLeft, Mic, Paperclip, Pencil, Send, Smile, Sticker, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { addRecentEmoji } from '../hooks/use-recent-emojis'
 import { filterCommands, findCommand, parseCommandInput } from '../lib/commands'
 import { renderMarkdown } from '../lib/markdown'
 import { CommandPanel } from './command-panel'
+import type { CustomEmoji, CustomEmojiPack } from './custom-emoji-types'
+import { EmojiPicker } from './emoji-picker'
 import { MentionPanel } from './mention-panel'
+import { StickerPicker } from './sticker-picker'
 import { UploadPreview } from './upload-preview'
 import { VoiceRecorder } from './voice-recorder'
 
@@ -55,7 +63,13 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   const [matchedMembers, setMatchedMembers] = useState<RoomMemberInfo[]>([])
   const [selectedMemberIndex, setSelectedMemberIndex] = useState(0)
   const [isRecording, setIsRecording] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const [showStickerPicker, setShowStickerPicker] = useState(false)
 
+  const emojiPickerRef = useRef<HTMLDivElement>(null)
+  const emojiButtonRef = useRef<HTMLButtonElement>(null)
+  const stickerPickerRef = useRef<HTMLDivElement>(null)
+  const stickerButtonRef = useRef<HTMLButtonElement>(null)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const prevRoomIdRef = useRef(roomId)
@@ -499,6 +513,106 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     setIsRecording(false)
   }, [])
 
+  // Emoji picker handlers
+  const handleEmojiSelect = useCallback((emoji: string) => {
+    addRecentEmoji(emoji)
+    const el = textareaRef.current
+    const pos = el?.selectionStart ?? text.length
+    const before = text.slice(0, pos)
+    const after = text.slice(pos)
+    const newText = before + emoji + after
+    setText(newText)
+    setShowEmojiPicker(false)
+    requestAnimationFrame(() => {
+      if (el) {
+        const newPos = pos + emoji.length
+        el.selectionStart = newPos
+        el.selectionEnd = newPos
+        el.focus()
+      }
+    })
+  }, [text])
+
+  const handleCustomEmojiSelect = useCallback((_emoji: CustomEmoji) => {
+    // Custom emojis in text messages are rendered as shortcodes
+    // The server-side rendering will convert :shortcode: to images
+    setShowEmojiPicker(false)
+  }, [])
+
+  // Sticker sending handler
+  const handleStickerSelect = useCallback(async (sticker: { shortcode: string, url: string, body?: string }) => {
+    setShowStickerPicker(false)
+    if (mockMode) return
+    try {
+      const mxcUrl = getStickerMxcUrl(sticker.shortcode, roomId)
+      if (mxcUrl) {
+        await sendSticker({ roomId, url: mxcUrl, body: sticker.body ?? sticker.shortcode })
+      }
+    }
+    catch {
+      setCommandError(t('chat.upload_failed'))
+    }
+  }, [roomId, mockMode, t])
+
+  // Close emoji/sticker picker on outside click
+  useEffect(() => {
+    if (!showEmojiPicker && !showStickerPicker) return
+
+    function handleClickOutside(e: MouseEvent) {
+      if (showEmojiPicker) {
+        if (
+          emojiPickerRef.current && !emojiPickerRef.current.contains(e.target as Node)
+          && emojiButtonRef.current && !emojiButtonRef.current.contains(e.target as Node)
+        ) {
+          setShowEmojiPicker(false)
+        }
+      }
+      if (showStickerPicker) {
+        if (
+          stickerPickerRef.current && !stickerPickerRef.current.contains(e.target as Node)
+          && stickerButtonRef.current && !stickerButtonRef.current.contains(e.target as Node)
+        ) {
+          setShowStickerPicker(false)
+        }
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [showEmojiPicker, showStickerPicker])
+
+  // Get custom emoji packs
+  const customEmojiPacks = useMemo((): CustomEmojiPack[] => {
+    if (mockMode) return []
+    try {
+      const packs = getAllEmojiPacks(roomId)
+      return packs.map(pack => ({
+        id: pack.id,
+        name: pack.name,
+        avatarUrl: pack.avatarUrl,
+        emojis: pack.images
+          .filter(img => !img.isSticker)
+          .map(img => ({ shortcode: img.shortcode, url: img.url, body: img.body })),
+      }))
+    }
+    catch { return [] }
+  }, [roomId, mockMode])
+
+  const stickerPacks = useMemo((): CustomEmojiPack[] => {
+    if (mockMode) return []
+    try {
+      const packs = getStickerPacks(roomId)
+      return packs.map(pack => ({
+        id: pack.id,
+        name: pack.name,
+        avatarUrl: pack.avatarUrl,
+        emojis: pack.images.map(img => ({ shortcode: img.shortcode, url: img.url, body: img.body })),
+        isSticker: true,
+      }))
+    }
+    catch { return [] }
+  }, [roomId, mockMode])
+
   if (isRecording) {
     return <VoiceRecorder onSend={(blob, dur) => void handleVoiceSend(blob, dur)} onCancel={handleVoiceCancel} />
   }
@@ -623,6 +737,59 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
               >
                 <Paperclip className="h-5 w-5" />
               </button>
+            )}
+
+            {/* Emoji picker button */}
+            <div className="relative">
+              <button
+                ref={emojiButtonRef}
+                type="button"
+                onClick={() => {
+                  setShowEmojiPicker(v => !v)
+                  setShowStickerPicker(false)
+                }}
+                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                aria-label={t('emoji.picker')}
+              >
+                <Smile className="h-5 w-5" />
+              </button>
+              {showEmojiPicker && (
+                <div ref={emojiPickerRef} className="absolute bottom-full left-0 z-50 mb-2">
+                  <EmojiPicker
+                    onSelect={handleEmojiSelect}
+                    onClose={() => setShowEmojiPicker(false)}
+                    customPacks={customEmojiPacks}
+                    onSelectCustom={handleCustomEmojiSelect}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Sticker picker button */}
+            {!editingMessage && (
+              <div className="relative">
+                <button
+                  ref={stickerButtonRef}
+                  type="button"
+                  onClick={() => {
+                    setShowStickerPicker(v => !v)
+                    setShowEmojiPicker(false)
+                  }}
+                  className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  aria-label={t('sticker.picker')}
+                >
+                  <Sticker className="h-5 w-5" />
+                </button>
+                {showStickerPicker && (
+                  <div ref={stickerPickerRef} className="absolute bottom-full left-0 z-50 mb-2">
+                    <StickerPicker
+                      packs={stickerPacks}
+                      onSelect={sticker => void handleStickerSelect(sticker)}
+                      onClose={() => setShowStickerPicker(false)}
+                    />
+                  </div>
+                )}
+              </div>
             )}
 
             {/* Voice record button (shown when input is empty) */}

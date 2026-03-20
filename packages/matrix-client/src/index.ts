@@ -74,6 +74,19 @@ export {
   queryKeys,
 } from './query/query-keys'
 
+// Services — custom emoji
+export {
+  getAllEmojiPacks,
+  getRoomEmojiPacks,
+  getStickerMxcUrl,
+  getStickerPacks,
+  getUserEmojiPacks,
+} from './services/custom-emoji-service'
+export type {
+  EmojiPackContent,
+  EmojiPackImage,
+  ResolvedEmojiPack,
+} from './services/custom-emoji-service'
 // Services — members
 export {
   banUser,
@@ -156,6 +169,10 @@ export {
   loadThreadTimeline,
   sendThreadMessage,
 } from './services/thread-service'
+
+// Services — sticker
+export { sendSticker } from './services/sticker-service'
+export type { SendStickerOptions } from './services/sticker-service'
 
 export type { TypingService } from './services/typing-service'
 export {
