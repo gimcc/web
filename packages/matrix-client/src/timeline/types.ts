@@ -81,9 +81,9 @@ export interface UnreadDividerItem {
   timestamp: number
 }
 
-export type TimelineItem =
-  | TimelineMessageItem
-  | TimelineMemberItem
-  | TimelineStateItem
-  | DayDividerItem
-  | UnreadDividerItem
+export type TimelineItem
+  = | TimelineMessageItem
+    | TimelineMemberItem
+    | TimelineStateItem
+    | DayDividerItem
+    | UnreadDividerItem

@@ -1,6 +1,6 @@
 # PLAN-012 重构消息处理体系（参考 Cinny）
 
-- **status**: draft
+- **status**: done
 - **created**: 2026-03-20
 - **task**: BUG-001
 

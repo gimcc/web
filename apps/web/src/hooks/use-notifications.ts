@@ -20,7 +20,8 @@ export function useNotificationListener(): void {
     const unsub = useTimelineStore.subscribe((state, prevState) => {
       const userId = useAuthStore.getState().session?.userId
       const mx = getMatrixClient()
-      if (!mx || !userId) return
+      if (!mx || !userId)
+        return
 
       // Lazy snapshot: if we haven't done it yet (client wasn't ready at mount),
       // snapshot now and skip this update to avoid flooding with notifications
@@ -33,10 +34,12 @@ export function useNotificationListener(): void {
       // Check which rooms had version bumps
       for (const [roomId, version] of state.versions) {
         const prevVersion = prevState.versions.get(roomId) ?? 0
-        if (version <= prevVersion) continue
+        if (version <= prevVersion)
+          continue
 
         const room = mx.getRoom(roomId)
-        if (!room) continue
+        if (!room)
+          continue
 
         const events = room.getLiveTimeline().getEvents()
         const lastSeenTs = lastSeenTsRef.current.get(roomId) ?? 0
@@ -44,13 +47,16 @@ export function useNotificationListener(): void {
         // Check new events at the end of the timeline
         for (let i = events.length - 1; i >= 0; i--) {
           const event = events[i]!
-          if (event.getTs() <= lastSeenTs) break
+          if (event.getTs() <= lastSeenTs)
+            break
 
           const type = event.getType()
-          if (type !== 'm.room.message' && type !== 'm.sticker') continue
+          if (type !== 'm.room.message' && type !== 'm.sticker')
+            continue
 
           const sender = event.getSender()
-          if (sender === userId) continue
+          if (sender === userId)
+            continue
 
           const content = event.getContent()
           const member = room.getMember(sender ?? '')
@@ -75,7 +81,8 @@ export function useNotificationListener(): void {
 /** Snapshot the latest event timestamp for all rooms currently in the SDK */
 function snapshotRooms(map: Map<string, number>): void {
   const client = getMatrixClient()
-  if (!client) return
+  if (!client)
+    return
   for (const room of client.getRooms()) {
     const events = room.getLiveTimeline().getEvents()
     const lastEvent = events.at(-1)

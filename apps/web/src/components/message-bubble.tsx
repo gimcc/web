@@ -1,6 +1,6 @@
 import type { ReceiptInfo, TimelineMessageItem } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
-import { AlertCircle, Check, Loader2, MessageSquare } from 'lucide-react'
+import { AlertCircle, Check, CheckCheck, Clock, MessageSquare } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
@@ -8,12 +8,10 @@ import { MediaMessage } from './media-message'
 import { MessageActions } from './message-actions'
 import { MessageContent } from './message-content'
 import { ReactionBar } from './reaction-bar'
-import { ReadReceipts } from './read-receipts'
 import { UrlPreviewCards } from './url-preview-card'
 
 interface MessageBubbleProps {
   message: TimelineMessageItem
-  /** When true, avatar and sender name are hidden (consecutive grouped messages) */
   collapsed?: boolean
   receipts?: ReceiptInfo[]
   isPinned?: boolean
@@ -24,20 +22,32 @@ interface MessageBubbleProps {
   onReply?: (message: TimelineMessageItem) => void
   onThread?: (eventId: string) => void
   onPin?: (eventId: string) => void
+  onJumpToEvent?: (eventId: string) => void
+  highlighted?: boolean
 }
 
-function MessageStatusIcon({ status }: { status: TimelineMessageItem['status'] }) {
+// ---------------------------------------------------------------------------
+// Check-mark status (WhatsApp-style)
+// ---------------------------------------------------------------------------
+
+function MessageStatus({ status, hasReceipts }: { status: TimelineMessageItem['status'], hasReceipts: boolean }) {
   switch (status) {
     case 'sending':
-      return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
+      return <Clock className="h-3.5 w-3.5 text-muted-foreground/70" />
     case 'sent':
-      return <Check className="h-3 w-3 text-muted-foreground" />
+      if (hasReceipts)
+        return <CheckCheck className="h-3.5 w-3.5 text-blue-500" />
+      return <Check className="h-3.5 w-3.5 text-muted-foreground/70" />
     case 'failed':
-      return <AlertCircle className="h-3 w-3 text-destructive" />
+      return <AlertCircle className="h-3.5 w-3.5 text-destructive" />
     default:
       return null
   }
 }
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function formatTime(timestamp: number): string {
   return new Date(timestamp).toLocaleTimeString(undefined, {
@@ -46,25 +56,83 @@ function formatTime(timestamp: number): string {
   })
 }
 
-function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessageItem['replyTo']> }) {
+function ReplyPreview({ replyTo, isSelf, onJump }: {
+  replyTo: NonNullable<TimelineMessageItem['replyTo']>
+  isSelf: boolean
+  onJump?: (eventId: string) => void
+}) {
   return (
-    <div className="mb-1 flex items-center gap-1.5 rounded border-l-2 border-primary/50 bg-accent/30 px-2 py-1">
-      <span className="text-xs font-medium text-primary">
+    <button
+      type="button"
+      onClick={() => onJump?.(replyTo.eventId)}
+      className={cn(
+        'mb-1 flex w-full flex-col rounded-md px-2.5 py-1.5 text-left transition-colors',
+        'border-l-3',
+        isSelf
+          ? 'border-primary-foreground/40 bg-primary/20 hover:bg-primary/30'
+          : 'border-primary/50 bg-accent/40 hover:bg-accent/60',
+      )}
+    >
+      <span className={cn('text-xs font-semibold', isSelf ? 'text-primary-foreground/80' : 'text-primary')}>
         {replyTo.senderName || replyTo.senderId}
       </span>
-      <span className="truncate text-xs text-muted-foreground">
+      <span className={cn('truncate text-xs', isSelf ? 'text-primary-foreground/60' : 'text-muted-foreground')}>
         {replyTo.body || '...'}
       </span>
-    </div>
+    </button>
   )
 }
 
-export function MessageBubble({ message, collapsed, receipts, isPinned, onResend, onReaction, onEdit, onDelete, onReply, onThread, onPin }: MessageBubbleProps) {
+// ---------------------------------------------------------------------------
+// Inline timestamp + status (sits at end of last text line)
+// ---------------------------------------------------------------------------
+
+function BubbleMeta({ time, isSelf, status, hasReceipts, edited, t }: {
+  time: string
+  isSelf: boolean
+  status: TimelineMessageItem['status']
+  hasReceipts: boolean
+  edited: boolean
+  t: (key: string) => string
+}) {
+  return (
+    <span className={cn(
+      'inline-flex shrink-0 items-center gap-0.5 text-[10px] leading-none',
+      isSelf ? 'text-primary-foreground/60' : 'text-muted-foreground',
+    )}
+    >
+      {edited && <span>{`(${t('message.edited')})`}</span>}
+      <span>{time}</span>
+      {isSelf && <MessageStatus status={status} hasReceipts={hasReceipts} />}
+    </span>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// MessageBubble (WhatsApp-style)
+// ---------------------------------------------------------------------------
+
+export function MessageBubble({
+  message,
+  collapsed,
+  receipts,
+  isPinned,
+  onResend,
+  onReaction,
+  onEdit,
+  onDelete,
+  onReply,
+  onThread,
+  onPin,
+  onJumpToEvent,
+  highlighted,
+}: MessageBubbleProps) {
   const { t } = useTranslation()
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
   const isEmote = message.msgtype === 'm.emote'
   const isMedia = ['m.image', 'm.video', 'm.file', 'm.audio'].includes(message.msgtype)
+  const hasReceipts = (receipts?.length ?? 0) > 0
 
   const timeStr = useMemo(() => formatTime(message.timestamp), [message.timestamp])
 
@@ -92,29 +160,51 @@ export function MessageBubble({ message, collapsed, receipts, isPinned, onResend
     onPin?.(message.eventId)
   }, [message.eventId, onPin])
 
-  // Redacted message
+  // Shared action bar
+  const actionBar = message.status === 'sent' && onReaction
+    ? (
+        <div className={cn(
+          'absolute top-0 hidden group-hover:block z-10',
+          isSelf ? 'left-0 -translate-x-full pl-1' : 'right-0 translate-x-full pr-1',
+        )}
+        >
+          <MessageActions
+            onReaction={handleReaction}
+            isSelf={isSelf}
+            isPinned={isPinned}
+            onEdit={isSelf && onEdit ? handleEdit : undefined}
+            onDelete={isSelf && onDelete ? handleDelete : undefined}
+            onReply={onReply ? handleReply : undefined}
+            onThread={onThread ? handleThread : undefined}
+            onPin={onPin ? handlePin : undefined}
+          />
+        </div>
+      )
+    : null
+
+  // ---- Redacted message ----
   if (message.redacted) {
     return (
-      <div className="group relative flex gap-3 px-4 py-1.5 opacity-50">
-        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-medium text-muted-foreground">
-          {message.senderName.charAt(0).toUpperCase()}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
-            <span className="text-sm font-semibold text-muted-foreground">{message.senderName}</span>
-            <span className="text-xs text-muted-foreground">{timeStr}</span>
-          </div>
+      <div className={cn('flex px-4 py-0.5', isSelf ? 'justify-end' : 'justify-start')}>
+        <div className={cn(
+          'max-w-[75%] rounded-2xl px-3 py-1.5 opacity-50',
+          isSelf ? 'bg-primary/10' : 'bg-muted',
+        )}
+        >
           <p className="text-sm italic text-muted-foreground">{t('message.deleted')}</p>
+          <div className="flex justify-end">
+            <BubbleMeta time={timeStr} isSelf={isSelf} status={message.status} hasReceipts={hasReceipts} edited={false} t={t} />
+          </div>
         </div>
       </div>
     )
   }
 
+  // ---- Emote message ----
   if (isEmote) {
     return (
-      <div className="group relative flex items-baseline gap-2 px-4 py-0.5 hover:bg-accent/50">
-        <span className="text-xs text-muted-foreground">{timeStr}</span>
-        <div className="min-w-0 flex-1">
+      <div className="group relative px-4 py-0.5">
+        <div className="flex items-baseline gap-2">
           <span className="text-sm italic text-muted-foreground">
             *
             {' '}
@@ -122,80 +212,72 @@ export function MessageBubble({ message, collapsed, receipts, isPinned, onResend
             {' '}
             {message.body}
           </span>
-          {message.reactions && message.reactions.length > 0 && (
-            <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
-          )}
-          {receipts && receipts.length > 0 && <ReadReceipts receipts={receipts} />}
+          <span className="text-[10px] text-muted-foreground">{timeStr}</span>
+          {isSelf && <MessageStatus status={message.status} hasReceipts={hasReceipts} />}
         </div>
-        {/* Hover action bar */}
-        {message.status === 'sent' && onReaction && (
-          <div className="absolute -top-3 right-2 hidden group-hover:block">
-            <MessageActions
-              onReaction={handleReaction}
-              isSelf={isSelf}
-              isPinned={isPinned}
-              onEdit={isSelf && onEdit ? handleEdit : undefined}
-              onDelete={isSelf && onDelete ? handleDelete : undefined}
-              onReply={onReply ? handleReply : undefined}
-              onThread={onThread ? handleThread : undefined}
-              onPin={onPin ? handlePin : undefined}
-            />
-          </div>
+        {message.reactions && message.reactions.length > 0 && (
+          <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
         )}
+        {actionBar}
       </div>
     )
   }
 
+  // ---- Normal / media message (bubble) ----
+  const bubbleBg = isSelf
+    ? 'bg-primary text-primary-foreground'
+    : 'bg-muted text-foreground'
+
+  const bubbleRadius = isSelf
+    ? collapsed ? 'rounded-2xl' : 'rounded-2xl rounded-tr-sm'
+    : collapsed ? 'rounded-2xl' : 'rounded-2xl rounded-tl-sm'
+
   return (
     <div
       className={cn(
-        'group relative flex gap-3 px-4 hover:bg-accent/50',
-        collapsed ? 'py-0.5' : 'py-1.5',
-        message.status === 'failed' && 'bg-destructive/5',
+        'group relative flex px-4 transition-colors duration-500',
+        collapsed ? 'py-0.5' : 'py-1',
+        isSelf ? 'justify-end' : 'justify-start',
+        highlighted && 'bg-primary/10',
       )}
     >
-      {/* Avatar placeholder — hidden when collapsed (grouped) */}
-      {collapsed
-        ? <div className="w-8 shrink-0" />
-        : (
-            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-              {message.senderName.charAt(0).toUpperCase()}
-            </div>
+      {/* Avatar — only for others, only when not collapsed */}
+      {!isSelf && !collapsed && (
+        <div className="mr-2 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+          {message.senderName.charAt(0).toUpperCase()}
+        </div>
+      )}
+      {!isSelf && collapsed && <div className="mr-2 w-7 shrink-0" />}
+
+      <div className={cn('relative max-w-[75%]', 'group/bubble')}>
+        <div className={cn('relative overflow-hidden px-2.5 pb-1.5 pt-1.5', bubbleBg, bubbleRadius)}>
+          {/* Sender name — only for others, only when not collapsed */}
+          {!isSelf && !collapsed && (
+            <p className="mb-0.5 text-xs font-semibold text-primary">{message.senderName}</p>
           )}
 
-      <div className="min-w-0 flex-1">
-        {/* Sender name and time — hidden when collapsed */}
-        {!collapsed && (
-          <div className="flex items-baseline gap-2">
-            <span className={cn(
-              'text-sm font-semibold',
-              isSelf ? 'text-primary' : 'text-foreground',
-            )}
-            >
-              {message.senderName}
-            </span>
-            <span className="text-xs text-muted-foreground">{timeStr}</span>
-            {isSelf && <MessageStatusIcon status={message.status} />}
-            {message.edited && (
-              <span className="text-xs text-muted-foreground">{`(${t('message.edited')})`}</span>
-            )}
+          {/* Reply preview */}
+          {message.replyTo && (
+            <ReplyPreview replyTo={message.replyTo} isSelf={isSelf} onJump={onJumpToEvent} />
+          )}
+
+          {/* Content */}
+          {isMedia
+            ? <MediaMessage message={message} />
+            : <MessageContent message={message} />}
+
+          {/* Timestamp + status */}
+          <div className={cn('flex items-center gap-0.5 pt-0.5', isSelf ? 'justify-end' : 'justify-end')}>
+            <BubbleMeta time={timeStr} isSelf={isSelf} status={message.status} hasReceipts={hasReceipts} edited={message.edited} t={t} />
           </div>
-        )}
+        </div>
 
-        {/* Reply preview */}
-        {message.replyTo && <ReplyPreview replyTo={message.replyTo} />}
-
-        {/* Message content */}
-        {isMedia
-          ? <MediaMessage message={message} />
-          : <MessageContent message={message} />}
-
-        {/* URL preview cards */}
+        {/* URL preview — outside bubble */}
         {!isMedia && message.msgtype === 'm.text' && message.body && (
           <UrlPreviewCards body={message.body} />
         )}
 
-        {/* Thread reply count */}
+        {/* Thread */}
         {message.isThreadRoot && (message.threadReplyCount ?? 0) > 0 && onThread && (
           <button
             type="button"
@@ -212,10 +294,7 @@ export function MessageBubble({ message, collapsed, receipts, isPinned, onResend
           <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
         )}
 
-        {/* Read receipts */}
-        {receipts && receipts.length > 0 && <ReadReceipts receipts={receipts} />}
-
-        {/* Failed message actions */}
+        {/* Failed */}
         {message.status === 'failed' && onResend && (
           <button
             type="button"
@@ -225,23 +304,10 @@ export function MessageBubble({ message, collapsed, receipts, isPinned, onResend
             {t('chat.failed_to_send')}
           </button>
         )}
-      </div>
 
-      {/* Hover action bar */}
-      {message.status === 'sent' && onReaction && (
-        <div className="absolute right-2 top-1 hidden group-hover:block">
-          <MessageActions
-            onReaction={handleReaction}
-            isSelf={isSelf}
-            isPinned={isPinned}
-            onEdit={isSelf && onEdit ? handleEdit : undefined}
-            onDelete={isSelf && onDelete ? handleDelete : undefined}
-            onReply={onReply ? handleReply : undefined}
-            onThread={onThread ? handleThread : undefined}
-            onPin={onPin ? handlePin : undefined}
-          />
-        </div>
-      )}
+        {/* Hover action bar */}
+        {actionBar}
+      </div>
     </div>
   )
 }

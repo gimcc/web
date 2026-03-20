@@ -59,6 +59,8 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const prevItemCountRef = useRef(0)
   const isAtBottomRef = useRef(true)
+  // Scroll anchoring: track the first visible item key before history load
+  const anchorKeyRef = useRef<string | null>(null)
 
   // Reload pinned IDs and reset scroll state on room change
   const prevRoomRef = useRef(roomId)
@@ -86,15 +88,29 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     overscan: 10,
   })
 
-  // Auto-scroll to bottom when new items arrive (if user is near bottom)
+  // Auto-scroll: anchor to previous position after history load, or scroll to bottom for new messages
   useLayoutEffect(() => {
     if (items.length === 0)
       return
+
+    // History prepend: restore scroll to the anchored item
+    if (anchorKeyRef.current) {
+      const anchorKey = anchorKeyRef.current
+      anchorKeyRef.current = null
+      const anchorIndex = items.findIndex(item => item.key === anchorKey)
+      if (anchorIndex > 0) {
+        virtualizer.scrollToIndex(anchorIndex, { align: 'start' })
+        prevItemCountRef.current = items.length
+        return
+      }
+    }
+
+    // New messages at bottom: auto-scroll if user is near bottom
     if (items.length > prevItemCountRef.current && isAtBottomRef.current) {
       virtualizer.scrollToIndex(items.length - 1, { align: 'end' })
     }
     prevItemCountRef.current = items.length
-  }, [items.length, virtualizer])
+  }, [items, virtualizer])
 
   // Send read receipt when at bottom and new messages arrive
   useEffect(() => {
@@ -104,7 +120,8 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     for (let i = items.length - 1; i >= 0; i--) {
       const item = items[i]!
       if (item.kind === 'message' && !item.eventId.startsWith('~')) {
-        if (item.eventId === lastSentReceiptRef.current) break
+        if (item.eventId === lastSentReceiptRef.current)
+          break
         lastSentReceiptRef.current = item.eventId
         void sendReadReceipt(roomId, item.eventId)
         break
@@ -139,6 +156,11 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
 
     // Load more history when scrolling near top
     if (el.scrollTop < 200 && hasMore && !isLoadingHistory && !mockMode) {
+      // Save anchor: first visible item key for scroll restoration
+      const firstVisible = virtualizer.getVirtualItems()[0]
+      if (firstVisible && items[firstVisible.index]) {
+        anchorKeyRef.current = items[firstVisible.index]!.key
+      }
       setIsLoadingHistory(true)
       loadRoomHistory(roomId).finally(() => setIsLoadingHistory(false))
     }
@@ -160,6 +182,21 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
       void toggleReaction(roomId, eventId, emoji)
     }
   }, [roomId, mockMode])
+
+  // Jump-to-event: highlighted event for flash effect
+  const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null)
+  const highlightTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+
+  const handleJumpToEvent = useCallback((eventId: string) => {
+    const index = items.findIndex(item => item.kind === 'message' && item.eventId === eventId)
+    if (index >= 0) {
+      virtualizer.scrollToIndex(index, { align: 'center' })
+      setHighlightedEventId(eventId)
+      if (highlightTimerRef.current)
+        clearTimeout(highlightTimerRef.current)
+      highlightTimerRef.current = setTimeout(setHighlightedEventId, 1500, null)
+    }
+  }, [items, virtualizer])
 
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
@@ -233,6 +270,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
                         receiptsByEvent={receiptsByEvent}
                         pinnedIds={pinnedIds}
                         mockMode={mockMode}
+                        highlightedEventId={highlightedEventId}
                         onResend={handleResend}
                         onReaction={handleReaction}
                         onEdit={onEditMessage}
@@ -240,6 +278,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
                         onReply={onReplyMessage}
                         onPin={handlePin}
                         onThread={onThread}
+                        onJumpToEvent={handleJumpToEvent}
                       />
                     </div>
                   )
@@ -272,6 +311,7 @@ interface TimelineRowProps {
   receiptsByEvent: Map<string, ReceiptInfo[]>
   pinnedIds: Set<string>
   mockMode: boolean
+  highlightedEventId: string | null
   onResend: (eventId: string) => void
   onReaction: (eventId: string, emoji: string) => void
   onEdit?: (message: TimelineMessageItem) => void
@@ -279,6 +319,7 @@ interface TimelineRowProps {
   onReply?: (message: TimelineMessageItem) => void
   onPin: (eventId: string) => void
   onThread?: (eventId: string) => void
+  onJumpToEvent: (eventId: string) => void
 }
 
 function TimelineRow({
@@ -286,6 +327,7 @@ function TimelineRow({
   receiptsByEvent,
   pinnedIds,
   mockMode,
+  highlightedEventId,
   onResend,
   onReaction,
   onEdit,
@@ -293,6 +335,7 @@ function TimelineRow({
   onReply,
   onPin,
   onThread,
+  onJumpToEvent,
 }: TimelineRowProps) {
   switch (item.kind) {
     case 'day-divider':
@@ -310,6 +353,7 @@ function TimelineRow({
           collapsed={item.collapsed}
           receipts={receiptsByEvent.get(item.eventId)}
           isPinned={pinnedIds.has(item.eventId)}
+          highlighted={highlightedEventId === item.eventId}
           onResend={onResend}
           onReaction={onReaction}
           onEdit={onEdit}
@@ -317,6 +361,7 @@ function TimelineRow({
           onReply={onReply}
           onPin={mockMode ? undefined : onPin}
           onThread={onThread}
+          onJumpToEvent={onJumpToEvent}
         />
       )
   }

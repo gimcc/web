@@ -7,6 +7,8 @@ import {
   getKnownUsers,
   getMatrixClient,
   getMockKnownUsers,
+  parseUserId,
+  resolveUserId,
   searchMockUsers,
   searchUsers,
   useAuthStore,
@@ -39,8 +41,11 @@ interface UserEntry {
 export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
   const { t } = useTranslation()
   const mockMode = useAuthStore(s => s.mockMode)
+  const session = useAuthStore(s => s.session)
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const upsertRoom = useRoomsStore(s => s.upsertRoom)
+
+  const serverName = session?.userId ? parseUserId(session.userId).serverName : ''
 
   const [mode, setMode] = useState<Mode>('dm')
   const [searchQuery, setSearchQuery] = useState('')
@@ -86,6 +91,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
     if (!client)
       return
 
+    setSearchResults([])
     let cancelled = false
     const timer = setTimeout(() => {
       searchUsers(client, searchQuery, 20)
@@ -318,10 +324,42 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
 
         {/* User list */}
         <div className="flex-1 overflow-y-auto">
-          {displayUsers.length === 0
+          {/* Direct invite entry when query is non-empty */}
+          {searchQuery.trim() && (
+            <div className="border-b border-border py-1">
+              {(() => {
+                const resolvedId = resolveUserId(searchQuery, serverName)
+                const resolvedEntry: UserEntry = { userId: resolvedId, displayName: resolvedId, avatarUrl: null }
+                return (
+                  <button
+                    type="button"
+                    onClick={() => mode === 'dm' ? handleCreateDm(resolvedEntry) : toggleUser(resolvedEntry)}
+                    disabled={isCreating}
+                    className={cn(
+                      'flex w-full items-center gap-3 px-4 py-2.5 text-left transition-colors hover:bg-accent/50',
+                      mode === 'group' && isSelected(resolvedId) && 'bg-accent/30',
+                    )}
+                  >
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                      <UserPlus className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{resolvedId}</p>
+                      <p className="text-xs text-muted-foreground">{t('new_chat.invite_directly')}</p>
+                    </div>
+                    {mode === 'group' && isSelected(resolvedId) && (
+                      <Check className="h-4 w-4 shrink-0 text-primary" />
+                    )}
+                  </button>
+                )
+              })()}
+            </div>
+          )}
+
+          {displayUsers.length === 0 && !searchQuery.trim()
             ? (
                 <p className="px-4 py-8 text-center text-sm text-muted-foreground">
-                  {searchQuery ? t('new_chat.empty_search') : t('new_chat.empty_default')}
+                  {t('new_chat.empty_default')}
                 </p>
               )
             : (

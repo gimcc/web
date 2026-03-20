@@ -1,8 +1,9 @@
 import type { TimelineMessage } from '@matrix-web/matrix-client'
-import { mxcToHttpUrl, mxcToThumbnailUrl, useAuthStore } from '@matrix-web/matrix-client'
+import { useAuthStore } from '@matrix-web/matrix-client'
 import { Download, File, Loader2, Play } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useMediaUrl } from '../hooks/use-media-url'
 import { formatFileSize } from '../lib/format'
 import { cn } from '../lib/utils'
 import { Lightbox } from './lightbox'
@@ -12,35 +13,13 @@ interface MediaMessageProps {
   message: TimelineMessage
 }
 
-function getMediaUrl(url: string | undefined, homeserverUrl: string): string {
-  if (!url)
-    return ''
-  // Blob URLs (local previews) pass through
-  if (url.startsWith('blob:'))
-    return url
-  return mxcToHttpUrl(url, homeserverUrl)
-}
-
-function getThumbnailUrl(url: string | undefined, homeserverUrl: string): string {
-  if (!url)
-    return ''
-  if (url.startsWith('blob:'))
-    return url
-  return mxcToThumbnailUrl(url, homeserverUrl, 400, 400)
-}
+const THUMBNAIL_SIZE = { width: 400, height: 400 }
 
 function ImageMessage({ message }: MediaMessageProps) {
-  const homeserverUrl = useAuthStore(s => s.session?.homeserverUrl ?? '')
   const [lightboxOpen, setLightboxOpen] = useState(false)
 
-  const thumbnailSrc = useMemo(
-    () => getThumbnailUrl(message.url, homeserverUrl),
-    [message.url, homeserverUrl],
-  )
-  const fullSrc = useMemo(
-    () => getMediaUrl(message.url, homeserverUrl),
-    [message.url, homeserverUrl],
-  )
+  const thumbnailSrc = useMediaUrl(message.url, THUMBNAIL_SIZE)
+  const fullSrc = useMediaUrl(message.url)
 
   // Calculate constrained dimensions
   const maxWidth = 400
@@ -59,19 +38,33 @@ function ImageMessage({ message }: MediaMessageProps) {
         onClick={() => setLightboxOpen(true)}
         style={{ width: displayW, height: displayH }}
       >
-        <img
-          src={thumbnailSrc || fullSrc}
-          alt={message.body}
-          className={cn(
-            'rounded-lg object-cover',
-            message.status === 'sending' && 'opacity-60',
-          )}
-          style={{ width: displayW, height: displayH }}
-          loading="lazy"
-        />
+        {thumbnailSrc || fullSrc
+          ? (
+              <img
+                src={thumbnailSrc || fullSrc}
+                alt={message.body}
+                className={cn(
+                  'rounded-lg object-cover',
+                  message.status === 'sending' && 'opacity-60',
+                )}
+                style={{ width: displayW, height: displayH }}
+                loading="lazy"
+              />
+            )
+          : (
+              <div
+                className={cn(
+                  'flex items-center justify-center rounded-lg bg-muted',
+                  message.status === 'sending' && 'opacity-60',
+                )}
+                style={{ width: displayW, height: displayH }}
+              >
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
       </button>
 
-      {lightboxOpen && (
+      {lightboxOpen && fullSrc && (
         <Lightbox
           src={fullSrc}
           alt={message.body}
@@ -83,21 +76,14 @@ function ImageMessage({ message }: MediaMessageProps) {
 }
 
 function VideoMessage({ message }: MediaMessageProps) {
-  const homeserverUrl = useAuthStore(s => s.session?.homeserverUrl ?? '')
   const [playing, setPlaying] = useState(false)
 
-  const videoSrc = useMemo(
-    () => getMediaUrl(message.url, homeserverUrl),
-    [message.url, homeserverUrl],
-  )
-  const thumbnailSrc = useMemo(
-    () => message.thumbnailUrl ? getThumbnailUrl(message.thumbnailUrl, homeserverUrl) : '',
-    [message.thumbnailUrl, homeserverUrl],
-  )
+  const videoSrc = useMediaUrl(message.url)
+  const thumbnailSrc = useMediaUrl(message.thumbnailUrl, THUMBNAIL_SIZE)
 
   const maxWidth = 400
 
-  if (playing) {
+  if (playing && videoSrc) {
     return (
       <video
         src={videoSrc}
@@ -141,30 +127,61 @@ function VideoMessage({ message }: MediaMessageProps) {
 
 function FileMessage({ message }: MediaMessageProps) {
   const homeserverUrl = useAuthStore(s => s.session?.homeserverUrl ?? '')
+  const accessToken = useAuthStore(s => s.session?.accessToken ?? '')
 
-  const downloadUrl = useMemo(
-    () => getMediaUrl(message.url, homeserverUrl),
-    [message.url, homeserverUrl],
-  )
-
-  const handleDownload = useCallback(() => {
-    if (!downloadUrl)
+  const handleDownload = useCallback(async () => {
+    if (!message.url)
       return
-    const a = document.createElement('a')
-    a.href = downloadUrl
-    a.download = message.filename ?? message.body
-    a.target = '_blank'
-    a.rel = 'noopener noreferrer'
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-  }, [downloadUrl, message.filename, message.body])
+
+    // For blob URLs, open directly
+    if (message.url.startsWith('blob:')) {
+      const a = document.createElement('a')
+      a.href = message.url
+      a.download = message.filename ?? message.body
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      return
+    }
+
+    // For MXC URLs, fetch with authentication
+    if (message.url.startsWith('mxc://') && homeserverUrl && accessToken) {
+      const [serverName, mediaId] = message.url.slice(6).split('/')
+      const headers = { Authorization: `Bearer ${accessToken}` }
+
+      let response: Response
+      try {
+        response = await fetch(
+          `${homeserverUrl}/_matrix/client/v1/media/download/${serverName}/${mediaId}`,
+          { headers },
+        )
+        if (!response.ok)
+          throw new Error(`${response.status}`)
+      }
+      catch {
+        response = await fetch(
+          `${homeserverUrl}/_matrix/media/v3/download/${serverName}/${mediaId}`,
+          { headers },
+        )
+      }
+
+      const blob = await response.blob()
+      const blobUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = blobUrl
+      a.download = message.filename ?? message.body
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(blobUrl)
+    }
+  }, [message.url, message.filename, message.body, homeserverUrl, accessToken])
 
   return (
     <button
       type="button"
       className="mt-1 flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
-      onClick={handleDownload}
+      onClick={() => void handleDownload()}
     >
       <File className="h-8 w-8 shrink-0 text-muted-foreground" />
       <div className="min-w-0 text-left">
@@ -183,11 +200,7 @@ function FileMessage({ message }: MediaMessageProps) {
 }
 
 function AudioMessage({ message }: MediaMessageProps) {
-  const homeserverUrl = useAuthStore(s => s.session?.homeserverUrl ?? '')
-  const audioSrc = useMemo(
-    () => getMediaUrl(message.url, homeserverUrl),
-    [message.url, homeserverUrl],
-  )
+  const audioSrc = useMediaUrl(message.url)
 
   if (!audioSrc)
     return null

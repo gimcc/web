@@ -1,4 +1,4 @@
-import type { TimelineMessage, TimelineMessageItem } from '@matrix-web/matrix-client'
+import type { TimelineMessageItem } from '@matrix-web/matrix-client'
 import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
 import { LogOut, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'

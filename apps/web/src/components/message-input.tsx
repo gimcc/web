@@ -1,4 +1,4 @@
-import type { RoomMemberInfo, TimelineMessage, TimelineMessageItem } from '@matrix-web/matrix-client'
+import type { RoomMemberInfo, TimelineMessageItem } from '@matrix-web/matrix-client'
 import type { CommandDefinition } from '../lib/commands'
 import type { PendingUpload } from './upload-preview'
 import {
@@ -505,7 +505,7 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
 
   return (
     <div
-      className="border-t border-border"
+      className="px-4 py-3"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -519,58 +519,58 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
 
       {/* Drag overlay */}
       {isDragging && (
-        <div className="flex items-center justify-center border-2 border-dashed border-primary bg-primary/5 px-4 py-3">
+        <div className="mb-2 flex items-center justify-center rounded-xl border-2 border-dashed border-primary bg-primary/5 px-4 py-3">
           <p className="text-sm text-primary">{t('chat.drop_files')}</p>
         </div>
       )}
 
-      {/* Edit mode indicator */}
-      {editingMessage && (
-        <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
-          <Pencil className="h-4 w-4 text-primary" />
-          <span className="flex-1 truncate text-sm text-muted-foreground">
-            {t('message.editing_message')}
-          </span>
-          <button
-            type="button"
-            onClick={() => {
-              onCancelEdit?.()
-              setText('')
-            }}
-            className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
-
-      {/* Reply mode indicator */}
-      {replyingTo && !editingMessage && (
-        <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
-          <CornerUpLeft className="h-4 w-4 text-primary" />
-          <div className="min-w-0 flex-1">
-            <span className="text-xs font-medium text-primary">{replyingTo.senderName}</span>
-            <p className="truncate text-sm text-muted-foreground">{replyingTo.body}</p>
+      {/* Card container */}
+      <div className="relative overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+        {/* Edit mode indicator */}
+        {editingMessage && (
+          <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
+            <Pencil className="h-4 w-4 text-primary" />
+            <span className="flex-1 truncate text-sm text-muted-foreground">
+              {t('message.editing_message')}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                onCancelEdit?.()
+                setText('')
+              }}
+              className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={onCancelReply}
-            className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Command error */}
-      {commandError && (
-        <div className="px-4 py-1">
-          <p className="text-xs text-destructive">{commandError}</p>
-        </div>
-      )}
+        {/* Reply mode indicator */}
+        {replyingTo && !editingMessage && (
+          <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
+            <CornerUpLeft className="h-4 w-4 text-primary" />
+            <div className="min-w-0 flex-1">
+              <span className="text-xs font-medium text-primary">{replyingTo.senderName}</span>
+              <p className="truncate text-sm text-muted-foreground">{replyingTo.body}</p>
+            </div>
+            <button
+              type="button"
+              onClick={onCancelReply}
+              className="rounded p-0.5 text-muted-foreground hover:text-foreground"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        )}
 
-      {/* Input area */}
-      <div className="relative flex items-end gap-2 px-4 py-3">
+        {/* Command error */}
+        {commandError && (
+          <div className="px-4 py-1">
+            <p className="text-xs text-destructive">{commandError}</p>
+          </div>
+        )}
+
         {/* Mention panel */}
         <MentionPanel
           members={matchedMembers}
@@ -585,27 +585,7 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
           onSelect={handleCommandSelect}
         />
 
-        {/* File upload button */}
-        {!editingMessage && (
-          <button
-            type="button"
-            onClick={handleFileSelect}
-            className="mb-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            aria-label={t('chat.attach_file')}
-          >
-            <Paperclip className="h-5 w-5" />
-          </button>
-        )}
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileInputChange}
-        />
-
-        {/* Text input */}
+        {/* Text input area */}
         <textarea
           ref={textareaRef}
           value={text}
@@ -618,31 +598,57 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
           placeholder={editingMessage ? t('message.edit_placeholder') : t('chat.message_placeholder')}
           rows={1}
           disabled={isSending}
-          className="max-h-[200px] min-h-[36px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+          className="max-h-[200px] min-h-[80px] w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
         />
 
-        {/* Voice record button (shown when input is empty) */}
-        {text.trim() === '' && pendingUploads.length === 0 && (
+        <input
+          ref={fileInputRef}
+          type="file"
+          multiple
+          className="hidden"
+          onChange={handleFileInputChange}
+        />
+
+        {/* Bottom toolbar */}
+        <div className="flex items-center justify-between px-3 pb-2">
+          {/* Left: action buttons */}
+          <div className="flex items-center gap-0.5">
+            {/* File upload button */}
+            {!editingMessage && (
+              <button
+                type="button"
+                onClick={handleFileSelect}
+                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                aria-label={t('chat.attach_file')}
+              >
+                <Paperclip className="h-5 w-5" />
+              </button>
+            )}
+
+            {/* Voice record button (shown when input is empty) */}
+            {!editingMessage && text.trim() === '' && pendingUploads.length === 0 && (
+              <button
+                type="button"
+                onClick={() => setIsRecording(true)}
+                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                aria-label={t('voice.record')}
+              >
+                <Mic className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+
+          {/* Right: send button */}
           <button
             type="button"
-            onClick={() => setIsRecording(true)}
-            className="mb-0.5 shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-            aria-label={t('voice.record')}
+            onClick={() => void sendCurrentMessage()}
+            disabled={isSending || (text.trim() === '' && pendingUploads.length === 0)}
+            className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            aria-label={editingMessage ? t('common.save') : t('chat.send_message')}
           >
-            <Mic className="h-5 w-5" />
+            <Send className="h-4 w-4" />
           </button>
-        )}
-
-        {/* Send button */}
-        <button
-          type="button"
-          onClick={() => void sendCurrentMessage()}
-          disabled={isSending || (text.trim() === '' && pendingUploads.length === 0)}
-          className="mb-0.5 shrink-0 rounded-md bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-          aria-label={editingMessage ? t('common.save') : t('chat.send_message')}
-        >
-          <Send className="h-5 w-5" />
-        </button>
+        </div>
       </div>
     </div>
   )

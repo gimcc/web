@@ -13,10 +13,13 @@ export function DayDivider({ label, timestamp }: { label: string, timestamp?: nu
   const { t } = useTranslation()
 
   const localizedLabel = useMemo(() => {
-    if (timestamp == null) return label
+    if (timestamp == null)
+      return label
     const now = Date.now()
-    if (isSameDay(timestamp, now)) return t('chat.today', 'Today')
-    if (isSameDay(timestamp, now - 86400000)) return t('chat.yesterday', 'Yesterday')
+    if (isSameDay(timestamp, now))
+      return t('chat.today', 'Today')
+    if (isSameDay(timestamp, now - 86400000))
+      return t('chat.yesterday', 'Yesterday')
     return label
   }, [label, timestamp, t])
 

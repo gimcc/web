@@ -1,5 +1,5 @@
 import type { MatrixClient, MatrixEvent } from 'matrix-js-sdk'
-import type { Reaction, ReplyTo, TimelineMessage } from '../stores/messages-store'
+import type { ReplyTo, TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useTimelineStore } from '../stores/timeline-store'
@@ -59,7 +59,8 @@ export function matrixEventToTimelineMessage(event: MatrixEvent, client: MatrixC
   if (replyTo && body.startsWith('> ')) {
     const lines = body.split('\n')
     const nonQuoteIdx = lines.findIndex((l: string) => !l.startsWith('> ') && l !== '')
-    if (nonQuoteIdx > 0) body = lines.slice(nonQuoteIdx).join('\n').trim()
+    if (nonQuoteIdx > 0)
+      body = lines.slice(nonQuoteIdx).join('\n').trim()
   }
   if (formattedBody && replyTo) {
     formattedBody = formattedBody.replace(RE_MX_REPLY, '').trim()
@@ -96,7 +97,8 @@ export async function sendTextMessage(
   options?: { formattedBody?: string, msgtype?: string },
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const msgtype = options?.msgtype ?? 'm.text'
   const tempEventId = generateTempEventId()
@@ -142,7 +144,8 @@ export async function editMessage(
   options?: { formattedBody?: string },
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const content: Record<string, unknown> = {
     'msgtype': 'm.text',
@@ -170,7 +173,8 @@ export async function deleteMessage(
   eventId: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   await client.redactEvent(roomId, eventId)
   // The redaction will be picked up by SDK and reflected on next version bump
@@ -186,7 +190,8 @@ export async function sendReply(
   options?: { formattedBody?: string },
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const tempEventId = generateTempEventId()
   const userId = client.getUserId() ?? ''
@@ -242,7 +247,8 @@ export async function resendMessage(roomId: string, eventId: string): Promise<vo
   const optimistic = store.optimistic.get(roomId) ?? []
   const message = optimistic.find(m => m.eventId === eventId)
 
-  if (!message || message.status !== 'failed') return
+  if (!message || message.status !== 'failed')
+    return
 
   store.removeOptimistic(roomId, eventId)
 
@@ -262,7 +268,8 @@ export async function resendMessage(roomId: string, eventId: string): Promise<vo
  */
 export function loadInitialTimeline(roomId: string): void {
   const client = getMatrixClient()
-  if (!client) return
+  if (!client)
+    return
 
   const hasMore = roomHasMoreHistory(client, roomId)
   useTimelineStore.getState().setHasMore(roomId, hasMore)
@@ -274,7 +281,8 @@ export function loadInitialTimeline(roomId: string): void {
  */
 export async function loadRoomHistory(roomId: string): Promise<void> {
   const client = getMatrixClient()
-  if (!client) return
+  if (!client)
+    return
 
   try {
     const hasMore = await paginateBackward(client, roomId, 30)

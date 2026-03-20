@@ -1,12 +1,12 @@
 import type { MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
 import { ClientEvent, MatrixEventEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
+import { matrixEventToTimelineMessage } from '../services/message-service'
 import { syncRoomReceipts } from '../services/receipt-service'
 import { handleThreadEvent } from '../services/thread-service'
 import { useRoomsStore } from '../stores/rooms-store'
-import { useTimelineStore } from '../stores/timeline-store'
 import { useThreadsStore } from '../stores/threads-store'
-import { matrixEventToTimelineMessage } from '../services/message-service'
+import { useTimelineStore } from '../stores/timeline-store'
 import { roomHasMoreHistory } from '../timeline/reader'
 
 export type QueryInvalidationCallback = (event: string, roomId?: string) => void
@@ -95,10 +95,12 @@ export function createSyncBridge(
   }
 
   function onTimeline(event: MatrixEvent, room: Room | undefined, toStartOfTimeline: boolean | undefined): void {
-    if (!room) return
+    if (!room)
+      return
 
     // Ignore historical events from pagination/scrollback
-    if (toStartOfTimeline) return
+    if (toStartOfTimeline)
+      return
 
     updateRoomFromEvent(client, room)
 
@@ -146,6 +148,11 @@ export function createSyncBridge(
     onQueryInvalidation?.('room.receipt', room.roomId)
   }
 
+  function onUnreadNotifications(room: Room): void {
+    updateRoomUnread(room)
+    onQueryInvalidation?.('room.unread', room.roomId)
+  }
+
   function onRoom(): void {
     syncRoomList(client)
     onQueryInvalidation?.('room.list')
@@ -175,6 +182,7 @@ export function createSyncBridge(
   client.on(RoomEvent.Name, onRoomName)
   client.on(RoomMemberEvent.Membership, onMembership)
   client.on(RoomEvent.Receipt, onReceipt)
+  client.on(RoomEvent.UnreadNotifications as any, onUnreadNotifications)
   client.on(ClientEvent.Room, onRoom)
   client.on(RoomEvent.MyMembership, onMyMembership)
 
@@ -185,6 +193,7 @@ export function createSyncBridge(
     client.removeListener(RoomEvent.Name, onRoomName)
     client.removeListener(RoomMemberEvent.Membership, onMembership)
     client.removeListener(RoomEvent.Receipt, onReceipt)
+    client.removeListener(RoomEvent.UnreadNotifications as any, onUnreadNotifications)
     client.removeListener(ClientEvent.Room, onRoom)
     client.removeListener(RoomEvent.MyMembership, onMyMembership)
   }

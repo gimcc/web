@@ -1,8 +1,8 @@
 import type { TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
-import { useTimelineStore } from '../stores/timeline-store'
 import { useThreadsStore } from '../stores/threads-store'
+import { useTimelineStore } from '../stores/timeline-store'
 import { matrixEventToTimelineMessage } from './message-service'
 
 let tempIdCounter = 0
@@ -18,7 +18,8 @@ export async function sendThreadMessage(
   options?: { formattedBody?: string },
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
   const room = client.getRoom(roomId)
@@ -91,10 +92,12 @@ export async function sendThreadMessage(
 
 export function loadThreadTimeline(roomId: string, threadRootId: string): void {
   const client = getMatrixClient()
-  if (!client) return
+  if (!client)
+    return
 
   const room = client.getRoom(roomId)
-  if (!room) return
+  if (!room)
+    return
 
   // Find root message from SDK timeline
   const events = room.getLiveTimeline().getEvents()
@@ -109,7 +112,8 @@ export function loadThreadTimeline(roomId: string, threadRootId: string): void {
 
   // Gather thread replies
   for (const event of events) {
-    if (event.getType() !== 'm.room.message') continue
+    if (event.getType() !== 'm.room.message')
+      continue
     const content = event.getContent()
     const relatesTo = content['m.relates_to']
     if (relatesTo?.rel_type === 'm.thread' && relatesTo.event_id === threadRootId) {

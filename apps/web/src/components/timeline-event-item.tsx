@@ -3,10 +3,14 @@ import { LogIn, LogOut, Shield, UserMinus, UserPlus } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 
 function MemberEventIcon({ membership, prevMembership }: { membership: string, prevMembership?: string }) {
-  if (membership === 'join' && prevMembership !== 'join') return <LogIn className="h-3 w-3" />
-  if (membership === 'leave' && prevMembership === 'join') return <LogOut className="h-3 w-3" />
-  if (membership === 'invite') return <UserPlus className="h-3 w-3" />
-  if (membership === 'ban') return <UserMinus className="h-3 w-3" />
+  if (membership === 'join' && prevMembership !== 'join')
+    return <LogIn className="h-3 w-3" />
+  if (membership === 'leave' && prevMembership === 'join')
+    return <LogOut className="h-3 w-3" />
+  if (membership === 'invite')
+    return <UserPlus className="h-3 w-3" />
+  if (membership === 'ban')
+    return <UserMinus className="h-3 w-3" />
   return <LogIn className="h-3 w-3" />
 }
 

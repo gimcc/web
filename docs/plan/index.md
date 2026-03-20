@@ -40,4 +40,4 @@
 - [x] [**PLAN-009 邀请通知系统**](PLAN-009.md) `2026-03-17`
 - [x] [**PLAN-010 i18n internationalization and custom theme system**](PLAN-010.md) `2026-03-17`
 - [-] [**PLAN-011 Phase 7-8: Core Chat Completion & UX Enhancements**](PLAN-011.md) `2026-03-18`
-- [ ] [**PLAN-012 重构消息处理体系（参考 Cinny）**](PLAN-012.md) `2026-03-20`
+- [x] [**PLAN-012 重构消息处理体系（参考 Cinny）**](PLAN-012.md) `2026-03-20`

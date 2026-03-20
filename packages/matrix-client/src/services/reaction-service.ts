@@ -14,7 +14,8 @@ export async function sendReaction(
   emoji: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
 
@@ -26,7 +27,7 @@ export async function sendReaction(
   })
 
   try {
-    const response = await client.sendEvent(roomId, 'm.reaction' as any, {
+    await client.sendEvent(roomId, 'm.reaction' as any, {
       'm.relates_to': {
         rel_type: 'm.annotation',
         event_id: targetEventId,
@@ -51,13 +52,15 @@ export async function redactReaction(
   emoji: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
 
   // Find the reaction event ID from SDK Relations
   const room = client.getRoom(roomId)
-  if (!room) return
+  if (!room)
+    return
 
   let reactionEventId: string | undefined
   try {
@@ -78,7 +81,8 @@ export async function redactReaction(
   }
   catch { /* ignore */ }
 
-  if (!reactionEventId) return
+  if (!reactionEventId)
+    return
 
   try {
     await client.redactEvent(roomId, reactionEventId)
@@ -97,16 +101,19 @@ export async function toggleReaction(
   emoji: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const key = inflightKey(roomId, targetEventId, emoji)
-  if (inflight.has(key)) return
+  if (inflight.has(key))
+    return
   inflight.add(key)
 
   try {
     const userId = client.getUserId() ?? ''
     const room = client.getRoom(roomId)
-    if (!room) return
+    if (!room)
+      return
 
     // Check if user has already reacted via SDK Relations
     let hasReacted = false

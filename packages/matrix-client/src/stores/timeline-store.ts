@@ -1,4 +1,4 @@
-import type { Reaction, TimelineMessage } from './messages-store'
+import type { TimelineMessage } from './messages-store'
 import { create } from 'zustand'
 
 // ---------------------------------------------------------------------------
@@ -74,7 +74,8 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
   confirmOptimistic: (roomId, tempId, _realId, _updates) => {
     const optimistic = new Map(get().optimistic)
     const existing = optimistic.get(roomId)
-    if (!existing) return
+    if (!existing)
+      return
     optimistic.set(roomId, existing.filter(m => m.eventId !== tempId))
     set({ optimistic })
     // Also bump version so SDK data (which now includes the confirmed message) is re-read
@@ -84,7 +85,8 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
   failOptimistic: (roomId, tempId) => {
     const optimistic = new Map(get().optimistic)
     const existing = optimistic.get(roomId)
-    if (!existing) return
+    if (!existing)
+      return
     optimistic.set(
       roomId,
       existing.map(m => m.eventId === tempId ? { ...m, status: 'failed' as const } : m),
@@ -95,7 +97,8 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
   removeOptimistic: (roomId, tempId) => {
     const optimistic = new Map(get().optimistic)
     const existing = optimistic.get(roomId)
-    if (!existing) return
+    if (!existing)
+      return
     optimistic.set(roomId, existing.filter(m => m.eventId !== tempId))
     set({ optimistic })
   },
@@ -110,7 +113,8 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
   removeOptimisticReaction: (roomId, targetEventId, emoji, senderId) => {
     const reactions = new Map(get().optimisticReactions)
     const existing = reactions.get(roomId)
-    if (!existing) return
+    if (!existing)
+      return
     reactions.set(roomId, existing.filter(
       r => !(r.targetEventId === targetEventId && r.emoji === emoji && r.senderId === senderId),
     ))

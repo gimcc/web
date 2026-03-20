@@ -10,9 +10,12 @@ function generateTempEventId(): string {
 }
 
 function detectMsgtype(mimetype: string): string {
-  if (mimetype.startsWith('image/')) return 'm.image'
-  if (mimetype.startsWith('video/')) return 'm.video'
-  if (mimetype.startsWith('audio/')) return 'm.audio'
+  if (mimetype.startsWith('image/'))
+    return 'm.image'
+  if (mimetype.startsWith('video/'))
+    return 'm.video'
+  if (mimetype.startsWith('audio/'))
+    return 'm.audio'
   return 'm.file'
 }
 
@@ -33,7 +36,8 @@ export interface UploadResult {
 export async function uploadAndSendFile(options: UploadOptions): Promise<UploadResult> {
   const { roomId, file, caption, onProgress, msgtype: msgtypeOverride, info: infoOverride } = options
   const client = getMatrixClient()
-  if (!client) throw new Error('Matrix client not initialized')
+  if (!client)
+    throw new Error('Matrix client not initialized')
 
   const msgtype = msgtypeOverride ?? detectMsgtype(file.type)
   const tempEventId = generateTempEventId()
@@ -68,15 +72,41 @@ export async function uploadAndSendFile(options: UploadOptions): Promise<UploadR
   useTimelineStore.getState().addOptimistic(optimistic)
 
   try {
-    const uploadResponse = await client.uploadContent(file, {
-      name: file.name,
-      type: file.type,
-      progressHandler: onProgress
-        ? (progress: { loaded: number, total: number }) => onProgress(progress.loaded, progress.total)
-        : undefined,
-    })
+    let mxcUrl: string
 
-    const mxcUrl = uploadResponse.content_uri
+    try {
+      // Primary: use SDK upload (/_matrix/media/v3/upload)
+      const uploadResponse = await client.uploadContent(file, {
+        name: file.name,
+        type: file.type,
+        progressHandler: onProgress
+          ? (progress: { loaded: number, total: number }) => onProgress(progress.loaded, progress.total)
+          : undefined,
+      })
+      mxcUrl = uploadResponse.content_uri
+    }
+    catch {
+      // Fallback: try authenticated upload endpoint (/_matrix/client/v1/media/upload)
+      const url = new URL('/_matrix/client/v1/media/upload', client.baseUrl)
+      url.searchParams.set('filename', encodeURIComponent(file.name))
+
+      const response = await fetch(url.href, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${client.getAccessToken()}`,
+          'Content-Type': file.type || 'application/octet-stream',
+        },
+        body: file,
+      })
+
+      if (!response.ok) {
+        const errorBody = await response.text().catch(() => '')
+        throw new Error(`Upload failed (${response.status}): ${errorBody}`)
+      }
+
+      const result = await response.json() as { content_uri: string }
+      mxcUrl = result.content_uri
+    }
 
     const content: Record<string, unknown> = {
       msgtype,
@@ -108,10 +138,11 @@ export async function uploadAndSendFile(options: UploadOptions): Promise<UploadR
 
     return { mxcUrl, eventId: response.event_id }
   }
-  catch {
+  catch (err) {
     URL.revokeObjectURL(localUrl)
     useTimelineStore.getState().failOptimistic(roomId, tempEventId)
-    throw new Error('Failed to upload file')
+    console.error('[upload] Failed to upload file:', err)
+    throw err instanceof Error ? err : new Error('Failed to upload file')
   }
 }
 
@@ -128,7 +159,8 @@ function getImageDimensions(file: File): Promise<{ w: number, h: number }> {
 }
 
 export function mxcToHttpUrl(mxcUrl: string, homeserverUrl: string): string {
-  if (!mxcUrl.startsWith('mxc://')) return mxcUrl
+  if (!mxcUrl.startsWith('mxc://'))
+    return mxcUrl
   const [serverName, mediaId] = mxcUrl.slice(6).split('/')
   return `${homeserverUrl}/_matrix/media/v3/download/${serverName}/${mediaId}`
 }
@@ -140,7 +172,8 @@ export function mxcToThumbnailUrl(
   height: number,
   method: 'crop' | 'scale' = 'scale',
 ): string {
-  if (!mxcUrl.startsWith('mxc://')) return mxcUrl
+  if (!mxcUrl.startsWith('mxc://'))
+    return mxcUrl
   const [serverName, mediaId] = mxcUrl.slice(6).split('/')
   return `${homeserverUrl}/_matrix/media/v3/thumbnail/${serverName}/${mediaId}?width=${width}&height=${height}&method=${method}`
 }

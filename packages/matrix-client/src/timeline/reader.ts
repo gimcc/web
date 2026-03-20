@@ -1,7 +1,7 @@
 import type { MatrixClient, MatrixEvent } from 'matrix-js-sdk'
-import { Direction } from 'matrix-js-sdk'
 import type { Reaction, ReplyTo, TimelineMessage } from '../stores/messages-store'
 import type { DayDividerItem, TimelineItem, TimelineMemberItem, TimelineMessageItem, TimelineStateItem, UnreadDividerItem } from './types'
+import { Direction } from 'matrix-js-sdk'
 
 // ---------------------------------------------------------------------------
 // Timeline reader — builds a renderable TimelineItem[] from SDK + optimistic
@@ -11,7 +11,8 @@ const RE_MX_REPLY = /<mx-reply>[\s\S]*?<\/mx-reply>/i
 
 /** Read reactions for an event from SDK Relations */
 function readReactions(room: ReturnType<MatrixClient['getRoom']>, eventId: string): Reaction[] {
-  if (!room) return []
+  if (!room)
+    return []
   let relations: any
   try {
     relations = room.relations.getChildEventsForEvent(eventId, 'm.annotation', 'm.reaction')
@@ -19,7 +20,8 @@ function readReactions(room: ReturnType<MatrixClient['getRoom']>, eventId: strin
   catch {
     return []
   }
-  if (!relations) return []
+  if (!relations)
+    return []
 
   const sorted: Array<[string, Set<MatrixEvent>]> = relations.getSortedAnnotationsByKey() ?? []
   return sorted.map(([key, events]) => {
@@ -75,7 +77,8 @@ function eventToMessageItem(event: MatrixEvent, client: MatrixClient): TimelineM
   if (replyTo && body.startsWith('> ')) {
     const lines = body.split('\n')
     const idx = lines.findIndex((l: string) => !l.startsWith('> ') && l !== '')
-    if (idx > 0) body = lines.slice(idx).join('\n').trim()
+    if (idx > 0)
+      body = lines.slice(idx).join('\n').trim()
   }
   if (formattedBody && replyTo) {
     formattedBody = formattedBody.replace(RE_MX_REPLY, '').trim()
@@ -129,7 +132,8 @@ function eventToMemberItem(event: MatrixEvent, client: MatrixClient): TimelineMe
   const membership = content.membership as string | undefined
   const prevMembership = prev.membership as string | undefined
 
-  if (!membership) return null
+  if (!membership)
+    return null
 
   const senderId = event.getSender() ?? ''
   const targetId = event.getStateKey() ?? senderId
@@ -197,7 +201,8 @@ function eventToStateItem(event: MatrixEvent, client: MatrixClient): TimelineSta
 function isRelationEvent(event: MatrixEvent): boolean {
   const content = event.getContent()
   const relatesTo = content['m.relates_to']
-  if (!relatesTo) return false
+  if (!relatesTo)
+    return false
   const relType = relatesTo.rel_type
   return relType === 'm.annotation' || relType === 'm.replace'
 }
@@ -215,10 +220,12 @@ function convertEvent(event: MatrixEvent, client: MatrixClient): TimelineItem | 
   const type = event.getType()
 
   // Skip redaction events themselves (the redacted event is marked separately)
-  if (event.isRedaction()) return null
+  if (event.isRedaction())
+    return null
 
   // Skip relation events (reactions, edits) — they modify other events
-  if (isRelationEvent(event)) return null
+  if (isRelationEvent(event))
+    return null
 
   // Member events
   if (type === 'm.room.member') {
@@ -291,8 +298,10 @@ function isYesterday(ts: number): boolean {
 }
 
 function formatDayLabel(ts: number): string {
-  if (isToday(ts)) return 'Today'
-  if (isYesterday(ts)) return 'Yesterday'
+  if (isToday(ts))
+    return 'Today'
+  if (isYesterday(ts))
+    return 'Yesterday'
   return new Date(ts).toLocaleDateString(undefined, {
     year: 'numeric',
     month: 'long',
@@ -403,10 +412,12 @@ export function readTimeline(
   roomId: string,
   options: ReadTimelineOptions = {},
 ): TimelineItem[] {
-  if (!client) return []
+  if (!client)
+    return []
 
   const room = client.getRoom(roomId)
-  if (!room) return []
+  if (!room)
+    return []
 
   const timeline = room.getLiveTimeline()
   const events = timeline.getEvents()
@@ -415,7 +426,8 @@ export function readTimeline(
   const items: TimelineItem[] = []
   for (const event of events) {
     const item = convertEvent(event, client)
-    if (item) items.push(item)
+    if (item)
+      items.push(item)
   }
 
   // Merge optimistic messages (append at the end, they have latest timestamps)
@@ -474,9 +486,11 @@ function mergeReactions(sdkReactions: Reaction[], overlay: Reaction[]): Reaction
  * Check if the room has more history to load (has backward pagination token).
  */
 export function roomHasMoreHistory(client: MatrixClient | null, roomId: string): boolean {
-  if (!client) return false
+  if (!client)
+    return false
   const room = client.getRoom(roomId)
-  if (!room) return false
+  if (!room)
+    return false
   const timeline = room.getLiveTimeline()
   return timeline.getPaginationToken(Direction.Backward) !== null
 }
@@ -486,7 +500,8 @@ export function roomHasMoreHistory(client: MatrixClient | null, roomId: string):
  */
 export async function paginateBackward(client: MatrixClient, roomId: string, limit = 30): Promise<boolean> {
   const room = client.getRoom(roomId)
-  if (!room) return false
+  if (!room)
+    return false
 
   await client.scrollback(room, limit)
   const timeline = room.getLiveTimeline()

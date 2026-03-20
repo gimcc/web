@@ -168,20 +168,10 @@ export type { UploadOptions, UploadResult } from './services/upload-service'
 export { extractUrls, fetchUrlPreview } from './services/url-preview-service'
 export type { UrlPreview } from './services/url-preview-service'
 
-// Timeline (new SDK-backed reading)
-export { paginateBackward, readTimeline, roomHasMoreHistory } from './timeline/reader'
-export type {
-  DayDividerItem,
-  TimelineItem,
-  TimelineMemberItem,
-  TimelineMessageItem,
-  TimelineStateItem,
-  UnreadDividerItem,
-} from './timeline/types'
-
 // Stores
 export { useConnectionStore } from './stores/connection-store'
 export type { ConnectionState, ConnectionStatus } from './stores/connection-store'
+
 export { useCryptoStore } from './stores/crypto-store'
 export type { CryptoState, KeyBackupProgress } from './stores/crypto-store'
 export { useDraftsStore } from './stores/drafts-store'
@@ -190,8 +180,6 @@ export { useLockStore } from './stores/lock-store'
 export type { LockState } from './stores/lock-store'
 export { useMessagesStore } from './stores/messages-store'
 export type { MessagesState, MessageStatus, Reaction, ReplyTo, TimelineMessage } from './stores/messages-store'
-export { useTimelineStore } from './stores/timeline-store'
-export type { OptimisticReaction, TimelineStoreState } from './stores/timeline-store'
 export { usePresenceStore } from './stores/presence-store'
 export type { PresenceInfo, PresenceState, PresenceStatus } from './stores/presence-store'
 export { useReceiptsStore } from './stores/receipts-store'
@@ -200,11 +188,23 @@ export { useRoomsStore } from './stores/rooms-store'
 export type { LastMessagePreview, RoomsState, RoomSummary } from './stores/rooms-store'
 export { useThreadsStore } from './stores/threads-store'
 export type { ThreadsState } from './stores/threads-store'
+export { useTimelineStore } from './stores/timeline-store'
+export type { OptimisticReaction, TimelineStoreState } from './stores/timeline-store'
 export { useTypingStore } from './stores/typing-store'
 export type { TypingState } from './stores/typing-store'
-
 // Sync bridges
 export { createCryptoBridge } from './sync/crypto-bridge'
+// Timeline (new SDK-backed reading)
+export { paginateBackward, readTimeline, roomHasMoreHistory } from './timeline/reader'
+
+export type {
+  DayDividerItem,
+  TimelineItem,
+  TimelineMemberItem,
+  TimelineMessageItem,
+  TimelineStateItem,
+  UnreadDividerItem,
+} from './timeline/types'
 
 // Utils
 export {

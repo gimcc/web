@@ -6,7 +6,10 @@ import {
   getRoomMembers,
   inviteUser,
   kickUser,
+  parseUserId,
+  resolveUserId,
   searchUsers,
+  useAuthStore,
 } from '@matrix-web/matrix-client'
 import { Ban, Crown, Search, Shield, UserMinus, UserPlus, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -32,6 +35,8 @@ function getRoleIcon(powerLevel: number) {
 
 export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   const { t } = useTranslation()
+  const session = useAuthStore(s => s.session)
+  const serverName = session?.userId ? parseUserId(session.userId).serverName : ''
   const [members, setMembers] = useState<RoomMemberInfo[]>([])
   const [filter, setFilter] = useState('')
   const [sortMode, setSortMode] = useState<SortMode>('role')
@@ -209,6 +214,12 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
       {showInvite && (
         <div className="border-b border-border px-3 py-2 space-y-1">
           <Input value={inviteQuery} onChange={e => setInviteQuery(e.target.value)} placeholder={t('member.invite_placeholder')} className="h-8 text-xs" autoFocus />
+          {inviteQuery.trim() && (
+            <button type="button" onClick={() => handleInvite(resolveUserId(inviteQuery, serverName))} className="flex w-full items-center gap-2 rounded px-2 py-1 text-left text-xs text-primary hover:bg-accent/50">
+              <UserPlus className="h-3 w-3" />
+              <span className="truncate">{resolveUserId(inviteQuery, serverName)}</span>
+            </button>
+          )}
           {inviteResults.map(u => (
             <button key={u.userId} type="button" onClick={() => handleInvite(u.userId)} className="flex w-full items-center gap-2 rounded px-2 py-1 text-left hover:bg-accent/50">
               <span className="truncate text-xs text-foreground">{u.displayName ?? u.userId}</span>

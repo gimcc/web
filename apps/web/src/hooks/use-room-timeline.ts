@@ -39,7 +39,8 @@ export function useRoomTimeline(roomId: string, readUpToEventId?: string): {
 
   // Build optimistic reactions map for the reader
   const optimisticReactionsMap = useMemo(() => {
-    if (mockMode || !optimisticReactions || optimisticReactions.length === 0) return undefined
+    if (mockMode || !optimisticReactions || optimisticReactions.length === 0)
+      return undefined
     const map = new Map<string, Array<{ emoji: string, senderIds: string[], eventIds: Record<string, string> }>>()
     for (const r of optimisticReactions) {
       const existing = map.get(r.targetEventId) ?? []
@@ -63,7 +64,8 @@ export function useRoomTimeline(roomId: string, readUpToEventId?: string): {
     if (mockMode) {
       // Mock mode: convert TimelineMessage[] to TimelineMessageItem[]
       const messages = mockTimelines?.get(roomId)
-      if (!messages || messages.length === 0) return EMPTY_ITEMS
+      if (!messages || messages.length === 0)
+        return EMPTY_ITEMS
       return messages.map<TimelineMessageItem>(m => ({
         kind: 'message',
         key: m.eventId,

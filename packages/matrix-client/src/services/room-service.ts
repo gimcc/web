@@ -55,19 +55,30 @@ export function getKnownUsers(client: MatrixClient): KnownUser[] {
 }
 
 /**
- * Find existing DM room with a user.
+ * Find existing DM room with a user (including rooms where invite is pending).
  */
 function findExistingDm(client: MatrixClient, userId: string): Room | null {
   const myUserId = client.getUserId()
 
   for (const room of client.getRooms()) {
-    const members = room.getJoinedMembers()
-    if (members.length === 2) {
-      const hasMe = members.some(m => m.userId === myUserId)
-      const hasTarget = members.some(m => m.userId === userId)
-      if (hasMe && hasTarget)
-        return room
-    }
+    // Check the m.direct account data or is_direct flag
+    const isDirect = room.getDMInviter() != null
+      || room.getMyMembership() === 'join'
+
+    const joinedMembers = room.getJoinedMembers()
+    const hasMe = joinedMembers.some(m => m.userId === myUserId)
+    if (!hasMe)
+      continue
+
+    // Case 1: both joined (existing working DM)
+    if (joinedMembers.length === 2 && joinedMembers.some(m => m.userId === userId))
+      return room
+
+    // Case 2: I joined, target is invited (pending invite)
+    const allMembers = room.getMembersWithMembership('invite')
+    const targetInvited = allMembers.some(m => m.userId === userId)
+    if (targetInvited && joinedMembers.length === 1 && isDirect)
+      return room
   }
   return null
 }
