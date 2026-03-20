@@ -533,11 +533,24 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     })
   }, [text])
 
-  const handleCustomEmojiSelect = useCallback((_emoji: CustomEmoji) => {
-    // Custom emojis in text messages are rendered as shortcodes
-    // The server-side rendering will convert :shortcode: to images
+  const handleCustomEmojiSelect = useCallback((emoji: CustomEmoji) => {
+    const shortcode = `:${emoji.shortcode}: `
+    const el = textareaRef.current
+    const pos = el?.selectionStart ?? text.length
+    const before = text.slice(0, pos)
+    const after = text.slice(pos)
+    const newText = before + shortcode + after
+    setText(newText)
     setShowEmojiPicker(false)
-  }, [])
+    requestAnimationFrame(() => {
+      if (el) {
+        const newPos = pos + shortcode.length
+        el.selectionStart = newPos
+        el.selectionEnd = newPos
+        el.focus()
+      }
+    })
+  }, [text])
 
   // Sticker sending handler
   const handleStickerSelect = useCallback(async (sticker: { shortcode: string, url: string, body?: string }) => {

@@ -70,7 +70,7 @@ export async function sendSticker(options: SendStickerOptions): Promise<void> {
     }
 
     // m.sticker is its own event type, not a msgtype under m.room.message
-    const response = await client.sendEvent(roomId, 'm.sticker' as any, content as any)
+    const response = await client.sendEvent(roomId, 'm.sticker' as Parameters<typeof client.sendEvent>[1], content)
     useTimelineStore.getState().confirmOptimistic(roomId, tempEventId, response.event_id)
   }
   catch {

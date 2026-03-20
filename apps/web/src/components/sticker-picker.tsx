@@ -16,6 +16,7 @@ export function StickerPicker({ packs, onSelect, onClose }: StickerPickerProps) 
   const [activePackIndex, setActivePackIndex] = useState(0)
 
   const filteredPacks = useMemo(() => {
+    setActivePackIndex(0)
     if (!searchQuery.trim()) return packs
     const q = searchQuery.toLowerCase()
     return packs

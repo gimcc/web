@@ -1,4 +1,5 @@
 import { getMatrixClient } from '../client/client-manager'
+import { mxcToThumbnailUrl } from './upload-service'
 
 /**
  * Raw image entry in an im.ponies emoji pack.
@@ -44,21 +45,6 @@ export interface ResolvedEmojiPack {
 }
 
 /**
- * Convert an mxc:// URL to an HTTP URL using the current client's homeserver.
- */
-function mxcToHttp(mxcUrl: string, homeserverUrl: string): string {
-  if (!mxcUrl.startsWith('mxc://')) return mxcUrl
-  const [serverName, mediaId] = mxcUrl.slice(6).split('/')
-  return `${homeserverUrl}/_matrix/media/v3/download/${serverName}/${mediaId}`
-}
-
-function mxcToThumbnail(mxcUrl: string, homeserverUrl: string, width: number, height: number): string {
-  if (!mxcUrl.startsWith('mxc://')) return mxcUrl
-  const [serverName, mediaId] = mxcUrl.slice(6).split('/')
-  return `${homeserverUrl}/_matrix/media/v3/thumbnail/${serverName}/${mediaId}?width=${width}&height=${height}&method=scale`
-}
-
-/**
  * Resolve a raw EmojiPackContent into a usable ResolvedEmojiPack.
  */
 function resolvePackContent(
@@ -74,7 +60,7 @@ function resolvePackContent(
     const isSticker = usage.includes('sticker')
     return {
       shortcode,
-      url: mxcToThumbnail(img.url, homeserverUrl, isSticker ? 256 : 64, isSticker ? 256 : 64),
+      url: mxcToThumbnailUrl(img.url, homeserverUrl, isSticker ? 256 : 64, isSticker ? 256 : 64),
       body: img.body ?? shortcode,
       isSticker,
       info: img.info,
@@ -84,7 +70,7 @@ function resolvePackContent(
   return {
     id,
     name: packMeta.display_name ?? id,
-    avatarUrl: packMeta.avatar_url ? mxcToThumbnail(packMeta.avatar_url, homeserverUrl, 32, 32) : undefined,
+    avatarUrl: packMeta.avatar_url ? mxcToThumbnailUrl(packMeta.avatar_url, homeserverUrl, 32, 32) : undefined,
     images: resolvedImages,
   }
 }
@@ -171,12 +157,17 @@ export function getStickerMxcUrl(shortcode: string, roomId?: string): string | n
   const client = getMatrixClient()
   if (!client) return null
 
+  const isStickerUsage = (img: EmojiPackImage, packUsage?: string[]) => {
+    const usage = img.usage ?? packUsage ?? ['emoticon']
+    return usage.includes('sticker')
+  }
+
   // Search user emotes
   const userEmotes = client.getAccountData('im.ponies.user_emotes')
   if (userEmotes) {
     const content = userEmotes.getContent() as EmojiPackContent
     const img = content.images?.[shortcode]
-    if (img) return img.url
+    if (img && isStickerUsage(img, content.pack?.usage)) return img.url
   }
 
   // Search room emotes
@@ -187,7 +178,7 @@ export function getStickerMxcUrl(shortcode: string, roomId?: string): string | n
       for (const event of stateEvents) {
         const content = event.getContent() as EmojiPackContent
         const img = content.images?.[shortcode]
-        if (img) return img.url
+        if (img && isStickerUsage(img, content.pack?.usage)) return img.url
       }
     }
   }

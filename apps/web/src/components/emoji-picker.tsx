@@ -32,7 +32,6 @@ export function EmojiPicker({ onSelect, onClose, customPacks, onSelectCustom }: 
   const searchInputRef = useRef<HTMLInputElement>(null)
   const recentEmojis = useRecentEmojis()
 
-  const currentSkinToneEmoji = SKIN_TONES.find(s => s.id === skinTone)?.modifier || '✋'
   const skinToneDisplay = skinTone === 'default' ? '✋' : `✋${SKIN_TONES.find(s => s.id === skinTone)?.modifier ?? ''}`
 
   const searchResults = useMemo(() => {
