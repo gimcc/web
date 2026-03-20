@@ -17,7 +17,10 @@ import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRoomTimeline } from '../hooks/use-room-timeline'
+import { useLayoutPreference, type MessageLayout } from '../hooks/use-layout-preference'
 import { MessageBubble } from './message-bubble'
+import { MessageCompact } from './message-compact'
+import { MessageModern } from './message-modern'
 import { DayDivider, UnreadDivider } from './timeline-divider'
 import { MemberEventRow, StateEventRow } from './timeline-event-item'
 
@@ -29,11 +32,14 @@ interface MessageTimelineProps {
   onReplyMessage?: (message: TimelineMessageItem) => void
   onThread?: (eventId: string) => void
   onPinChange?: () => void
+  jumpToTimestamp?: number | null
+  jumpToRequestId?: number | null
 }
 
-export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread, onPinChange }: MessageTimelineProps) {
+export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread, onPinChange, jumpToTimestamp, jumpToRequestId }: MessageTimelineProps) {
   const { t } = useTranslation()
   const mockMode = useAuthStore(s => s.mockMode)
+  const { layout } = useLayoutPreference()
   const { items, hasMore } = useRoomTimeline(roomId)
 
   const roomReceipts = useReceiptsStore(s => s.receipts.get(roomId))
@@ -198,6 +204,23 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     }
   }, [items, virtualizer])
 
+  // Jump to date: find the first message at or after the target timestamp
+  useEffect(() => {
+    if (!jumpToTimestamp) return
+    const targetIndex = items.findIndex(
+      item => item.kind === 'message' && item.timestamp >= jumpToTimestamp,
+    )
+    if (targetIndex >= 0) {
+      virtualizer.scrollToIndex(targetIndex, { align: 'center' })
+      const targetItem = items[targetIndex]!
+      if (targetItem.kind === 'message') {
+        setHighlightedEventId(targetItem.eventId)
+        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
+        highlightTimerRef.current = setTimeout(setHighlightedEventId, 1500, null)
+      }
+    }
+  }, [jumpToTimestamp, jumpToRequestId, items, virtualizer])
+
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
   const handleDelete = useCallback((message: TimelineMessageItem) => {
@@ -267,6 +290,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
                     >
                       <TimelineRow
                         item={item}
+                        layout={layout}
                         receiptsByEvent={receiptsByEvent}
                         pinnedIds={pinnedIds}
                         mockMode={mockMode}
@@ -308,6 +332,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
 
 interface TimelineRowProps {
   item: TimelineItem
+  layout: MessageLayout
   receiptsByEvent: Map<string, ReceiptInfo[]>
   pinnedIds: Set<string>
   mockMode: boolean
@@ -324,6 +349,7 @@ interface TimelineRowProps {
 
 function TimelineRow({
   item,
+  layout,
   receiptsByEvent,
   pinnedIds,
   mockMode,
@@ -346,23 +372,26 @@ function TimelineRow({
       return <MemberEventRow item={item} />
     case 'state-event':
       return <StateEventRow item={item} />
-    case 'message':
-      return (
-        <MessageBubble
-          message={item}
-          collapsed={item.collapsed}
-          receipts={receiptsByEvent.get(item.eventId)}
-          isPinned={pinnedIds.has(item.eventId)}
-          highlighted={highlightedEventId === item.eventId}
-          onResend={onResend}
-          onReaction={onReaction}
-          onEdit={onEdit}
-          onDelete={onDelete}
-          onReply={onReply}
-          onPin={mockMode ? undefined : onPin}
-          onThread={onThread}
-          onJumpToEvent={onJumpToEvent}
-        />
-      )
+    case 'message': {
+      const messageProps = {
+        message: item,
+        collapsed: item.collapsed,
+        receipts: receiptsByEvent.get(item.eventId),
+        isPinned: pinnedIds.has(item.eventId),
+        highlighted: highlightedEventId === item.eventId,
+        onResend,
+        onReaction,
+        onEdit,
+        onDelete,
+        onReply,
+        onPin: mockMode ? undefined : onPin,
+        onThread,
+        onJumpToEvent,
+      }
+
+      if (layout === 'compact') return <MessageCompact {...messageProps} />
+      if (layout === 'modern') return <MessageModern {...messageProps} />
+      return <MessageBubble {...messageProps} />
+    }
   }
 }

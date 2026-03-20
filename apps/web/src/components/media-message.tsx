@@ -7,6 +7,7 @@ import { useMediaUrl } from '../hooks/use-media-url'
 import { formatFileSize } from '../lib/format'
 import { cn } from '../lib/utils'
 import { Lightbox } from './lightbox'
+import { PdfPreview } from './pdf-viewer'
 import { VoicePlayer } from './voice-player'
 
 interface MediaMessageProps {
@@ -212,6 +213,23 @@ function AudioMessage({ message }: MediaMessageProps) {
   )
 }
 
+function PdfMessage({ message }: MediaMessageProps) {
+  const src = useMediaUrl(message.url)
+  return (
+    <PdfPreview
+      src={src}
+      filename={message.filename ?? message.body}
+      fileSize={message.info?.size}
+    />
+  )
+}
+
+function isPdfFile(message: TimelineMessage): boolean {
+  return message.msgtype === 'm.file'
+    && (message.info?.mimetype === 'application/pdf'
+      || (message.filename ?? message.body).toLowerCase().endsWith('.pdf'))
+}
+
 export function MediaMessage({ message }: MediaMessageProps) {
   const { t } = useTranslation()
 
@@ -222,6 +240,10 @@ export function MediaMessage({ message }: MediaMessageProps) {
         {t('chat.uploading')}
       </div>
     )
+  }
+
+  if (isPdfFile(message)) {
+    return <PdfMessage message={message} />
   }
 
   switch (message.msgtype) {

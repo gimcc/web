@@ -280,7 +280,11 @@
     "language": "Language",
     "color_theme": "Color Theme",
     "import_theme": "Import",
-    "export_theme": "Export"
+    "export_theme": "Export",
+    "message_layout": "Message Layout",
+    "layout_bubble": "Bubble",
+    "layout_compact": "Compact",
+    "layout_modern": "Modern"
   },
   "about": {
     "title": "About",
@@ -499,7 +503,6 @@
     "update_available": "A new version is available",
     "reload": "Update"
   },
-<<<<<<< HEAD
   "contact_info": {
     "title": "Contact Information",
     "emails": "Email Addresses",
@@ -591,5 +594,33 @@
     "no_packs": "No sticker packs",
     "no_packs_hint": "Sticker packs can be added from room settings or your account emoji packs.",
     "no_stickers": "No stickers found"
+  },
+  "jump_to_date": {
+    "title": "Jump to Date",
+    "label": "Select a date"
+  },
+  "pdf_viewer": {
+    "click_to_view": "Click to view PDF",
+    "download": "Download PDF"
+  },
+  "image_editor": {
+    "title": "Edit Image",
+    "crop": "Crop",
+    "draw": "Draw",
+    "text": "Text",
+    "apply_crop": "Apply Crop",
+    "reset": "Reset",
+    "send": "Done",
+    "text_label": "Enter text",
+    "text_placeholder": "Type annotation text...",
+    "add_text": "Add",
+    "load_error": "Failed to load image"
+  },
+  "sync_status": {
+    "connecting": "Connecting...",
+    "reconnecting": "Reconnecting...",
+    "error": "Sync error",
+    "disconnected": "Disconnected",
+    "last_sync": "Last sync: {{time}}"
   }
 }

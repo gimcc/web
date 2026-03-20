@@ -280,7 +280,11 @@
     "language": "语言",
     "color_theme": "配色方案",
     "import_theme": "导入",
-    "export_theme": "导出"
+    "export_theme": "导出",
+    "message_layout": "消息布局",
+    "layout_bubble": "气泡",
+    "layout_compact": "紧凑",
+    "layout_modern": "现代"
   },
   "about": {
     "title": "关于",
@@ -499,7 +503,6 @@
     "update_available": "新版本可用",
     "reload": "更新"
   },
-<<<<<<< HEAD
   "contact_info": {
     "title": "联系信息",
     "emails": "邮箱地址",
@@ -578,5 +581,33 @@
     "no_packs": "暂无贴纸包",
     "no_packs_hint": "可以从房间设置或账户表情包中添加贴纸包。",
     "no_stickers": "未找到贴纸"
+  },
+  "jump_to_date": {
+    "title": "跳转到日期",
+    "label": "选择日期"
+  },
+  "pdf_viewer": {
+    "click_to_view": "点击查看 PDF",
+    "download": "下载 PDF"
+  },
+  "image_editor": {
+    "title": "编辑图片",
+    "crop": "裁剪",
+    "draw": "画笔",
+    "text": "文字",
+    "apply_crop": "应用裁剪",
+    "reset": "重置",
+    "send": "完成",
+    "text_label": "输入文字",
+    "text_placeholder": "输入标注文字...",
+    "add_text": "添加",
+    "load_error": "图片加载失败"
+  },
+  "sync_status": {
+    "connecting": "连接中...",
+    "reconnecting": "重连中...",
+    "error": "同步错误",
+    "disconnected": "已断开",
+    "last_sync": "上次同步: {{time}}"
   }
 }

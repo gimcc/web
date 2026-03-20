@@ -1,7 +1,8 @@
-import { File, X } from 'lucide-react'
-import { useMemo } from 'react'
+import { File as FileIcon, Pencil, X } from 'lucide-react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { formatFileSize } from '../lib/format'
+import { ImageEditor } from './image-editor'
 
 export interface PendingUpload {
   id: string
@@ -14,12 +15,14 @@ interface UploadPreviewProps {
   uploads: PendingUpload[]
   onRemove: (id: string) => void
   onCaptionChange: (id: string, caption: string) => void
+  onReplaceFile?: (id: string, file: File) => void
 }
 
-function UploadItem({ upload, onRemove, onCaptionChange }: {
+function UploadItem({ upload, onRemove, onCaptionChange, onEdit }: {
   upload: PendingUpload
   onRemove: () => void
   onCaptionChange: (caption: string) => void
+  onEdit?: () => void
 }) {
   const { t } = useTranslation()
   const isImage = upload.file.type.startsWith('image/')
@@ -47,7 +50,7 @@ function UploadItem({ upload, onRemove, onCaptionChange }: {
     }
     return (
       <div className="flex h-16 w-16 items-center justify-center rounded bg-muted">
-        <File className="h-6 w-6 text-muted-foreground" />
+        <FileIcon className="h-6 w-6 text-muted-foreground" />
       </div>
     )
   }, [isImage, isVideo, upload.previewUrl, upload.file.name])
@@ -62,6 +65,18 @@ function UploadItem({ upload, onRemove, onCaptionChange }: {
       >
         <X className="h-3 w-3" />
       </button>
+
+      {isImage && onEdit && (
+        <button
+          type="button"
+          className="absolute -left-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-white"
+          onClick={onEdit}
+          aria-label={t('image_editor.title')}
+          title={t('image_editor.title')}
+        >
+          <Pencil className="h-3 w-3" />
+        </button>
+      )}
 
       {preview}
 
@@ -80,20 +95,43 @@ function UploadItem({ upload, onRemove, onCaptionChange }: {
   )
 }
 
-export function UploadPreview({ uploads, onRemove, onCaptionChange }: UploadPreviewProps) {
-  if (uploads.length === 0)
+export function UploadPreview({ uploads, onRemove, onCaptionChange, onReplaceFile }: UploadPreviewProps) {
+  const [editingUploadId, setEditingUploadId] = useState<string | null>(null)
+
+  if (uploads.length === 0 && !editingUploadId)
     return null
 
+  const editingUpload = editingUploadId ? uploads.find(u => u.id === editingUploadId) : null
+
   return (
-    <div className="flex gap-2 overflow-x-auto border-b border-border px-4 py-2">
-      {uploads.map(upload => (
-        <UploadItem
-          key={upload.id}
-          upload={upload}
-          onRemove={() => onRemove(upload.id)}
-          onCaptionChange={caption => onCaptionChange(upload.id, caption)}
+    <>
+      {uploads.length > 0 && (
+        <div className="flex gap-2 overflow-x-auto border-b border-border px-4 py-2">
+          {uploads.map(upload => (
+            <UploadItem
+              key={upload.id}
+              upload={upload}
+              onRemove={() => onRemove(upload.id)}
+              onCaptionChange={caption => onCaptionChange(upload.id, caption)}
+              onEdit={upload.file.type.startsWith('image/') && onReplaceFile
+                ? () => setEditingUploadId(upload.id)
+                : undefined}
+            />
+          ))}
+        </div>
+      )}
+
+      {editingUpload && (
+        <ImageEditor
+          imageUrl={editingUpload.previewUrl}
+          onSave={(blob) => {
+            const editedFile = new File([blob], editingUpload.file.name, { type: 'image/png' })
+            onReplaceFile?.(editingUpload.id, editedFile)
+            setEditingUploadId(null)
+          }}
+          onCancel={() => setEditingUploadId(null)}
         />
-      ))}
-    </div>
+      )}
+    </>
   )
 }

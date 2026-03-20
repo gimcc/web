@@ -488,6 +488,16 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
     )
   }, [])
 
+  const handleReplaceFile = useCallback((id: string, file: File) => {
+    setPendingUploads(prev =>
+      prev.map((u) => {
+        if (u.id !== id) return u
+        URL.revokeObjectURL(u.previewUrl)
+        return { ...u, file, previewUrl: URL.createObjectURL(file) }
+      }),
+    )
+  }, [])
+
   const handleVoiceSend = useCallback(async (blob: Blob, durationMs: number) => {
     setIsRecording(false)
     try {
@@ -642,6 +652,7 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
         uploads={pendingUploads}
         onRemove={handleRemoveUpload}
         onCaptionChange={handleCaptionChange}
+        onReplaceFile={handleReplaceFile}
       />
 
       {/* Drag overlay */}

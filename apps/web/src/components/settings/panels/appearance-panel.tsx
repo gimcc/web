@@ -1,6 +1,8 @@
-import { Download, Globe, Monitor, Moon, Palette, Sun, Upload } from 'lucide-react'
+import { AlignJustify, Download, Globe, MessageCircle, Monitor, Moon, Palette, Rows3, Sun, Upload } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import type { MessageLayout } from '../../../hooks/use-layout-preference'
+import { useLayoutPreference } from '../../../hooks/use-layout-preference'
 import { useTheme } from '../../../hooks/use-theme'
 import { cn } from '../../../lib/utils'
 import {
@@ -20,6 +22,7 @@ const LANGUAGE_OPTIONS = [
 export function AppearancePanel() {
   const { t, i18n } = useTranslation()
   const { theme, setTheme } = useTheme()
+  const { layout, setLayout } = useLayoutPreference()
   const [activePresetId, setActivePresetId] = useState(getActivePresetId)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [importError, setImportError] = useState<string | null>(null)
@@ -113,6 +116,33 @@ export function AppearancePanel() {
               className={cn(
                 'flex flex-col items-center gap-2 rounded-lg border p-4 transition-colors',
                 theme === id
+                  ? 'border-primary bg-accent text-foreground'
+                  : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-accent/50',
+              )}
+            >
+              <Icon className="h-5 w-5" />
+              <span className="text-xs font-medium">{label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Message layout */}
+      <div className="space-y-3">
+        <span className="text-xs font-medium text-foreground">{t('appearance.message_layout')}</span>
+        <div className="grid grid-cols-3 gap-3">
+          {([
+            { id: 'bubble' as MessageLayout, label: t('appearance.layout_bubble'), icon: MessageCircle },
+            { id: 'compact' as MessageLayout, label: t('appearance.layout_compact'), icon: AlignJustify },
+            { id: 'modern' as MessageLayout, label: t('appearance.layout_modern'), icon: Rows3 },
+          ]).map(({ id, label, icon: Icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setLayout(id)}
+              className={cn(
+                'flex flex-col items-center gap-2 rounded-lg border p-4 transition-colors',
+                layout === id
                   ? 'border-primary bg-accent text-foreground'
                   : 'border-border text-muted-foreground hover:border-primary/50 hover:bg-accent/50',
               )}
