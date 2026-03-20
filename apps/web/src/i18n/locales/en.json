@@ -471,6 +471,7 @@
     "update_available": "A new version is available",
     "reload": "Update"
   },
+<<<<<<< HEAD
   "contact_info": {
     "title": "Contact Information",
     "emails": "Email Addresses",
@@ -535,5 +536,32 @@
     "confirm_unignore_title": "Unignore User",
     "confirm_unignore_message": "Are you sure you want to unignore {{userId}}? They will be able to send you messages again.",
     "unignore": "Unignore"
+  },
+  "emoji": {
+    "search_placeholder": "Search emojis...",
+    "skin_tone": "Skin tone",
+    "recent": "Recently used",
+    "no_recent": "No recently used emojis",
+    "no_results": "No emojis found",
+    "empty_pack": "This pack is empty",
+    "picker": "Emoji picker",
+    "categories": {
+      "smileys": "Smileys & Emotion",
+      "people": "People & Body",
+      "nature": "Animals & Nature",
+      "food": "Food & Drink",
+      "activities": "Activities",
+      "travel": "Travel & Places",
+      "objects": "Objects",
+      "symbols": "Symbols"
+    }
+  },
+  "sticker": {
+    "send": "Send sticker",
+    "picker": "Sticker picker",
+    "search_placeholder": "Search stickers...",
+    "no_packs": "No sticker packs",
+    "no_packs_hint": "Sticker packs can be added from room settings or your account emoji packs.",
+    "no_stickers": "No stickers found"
   }
 }

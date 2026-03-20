@@ -8,6 +8,7 @@ import { MediaMessage } from './media-message'
 import { MessageActions } from './message-actions'
 import { MessageContent } from './message-content'
 import { ReactionBar } from './reaction-bar'
+import { StickerMessage } from './sticker-message'
 import { UrlPreviewCards } from './url-preview-card'
 
 interface MessageBubbleProps {
@@ -131,6 +132,7 @@ export function MessageBubble({
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
   const isEmote = message.msgtype === 'm.emote'
+  const isSticker = message.type === 'm.sticker' || message.msgtype === 'm.sticker'
   const isMedia = ['m.image', 'm.video', 'm.file', 'm.audio'].includes(message.msgtype)
   const hasReceipts = (receipts?.length ?? 0) > 0
 
@@ -219,6 +221,55 @@ export function MessageBubble({
           <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
         )}
         {actionBar}
+      </div>
+    )
+  }
+
+  // ---- Sticker message (no bubble) ----
+  if (isSticker) {
+    return (
+      <div
+        className={cn(
+          'group relative flex px-4 transition-colors duration-500',
+          collapsed ? 'py-0.5' : 'py-1',
+          isSelf ? 'justify-end' : 'justify-start',
+          highlighted && 'bg-primary/10',
+        )}
+      >
+        {!isSelf && !collapsed && (
+          <div className="mr-2 mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-[10px] font-semibold text-primary">
+            {message.senderName.charAt(0).toUpperCase()}
+          </div>
+        )}
+        {!isSelf && collapsed && <div className="mr-2 w-7 shrink-0" />}
+
+        <div className="relative max-w-[75%] group/bubble">
+          {!isSelf && !collapsed && (
+            <p className="mb-0.5 text-xs font-semibold text-primary">{message.senderName}</p>
+          )}
+
+          <StickerMessage message={message} />
+
+          <div className={cn('flex items-center gap-0.5 pt-0.5', isSelf ? 'justify-end' : 'justify-start')}>
+            <BubbleMeta time={timeStr} isSelf={isSelf} status={message.status} hasReceipts={hasReceipts} edited={false} t={t} />
+          </div>
+
+          {message.reactions && message.reactions.length > 0 && (
+            <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
+          )}
+
+          {message.status === 'failed' && onResend && (
+            <button
+              type="button"
+              className="mt-1 text-xs text-destructive hover:underline"
+              onClick={() => onResend(message.eventId)}
+            >
+              {t('chat.failed_to_send')}
+            </button>
+          )}
+
+          {actionBar}
+        </div>
       </div>
     )
   }
