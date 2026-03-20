@@ -306,6 +306,47 @@
     "server": "Server",
     "custom_server": "Custom server..."
   },
+  "forgot_password": {
+    "title": "Reset your password",
+    "link": "Forgot password?",
+    "email_label": "Email address",
+    "email_placeholder": "Enter your email address",
+    "send_email": "Send reset email",
+    "sending": "Sending...",
+    "check_email": "A verification email has been sent to {{email}}. Click the link in the email, then click the button below.",
+    "email_confirmed": "I've clicked the link",
+    "resend_email": "Resend email",
+    "new_password": "New password",
+    "confirm_new_password": "Confirm new password",
+    "reset_password": "Reset password",
+    "resetting": "Resetting...",
+    "success": "Your password has been reset successfully. You can now sign in with your new password.",
+    "back_to_login": "Back to sign in",
+    "error_send": "Failed to send reset email",
+    "error_reset": "Failed to reset password"
+  },
+  "sso": {
+    "sign_in_sso": "Sign in with SSO",
+    "sign_in_with": "Sign in with {{provider}}",
+    "or_sign_in_with": "Or sign in with",
+    "divider": "or"
+  },
+  "well_known": {
+    "discovering": "Discovering server..."
+  },
+  "uia": {
+    "title": "Verify your identity",
+    "description": "This action requires authentication. Please enter your password to continue.",
+    "password_label": "Password",
+    "password_placeholder": "Enter your account password",
+    "verify": "Verify",
+    "verifying": "Verifying...",
+    "unsupported_stage": "Unsupported authentication type: {{stage}}"
+  },
+  "token_login": {
+    "logging_in": "Signing in with token...",
+    "error": "Token login failed"
+  },
   "message": {
     "edited": "edited",
     "deleted": "This message was deleted",

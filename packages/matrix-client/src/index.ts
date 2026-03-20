@@ -5,6 +5,36 @@ export type { AuthCredentials, AuthSession } from './auth/auth-service'
 export { useAuthStore } from './auth/auth-store'
 export type { AuthState } from './auth/auth-store'
 
+// Auth — password reset
+export {
+  checkEmailValidation,
+  generateClientSecret,
+  requestPasswordResetEmail,
+  submitNewPassword,
+} from './auth/password-reset-service'
+
+// Auth — SSO
+export {
+  buildSsoRedirectUrl,
+  getLoginFlows,
+  startSsoLogin,
+} from './auth/sso-service'
+export type { LoginFlowsResult, SsoIdentityProvider } from './auth/sso-service'
+
+// Auth — UIA
+export {
+  buildDummyAuth,
+  buildPasswordAuth,
+  extractUiaChallenge,
+  getRemainingStages,
+  isUiaChallenge,
+} from './auth/uia-service'
+export type { UiaAuth, UiaChallenge, UiaDummyAuth, UiaPasswordAuth, UiaStage } from './auth/uia-service'
+
+// Auth — well-known discovery
+export { discoverHomeserver, isDomainInput } from './auth/well-known-service'
+export type { WellKnownResult } from './auth/well-known-service'
+
 // Client lifecycle
 export {
   getMatrixClient,

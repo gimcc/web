@@ -5,6 +5,7 @@ import { clearCryptoStore } from '../utils/clear-crypto-store'
 import {
   clearPersistedSession,
   loadPersistedSession,
+  loginWithToken as realLoginWithToken,
   persistSession,
   login as realLogin,
   register as realRegister,
@@ -20,6 +21,7 @@ export interface AuthState {
   mockMode: boolean
   setMockMode: (mock: boolean) => void
   login: (credentials: AuthCredentials) => Promise<void>
+  loginWithToken: (homeserverUrl: string, token: string) => Promise<void>
   register: (credentials: AuthCredentials) => Promise<void>
   logout: () => void
   restoreSession: () => void
@@ -47,6 +49,19 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
     catch (err) {
       const message = err instanceof Error ? err.message : 'Login failed'
+      set({ error: message, isLoading: false })
+    }
+  },
+
+  loginWithToken: async (homeserverUrl: string, token: string) => {
+    set({ isLoading: true, error: null })
+    try {
+      const session = await realLoginWithToken(homeserverUrl, token)
+      persistSession(session)
+      set({ isAuthenticated: true, session, isLoading: false })
+    }
+    catch (err) {
+      const message = err instanceof Error ? err.message : 'Token login failed'
       set({ error: message, isLoading: false })
     }
   },

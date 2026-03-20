@@ -69,6 +69,23 @@ export async function login(credentials: AuthCredentials): Promise<AuthSession> 
   return session
 }
 
+export async function loginWithToken(homeserverUrl: string, token: string): Promise<AuthSession> {
+  const client = createClient({ baseUrl: homeserverUrl })
+
+  const response = await client.login('m.login.token', { token })
+
+  if (!response.user_id || !response.access_token || !response.device_id) {
+    throw new Error('Unexpected login response: missing required fields')
+  }
+
+  return {
+    userId: response.user_id,
+    accessToken: response.access_token,
+    deviceId: response.device_id,
+    homeserverUrl,
+  }
+}
+
 export async function register(credentials: AuthCredentials): Promise<AuthSession> {
   const client = createClient({ baseUrl: credentials.homeserverUrl })
 
