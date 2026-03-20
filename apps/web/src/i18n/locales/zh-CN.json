@@ -429,5 +429,57 @@
   "pwa": {
     "update_available": "新版本可用",
     "reload": "更新"
+  },
+  "contact_info": {
+    "title": "联系信息",
+    "emails": "邮箱地址",
+    "phones": "手机号码",
+    "empty": "未添加联系信息。",
+    "add_email": "添加邮箱",
+    "add_phone": "添加手机",
+    "email_label": "邮箱地址",
+    "email_placeholder": "user@example.com",
+    "phone_label": "手机号码",
+    "phone_placeholder": "手机号码",
+    "send_verification": "发送验证",
+    "sending": "发送中...",
+    "verify_email_hint": "验证邮件已发送。请点击邮件中的链接，然后点击下方确认。",
+    "verify_phone_hint": "验证码已发送。请输入验证码并确认。",
+    "confirm_verify": "确认",
+    "verifying": "验证中...",
+    "success_added": "联系信息添加成功。",
+    "success_removed": "联系信息已移除。",
+    "error_request_token": "发送验证失败，请检查输入。",
+    "error_verify": "验证失败，请重试。",
+    "error_remove": "移除联系信息失败。"
+  },
+  "devices": {
+    "title": "登录会话",
+    "empty": "没有找到会话。",
+    "current": "当前",
+    "device_id": "会话 ID",
+    "last_ip": "最后 IP",
+    "last_seen": "最后活跃",
+    "never": "从未",
+    "error_load": "加载会话列表失败。",
+    "error_rename": "重命名会话失败。",
+    "error_delete": "移除会话失败。",
+    "success_renamed": "会话已重命名。",
+    "success_deleted": "会话已移除。"
+  },
+  "ignored_users": {
+    "title": "已忽略用户",
+    "description": "被忽略的用户将无法向你发送消息，你也不会在房间中看到他们的消息。",
+    "empty": "没有被忽略的用户。",
+    "add": "忽略用户",
+    "user_id_label": "用户 ID",
+    "user_id_placeholder": "@user:server.org",
+    "ignore": "忽略",
+    "ignoring": "忽略中...",
+    "success_ignored": "已忽略 {{userId}}。",
+    "success_unignored": "已取消忽略 {{userId}}。",
+    "error_invalid_id": "用户 ID 格式无效，必须为 @user:server 格式。",
+    "error_ignore": "忽略用户失败。",
+    "error_unignore": "取消忽略失败。"
   }
 }
