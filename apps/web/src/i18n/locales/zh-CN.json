@@ -148,6 +148,7 @@
       "encryption": "加密",
       "notifications": "通知",
       "appearance": "外观",
+      "profile": "个人资料",
       "about": "关于"
     }
   },
@@ -404,6 +405,26 @@
     "all": "所有消息",
     "mentions": "仅提及",
     "mute": "静音"
+  },
+  "profile": {
+    "title": "个人资料",
+    "description": "管理你的显示名称和头像。",
+    "display_name": "显示名称",
+    "change_avatar": "更换头像",
+    "remove_avatar": "移除头像",
+    "success_name": "显示名称已更新",
+    "success_avatar": "头像已更新",
+    "success_avatar_removed": "头像已移除",
+    "error_load": "加载个人资料失败",
+    "error_name": "更新显示名称失败",
+    "error_avatar": "更新头像失败"
+  },
+  "profile_card": {
+    "title": "用户资料",
+    "send_message": "发消息",
+    "shared_rooms": "{{count}} 个共同房间",
+    "error_load": "加载用户资料失败",
+    "error_dm": "无法发起对话"
   },
   "pwa": {
     "update_available": "新版本可用",
