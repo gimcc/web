@@ -22,24 +22,31 @@ export function VoicePlayer({ url, duration: durationHint }: VoicePlayerProps) {
     const audio = new Audio(url)
     audioRef.current = audio
 
-    audio.addEventListener('loadedmetadata', () => {
+    const handleLoadedMetadata = () => {
       if (audio.duration && Number.isFinite(audio.duration)) {
         setDuration(audio.duration)
       }
-    })
+    }
 
-    audio.addEventListener('timeupdate', () => {
+    const handleTimeUpdate = () => {
       if (audio.duration && Number.isFinite(audio.duration)) {
         setProgress(audio.currentTime / audio.duration)
       }
-    })
+    }
 
-    audio.addEventListener('ended', () => {
+    const handleEnded = () => {
       setIsPlaying(false)
       setProgress(0)
-    })
+    }
+
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata)
+    audio.addEventListener('timeupdate', handleTimeUpdate)
+    audio.addEventListener('ended', handleEnded)
 
     return () => {
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata)
+      audio.removeEventListener('timeupdate', handleTimeUpdate)
+      audio.removeEventListener('ended', handleEnded)
       audio.pause()
       audio.src = ''
     }

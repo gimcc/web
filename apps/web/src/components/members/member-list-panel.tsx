@@ -178,7 +178,8 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   )
 
   const renderProfileCard = () => {
-    if (!profileCardUserId) return null
+    if (!profileCardUserId)
+      return null
     return (
       <UserProfileCard
         userId={profileCardUserId}

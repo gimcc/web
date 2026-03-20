@@ -12,10 +12,10 @@ import { MessageTimeline } from '../../components/message-timeline'
 import { NotificationInbox } from '../../components/notification-inbox'
 import { PinnedMessagesBar } from '../../components/pinned-messages-bar'
 import { RoomNotificationToggle } from '../../components/room-notification-toggle'
-import { SyncStatusIndicator } from '../../components/sync-status-indicator'
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { TombstoneBanner } from '../../components/room/tombstone-banner'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
+import { SyncStatusIndicator } from '../../components/sync-status-indicator'
 import { ThreadPanel } from '../../components/thread-panel'
 import { Avatar } from '../../components/ui/avatar'
 import { Button } from '../../components/ui/button'
@@ -56,7 +56,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const [editingMessage, setEditingMessage] = useState<TimelineMessageItem | null>(null)
   const [replyingTo, setReplyingTo] = useState<TimelineMessageItem | null>(null)
   const [pinRefreshKey, setPinRefreshKey] = useState(0)
-  const [jumpToRequest, setJumpToRequest] = useState<{ timestamp: number; id: number } | null>(null)
+  const [jumpToRequest, setJumpToRequest] = useState<{ timestamp: number, id: number } | null>(null)
 
   const handleEditMessage = useCallback((message: TimelineMessageItem) => {
     setEditingMessage(message)

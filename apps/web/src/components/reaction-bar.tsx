@@ -152,10 +152,13 @@ export function ReactionBar({ reactions, onToggle }: ReactionBarProps) {
           ))}
         </div>
         <PopoverContent className="w-64 p-3" side="top" align="start">
-          <ReactionDetailPanel reactions={activeReactions} onToggle={(emoji) => {
-            onToggle(emoji)
-            setOpen(false)
-          }} />
+          <ReactionDetailPanel
+            reactions={activeReactions}
+            onToggle={(emoji) => {
+              onToggle(emoji)
+              setOpen(false)
+            }}
+          />
         </PopoverContent>
       </Popover>
     </div>

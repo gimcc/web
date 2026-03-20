@@ -80,10 +80,10 @@ export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
         {dmUserId
           ? <PresenceDot userId={dmUserId} />
           : !room.isDirect && (
-            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-muted ring-2 ring-background">
-              <Users className="h-2.5 w-2.5 text-muted-foreground" />
-            </span>
-          )}
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-muted ring-2 ring-background">
+                <Users className="h-2.5 w-2.5 text-muted-foreground" />
+              </span>
+            )}
       </div>
 
       <div className="min-w-0 flex-1">

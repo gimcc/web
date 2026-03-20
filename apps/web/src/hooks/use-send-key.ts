@@ -7,8 +7,10 @@ const STORAGE_KEY = 'matrix-web-send-key'
 function getSendKey(): SendKey {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'cmd-enter') return stored
-  } catch {
+    if (stored === 'cmd-enter')
+      return stored
+  }
+  catch {
     // localStorage unavailable
   }
   return 'enter'
@@ -36,7 +38,8 @@ export function useSendKey(): {
     currentSendKey = newKey
     try {
       localStorage.setItem(STORAGE_KEY, newKey)
-    } catch {
+    }
+    catch {
       // localStorage unavailable
     }
     for (const listener of listeners) listener()

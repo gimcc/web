@@ -1,3 +1,4 @@
+import type { UserProfile } from '@matrix-web/matrix-client'
 import {
   createDmRoom,
   getMatrixClient,
@@ -7,7 +8,6 @@ import {
   useAuthStore,
   useRoomsStore,
 } from '@matrix-web/matrix-client'
-import type { UserProfile } from '@matrix-web/matrix-client'
 import { Loader2, MessageSquare } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -40,10 +40,12 @@ export function UserProfileCard({ userId, open, onClose }: UserProfileCardProps)
   const isMe = session?.userId === userId
 
   useEffect(() => {
-    if (!open) return
+    if (!open)
+      return
 
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     setLoading(true)
     setError(null)
@@ -63,7 +65,8 @@ export function UserProfileCard({ userId, open, onClose }: UserProfileCardProps)
 
   const handleSendMessage = useCallback(async () => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     setDmLoading(true)
     try {
@@ -89,7 +92,13 @@ export function UserProfileCard({ userId, open, onClose }: UserProfileCardProps)
     : profile?.avatarUrl ?? undefined
 
   return (
-    <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle>{t('profile_card.title')}</DialogTitle>
@@ -97,13 +106,13 @@ export function UserProfileCard({ userId, open, onClose }: UserProfileCardProps)
 
         {loading
           ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
-            </div>
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
+              </div>
             )
           : error
             ? (
-              <p className="py-4 text-center text-sm text-destructive">{error}</p>
+                <p className="py-4 text-center text-sm text-destructive">{error}</p>
               )
             : profile && (
               <div className="space-y-4">
@@ -161,7 +170,7 @@ export function UserProfileCard({ userId, open, onClose }: UserProfileCardProps)
                   </div>
                 )}
               </div>
-              )}
+            )}
       </DialogContent>
     </Dialog>
   )

@@ -58,7 +58,7 @@ export function useDeepLinkHandler() {
           }
           catch {
             console.error(`[deep-link] Failed to join room: ${parsed.identifier}`)
-            window.alert(t('deep_link.error_join_failed'))
+            console.warn(t('deep_link.error_join_failed'))
             return
           }
         }
@@ -148,7 +148,7 @@ export function useMatrixLinkClickHandler() {
         })
         .catch(() => {
           console.error(`[deep-link] Failed to join room: ${parsed.identifier}`)
-          window.alert(t('deep_link.error_join_failed'))
+          console.warn(t('deep_link.error_join_failed'))
         })
     }
   }, [setActiveRoom, t])

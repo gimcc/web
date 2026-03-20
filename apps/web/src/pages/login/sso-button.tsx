@@ -18,9 +18,11 @@ function isValidRedirectUrl(url: string, homeserverUrl: string): boolean {
   try {
     const parsed = new URL(url)
     const origin = new URL(window.location.origin)
-    if (parsed.origin === origin.origin) return true
+    if (parsed.origin === origin.origin)
+      return true
     const hs = new URL(homeserverUrl)
-    if (parsed.origin === hs.origin) return true
+    if (parsed.origin === hs.origin)
+      return true
     return false
   }
   catch {
@@ -33,7 +35,8 @@ export function SsoButton({ homeserverUrl, provider }: SsoButtonProps) {
 
   const handleClick = () => {
     const callbackUrl = getSsoCallbackUrl(homeserverUrl)
-    if (!isValidRedirectUrl(callbackUrl, homeserverUrl)) return
+    if (!isValidRedirectUrl(callbackUrl, homeserverUrl))
+      return
     startSsoLogin(homeserverUrl, callbackUrl, provider?.id)
   }
 

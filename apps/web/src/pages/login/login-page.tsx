@@ -1,5 +1,5 @@
-import type { FormEvent } from 'react'
 import type { LoginFlowsResult, SsoIdentityProvider } from '@matrix-web/matrix-client'
+import type { FormEvent } from 'react'
 import {
   discoverHomeserver,
   getLoginFlows,
@@ -36,7 +36,8 @@ export function LoginPage() {
   useEffect(() => {
     const loginToken = searchParams.get('loginToken')
     const hsUrl = searchParams.get('homeserver') || serverUrl
-    if (!loginToken || !hsUrl) return
+    if (!loginToken || !hsUrl)
+      return
 
     // Clear sensitive token from URL immediately
     const cleanUrl = new URL(window.location.href)

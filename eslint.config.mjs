@@ -16,6 +16,12 @@ export default antfu(
     ],
   },
   {
+    rules: {
+      'react-hooks-extra/no-direct-set-state-in-use-effect': 'off',
+      'react/no-array-index-key': 'off',
+    },
+  },
+  {
     files: ['pnpm-workspace.yaml'],
     rules: {
       'pnpm/yaml-enforce-settings': 'off',

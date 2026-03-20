@@ -109,7 +109,7 @@ function AccountDataRow({
 
 const DEV_MODE_KEY = 'matrix-web-dev-mode'
 
-export function useDevMode() {
+function useDevMode() {
   const [enabled, setEnabled] = useState(() => {
     try {
       return localStorage.getItem(DEV_MODE_KEY) === 'true'
@@ -208,42 +208,42 @@ export function DevToolsPanel() {
 
       {devMode && (
         <>
-      {/* Global account data */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium text-foreground">{t('dev_tools.global_data')}</h4>
-        {globalData.length === 0
-          ? (
+          {/* Global account data */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">{t('dev_tools.global_data')}</h4>
+            {globalData.length === 0
+              ? (
+                  <p className="text-xs text-muted-foreground">{t('dev_tools.no_data')}</p>
+                )
+              : (
+                  <div className="space-y-1.5">
+                    {globalData.map(entry => (
+                      <AccountDataRow key={entry.type} entry={entry} onSave={handleSaveGlobal} />
+                    ))}
+                  </div>
+                )}
+          </div>
+
+          {/* Room account data */}
+          <div className="space-y-3">
+            <h4 className="text-sm font-medium text-foreground">{t('dev_tools.room_data')}</h4>
+            <Input
+              value={roomId}
+              onChange={e => setRoomId(e.target.value)}
+              placeholder={t('dev_tools.room_id_placeholder')}
+              className="font-mono text-xs"
+            />
+            {roomId.trim() && roomData.length === 0 && (
               <p className="text-xs text-muted-foreground">{t('dev_tools.no_data')}</p>
-            )
-          : (
+            )}
+            {roomData.length > 0 && (
               <div className="space-y-1.5">
-                {globalData.map(entry => (
-                  <AccountDataRow key={entry.type} entry={entry} onSave={handleSaveGlobal} />
+                {roomData.map(entry => (
+                  <AccountDataRow key={entry.type} entry={entry} onSave={handleSaveRoom} />
                 ))}
               </div>
             )}
-      </div>
-
-      {/* Room account data */}
-      <div className="space-y-3">
-        <h4 className="text-sm font-medium text-foreground">{t('dev_tools.room_data')}</h4>
-        <Input
-          value={roomId}
-          onChange={e => setRoomId(e.target.value)}
-          placeholder={t('dev_tools.room_id_placeholder')}
-          className="font-mono text-xs"
-        />
-        {roomId.trim() && roomData.length === 0 && (
-          <p className="text-xs text-muted-foreground">{t('dev_tools.no_data')}</p>
-        )}
-        {roomData.length > 0 && (
-          <div className="space-y-1.5">
-            {roomData.map(entry => (
-              <AccountDataRow key={entry.type} entry={entry} onSave={handleSaveRoom} />
-            ))}
           </div>
-        )}
-      </div>
         </>
       )}
     </div>

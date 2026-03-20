@@ -1,8 +1,8 @@
+import type { CustomEmojiPack } from './custom-emoji-types'
 import { PackageOpen, Search, X } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
-import type { CustomEmojiPack } from './custom-emoji-types'
 
 interface StickerPickerProps {
   packs: CustomEmojiPack[]
@@ -17,7 +17,8 @@ export function StickerPicker({ packs, onSelect, onClose }: StickerPickerProps) 
 
   const filteredPacks = useMemo(() => {
     setActivePackIndex(0)
-    if (!searchQuery.trim()) return packs
+    if (!searchQuery.trim())
+      return packs
     const q = searchQuery.toLowerCase()
     return packs
       .map(pack => ({
@@ -106,30 +107,32 @@ export function StickerPicker({ packs, onSelect, onClose }: StickerPickerProps) 
 
       {/* Sticker grid */}
       <div className="h-64 overflow-y-auto p-2">
-        {activePack && activePack.emojis.length > 0 ? (
-          <div className="grid grid-cols-4 gap-1">
-            {activePack.emojis.map(sticker => (
-              <button
-                key={sticker.shortcode}
-                type="button"
-                className="flex aspect-square items-center justify-center rounded-lg p-1 transition-colors hover:bg-accent"
-                onClick={() => handleSelect(sticker)}
-                title={`:${sticker.shortcode}:`}
-              >
-                <img
-                  src={sticker.url}
-                  alt={sticker.shortcode}
-                  className="h-full w-full object-contain"
-                  loading="lazy"
-                />
-              </button>
-            ))}
-          </div>
-        ) : (
-          <div className="flex h-full items-center justify-center">
-            <p className="text-sm text-muted-foreground">{t('sticker.no_stickers')}</p>
-          </div>
-        )}
+        {activePack && activePack.emojis.length > 0
+          ? (
+              <div className="grid grid-cols-4 gap-1">
+                {activePack.emojis.map(sticker => (
+                  <button
+                    key={sticker.shortcode}
+                    type="button"
+                    className="flex aspect-square items-center justify-center rounded-lg p-1 transition-colors hover:bg-accent"
+                    onClick={() => handleSelect(sticker)}
+                    title={`:${sticker.shortcode}:`}
+                  >
+                    <img
+                      src={sticker.url}
+                      alt={sticker.shortcode}
+                      className="h-full w-full object-contain"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            )
+          : (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-muted-foreground">{t('sticker.no_stickers')}</p>
+              </div>
+            )}
       </div>
     </div>
   )

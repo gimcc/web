@@ -1,5 +1,6 @@
+import type { Cloud } from 'lucide-react'
 import { useConnectionStore } from '@matrix-web/matrix-client'
-import { Cloud, CloudOff, Loader2, RefreshCw, WifiOff } from 'lucide-react'
+import { CloudOff, Loader2, RefreshCw, WifiOff } from 'lucide-react'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
@@ -11,7 +12,8 @@ export function SyncStatusIndicator() {
   const error = useConnectionStore(s => s.error)
 
   const lastSyncLabel = useMemo(() => {
-    if (!lastSyncTimestamp) return null
+    if (!lastSyncTimestamp)
+      return null
     const date = new Date(lastSyncTimestamp)
     return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
   }, [lastSyncTimestamp])

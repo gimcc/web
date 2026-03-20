@@ -7,8 +7,10 @@ const STORAGE_KEY = 'matrix-web-message-layout'
 function getLayout(): MessageLayout {
   try {
     const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored === 'compact' || stored === 'modern') return stored
-  } catch {
+    if (stored === 'compact' || stored === 'modern')
+      return stored
+  }
+  catch {
     // localStorage unavailable
   }
   return 'bubble'
@@ -36,7 +38,8 @@ export function useLayoutPreference(): {
     currentLayout = newLayout
     try {
       localStorage.setItem(STORAGE_KEY, newLayout)
-    } catch {
+    }
+    catch {
       // localStorage unavailable
     }
     for (const listener of listeners) listener()

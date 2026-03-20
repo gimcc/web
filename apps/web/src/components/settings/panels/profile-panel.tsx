@@ -3,7 +3,6 @@ import {
   getMyProfile,
   mxcToThumbnailUrl,
   removeAvatar,
-  setDisplayName,
   uploadAvatar,
   useAuthStore,
 } from '@matrix-web/matrix-client'
@@ -18,7 +17,7 @@ import { Label } from '../../ui/label'
 export function ProfilePanel() {
   const { t } = useTranslation()
   const session = useAuthStore(s => s.session)
-  const [displayName, setDisplayNameState] = useState('')
+  const [displayName, setDisplayName] = useState('')
   const [originalName, setOriginalName] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>()
   const [avatarMxc, setAvatarMxc] = useState<string | null>(null)
@@ -31,11 +30,12 @@ export function ProfilePanel() {
 
   useEffect(() => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     getMyProfile(client)
       .then((profile) => {
-        setDisplayNameState(profile.displayName ?? '')
+        setDisplayName(profile.displayName ?? '')
         setOriginalName(profile.displayName ?? '')
         setAvatarUrl(profile.avatarUrl ?? undefined)
         setAvatarMxc(profile.avatarMxc)
@@ -48,7 +48,8 @@ export function ProfilePanel() {
 
   const handleSaveName = useCallback(async () => {
     const client = getMatrixClient()
-    if (!client || displayName === originalName) return
+    if (!client || displayName === originalName)
+      return
 
     setSaving(true)
     setError(null)
@@ -68,10 +69,12 @@ export function ProfilePanel() {
 
   const handleAvatarUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (!file) return
+    if (!file)
+      return
 
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     setUploading(true)
     setError(null)
@@ -88,13 +91,15 @@ export function ProfilePanel() {
     }
     finally {
       setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
+      if (fileInputRef.current)
+        fileInputRef.current.value = ''
     }
   }, [session?.homeserverUrl, t])
 
   const handleRemoveAvatar = useCallback(async () => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     setUploading(true)
     setError(null)
@@ -186,7 +191,7 @@ export function ProfilePanel() {
           <Input
             id="display-name"
             value={displayName}
-            onChange={e => setDisplayNameState(e.target.value)}
+            onChange={e => setDisplayName(e.target.value)}
             placeholder={session?.userId ?? ''}
             className="h-9"
           />

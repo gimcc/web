@@ -32,7 +32,7 @@ export function IgnoredUsersSettings() {
 
   const setSuccessWithAutoClear = (msg: string) => {
     setSuccess(msg)
-    setTimeout(() => setSuccess(null), 3000)
+    setTimeout(setSuccess, 3000, null)
   }
 
   const loadIgnoredUsers = useCallback(() => {
@@ -190,7 +190,13 @@ export function IgnoredUsersSettings() {
           )}
 
       {/* Confirm unignore dialog */}
-      <Dialog open={confirmUnignore !== null} onOpenChange={(open) => { if (!open) setConfirmUnignore(null) }}>
+      <Dialog
+        open={confirmUnignore !== null}
+        onOpenChange={(open) => {
+          if (!open)
+            setConfirmUnignore(null)
+        }}
+      >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>{t('ignored_users.confirm_unignore_title')}</DialogTitle>

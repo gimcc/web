@@ -61,35 +61,55 @@ export function MessageActionChevron({
       </DropdownMenuTrigger>
       <DropdownMenuContent align={isSelf ? 'end' : 'start'} side="bottom" className="min-w-[160px]">
         {onReply && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReply() }}>
+          <DropdownMenuItem onClick={(e) => {
+            e.stopPropagation()
+            onReply()
+          }}
+          >
             <CornerUpLeft className="h-4 w-4" />
             {t('message.reply')}
           </DropdownMenuItem>
         )}
 
         {onCopy && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCopy() }}>
+          <DropdownMenuItem onClick={(e) => {
+            e.stopPropagation()
+            onCopy()
+          }}
+          >
             <Copy className="h-4 w-4" />
             {t('message.copy')}
           </DropdownMenuItem>
         )}
 
         {isSelf && onEdit && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit() }}>
+          <DropdownMenuItem onClick={(e) => {
+            e.stopPropagation()
+            onEdit()
+          }}
+          >
             <Pencil className="h-4 w-4" />
             {t('message.edit')}
           </DropdownMenuItem>
         )}
 
         {onPin && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPin() }}>
+          <DropdownMenuItem onClick={(e) => {
+            e.stopPropagation()
+            onPin()
+          }}
+          >
             <Pin className={cn('h-4 w-4', isPinned && 'text-primary')} />
             {isPinned ? t('message.unpin') : t('message.pin')}
           </DropdownMenuItem>
         )}
 
         {onThread && (
-          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onThread() }}>
+          <DropdownMenuItem onClick={(e) => {
+            e.stopPropagation()
+            onThread()
+          }}
+          >
             <MessageSquare className="h-4 w-4" />
             {t('message.thread')}
           </DropdownMenuItem>
@@ -98,7 +118,13 @@ export function MessageActionChevron({
         {!isSelf && onReport && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); onReport() }}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={(e) => {
+                e.stopPropagation()
+                onReport()
+              }}
+            >
               <Flag className="h-4 w-4" />
               {t('report.title')}
             </DropdownMenuItem>
@@ -108,7 +134,13 @@ export function MessageActionChevron({
         {isSelf && onDelete && (
           <>
             <DropdownMenuSeparator />
-            <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); onDelete() }}>
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete()
+              }}
+            >
               <Trash2 className="h-4 w-4" />
               {t('message.delete')}
             </DropdownMenuItem>
@@ -137,7 +169,8 @@ export function MessageReactionButton({ onReaction, onOpenChange }: { onReaction
   }, [onOpenChange])
 
   useEffect(() => {
-    if (!showQuick && !showFullPicker) return
+    if (!showQuick && !showFullPicker)
+      return
 
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -223,7 +256,7 @@ export function MessageReactionButton({ onReaction, onOpenChange }: { onReaction
 }
 
 // Keep backward-compatible export for other layouts (compact/modern)
-export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete, onReply, onThread, onPin, onReport }: MessageActionsProps) {
+export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete, onReply, onThread, onPin, onReport, onCopy }: MessageActionsProps) {
   return (
     <div className="flex items-center gap-1">
       <MessageReactionButton onReaction={onReaction} />
@@ -236,6 +269,7 @@ export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete,
         onThread={onThread}
         onPin={onPin}
         onReport={onReport}
+        onCopy={onCopy}
       />
     </div>
   )

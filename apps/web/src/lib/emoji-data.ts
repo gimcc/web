@@ -1,6 +1,8 @@
 // Comprehensive emoji dataset organized by category with search keywords.
 // Each emoji has: emoji character, short name, and search keywords.
 
+const SKIN_TONE_MODIFIER_RE = /[\u{1F3FB}-\u{1F3FF}]/u
+
 export interface EmojiItem {
   emoji: string
   name: string
@@ -27,19 +29,137 @@ export type SkinToneId = typeof SKIN_TONES[number]['id']
 
 // Emojis that support skin tone modifiers
 const SKIN_TONE_BASE = new Set([
-  '👋', '🤚', '🖐️', '✋', '🖖', '🫱', '🫲', '🫳', '🫴', '👌', '🤌', '🤏',
-  '✌️', '🤞', '🫰', '🤟', '🤘', '🤙', '👈', '👉', '👆', '🖕', '👇', '☝️',
-  '🫵', '👍', '👎', '✊', '👊', '🤛', '🤜', '👏', '🙌', '🫶', '👐', '🤲',
-  '🤝', '🙏', '✍️', '💅', '🤳', '💪', '🦵', '🦶', '👂', '🦻', '👃',
-  '👶', '🧒', '👦', '👧', '🧑', '👱', '👨', '🧔', '👩', '🧓', '👴', '👵',
-  '🙍', '🙎', '🙅', '🙆', '💁', '🙋', '🧏', '🙇', '🤦', '🤷',
-  '👮', '🕵️', '💂', '🥷', '👷', '🫅', '🤴', '👸', '👳', '👲',
-  '🧕', '🤵', '👰', '🤰', '🫃', '🫄', '🤱', '👼', '🎅', '🤶',
-  '🦸', '🦹', '🧙', '🧚', '🧛', '🧜', '🧝', '🧞', '🧟',
-  '💆', '💇', '🚶', '🧍', '🧎', '🏃', '💃', '🕺', '🕴️',
-  '👯', '🧖', '🧗', '🤸', '⛹️', '🏋️', '🚴', '🚵', '🤽',
-  '🤾', '🤺', '⛷️', '🏂', '🏌️', '🏇', '🏊', '🤼', '🤹',
-  '🧘', '🛀', '🛌', '👭', '👫', '👬',
+  '👋',
+  '🤚',
+  '🖐️',
+  '✋',
+  '🖖',
+  '🫱',
+  '🫲',
+  '🫳',
+  '🫴',
+  '👌',
+  '🤌',
+  '🤏',
+  '✌️',
+  '🤞',
+  '🫰',
+  '🤟',
+  '🤘',
+  '🤙',
+  '👈',
+  '👉',
+  '👆',
+  '🖕',
+  '👇',
+  '☝️',
+  '🫵',
+  '👍',
+  '👎',
+  '✊',
+  '👊',
+  '🤛',
+  '🤜',
+  '👏',
+  '🙌',
+  '🫶',
+  '👐',
+  '🤲',
+  '🤝',
+  '🙏',
+  '✍️',
+  '💅',
+  '🤳',
+  '💪',
+  '🦵',
+  '🦶',
+  '👂',
+  '🦻',
+  '👃',
+  '👶',
+  '🧒',
+  '👦',
+  '👧',
+  '🧑',
+  '👱',
+  '👨',
+  '🧔',
+  '👩',
+  '🧓',
+  '👴',
+  '👵',
+  '🙍',
+  '🙎',
+  '🙅',
+  '🙆',
+  '💁',
+  '🙋',
+  '🧏',
+  '🙇',
+  '🤦',
+  '🤷',
+  '👮',
+  '🕵️',
+  '💂',
+  '🥷',
+  '👷',
+  '🫅',
+  '🤴',
+  '👸',
+  '👳',
+  '👲',
+  '🧕',
+  '🤵',
+  '👰',
+  '🤰',
+  '🫃',
+  '🫄',
+  '🤱',
+  '👼',
+  '🎅',
+  '🤶',
+  '🦸',
+  '🦹',
+  '🧙',
+  '🧚',
+  '🧛',
+  '🧜',
+  '🧝',
+  '🧞',
+  '🧟',
+  '💆',
+  '💇',
+  '🚶',
+  '🧍',
+  '🧎',
+  '🏃',
+  '💃',
+  '🕺',
+  '🕴️',
+  '👯',
+  '🧖',
+  '🧗',
+  '🤸',
+  '⛹️',
+  '🏋️',
+  '🚴',
+  '🚵',
+  '🤽',
+  '🤾',
+  '🤺',
+  '⛷️',
+  '🏂',
+  '🏌️',
+  '🏇',
+  '🏊',
+  '🤼',
+  '🤹',
+  '🧘',
+  '🛀',
+  '🛌',
+  '👭',
+  '👫',
+  '👬',
 ])
 
 export function supportsSkintone(emoji: string): boolean {
@@ -47,14 +167,17 @@ export function supportsSkintone(emoji: string): boolean {
 }
 
 export function applySkintone(emoji: string, skinToneId: SkinToneId): string {
-  if (skinToneId === 'default' || !supportsSkintone(emoji)) return emoji
+  if (skinToneId === 'default' || !supportsSkintone(emoji))
+    return emoji
   const modifier = SKIN_TONES.find(s => s.id === skinToneId)?.modifier ?? ''
-  if (!modifier) return emoji
+  if (!modifier)
+    return emoji
   // Remove any existing skin tone modifier first
-  const base = emoji.replace(/[\u{1F3FB}-\u{1F3FF}]/u, '')
+  const base = emoji.replace(SKIN_TONE_MODIFIER_RE, '')
   // Insert modifier after the first code point
   const chars = [...base]
-  if (chars.length === 0) return emoji
+  if (chars.length === 0)
+    return emoji
   return chars[0] + modifier + chars.slice(1).join('')
 }
 
@@ -669,12 +792,14 @@ export function getAllEmojis(): EmojiItem[] {
 }
 
 export function searchEmojis(query: string, limit = 50): EmojiItem[] {
-  if (!query.trim()) return []
+  if (!query.trim())
+    return []
   const q = query.toLowerCase().trim()
   const results: EmojiItem[] = []
 
   for (const emoji of getAllEmojis()) {
-    if (results.length >= limit) break
+    if (results.length >= limit)
+      break
     if (
       emoji.name.includes(q)
       || emoji.keywords.some(k => k.includes(q))

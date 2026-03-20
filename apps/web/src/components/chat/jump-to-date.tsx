@@ -22,7 +22,7 @@ export function JumpToDate({ onJumpToDate }: JumpToDateProps) {
   }, [onJumpToDate])
 
   const handleToggle = useCallback(() => {
-    setOpen(v => {
+    setOpen((v) => {
       if (!v) {
         // Focus the date input after it renders
         setTimeout(() => inputRef.current?.showPicker(), 0)

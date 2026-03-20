@@ -1,8 +1,9 @@
+import type { SkinToneId } from '../lib/emoji-data'
+import type { CustomEmoji, CustomEmojiPack } from './custom-emoji-types'
 import { Clock, Search, X } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRecentEmojis } from '../hooks/use-recent-emojis'
-import type { CustomEmoji, CustomEmojiPack } from './custom-emoji-types'
 import {
   applySkintone,
   EMOJI_CATEGORIES,
@@ -11,7 +12,6 @@ import {
   SKIN_TONES,
   supportsSkintone,
 } from '../lib/emoji-data'
-import type { SkinToneId } from '../lib/emoji-data'
 import { cn } from '../lib/utils'
 
 interface EmojiPickerProps {
@@ -35,7 +35,8 @@ export function EmojiPicker({ onSelect, onClose, customPacks, onSelectCustom }: 
   const skinToneDisplay = skinTone === 'default' ? '✋' : `✋${SKIN_TONES.find(s => s.id === skinTone)?.modifier ?? ''}`
 
   const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return null
+    if (!searchQuery.trim())
+      return null
     return searchEmojis(searchQuery, 80)
   }, [searchQuery])
 
@@ -67,9 +68,11 @@ export function EmojiPicker({ onSelect, onClose, customPacks, onSelectCustom }: 
   }, [customPacks])
 
   const getCategoryIcon = useCallback((id: string) => {
-    if (id === 'recent') return <Clock className="h-4 w-4" />
+    if (id === 'recent')
+      return <Clock className="h-4 w-4" />
     const cat = EMOJI_CATEGORIES.find(c => c.id === id)
-    if (cat) return <span className="text-sm">{cat.icon}</span>
+    if (cat)
+      return <span className="text-sm">{cat.icon}</span>
     if (id.startsWith('custom:') && customPacks) {
       const pack = customPacks.find(p => `custom:${p.id}` === id)
       if (pack?.avatarUrl) {
@@ -162,101 +165,112 @@ export function EmojiPicker({ onSelect, onClose, customPacks, onSelectCustom }: 
 
       {/* Emoji grid */}
       <div className="h-56 overflow-y-auto px-2 py-1">
-        {searchResults ? (
-          // Search results
-          searchResults.length > 0 ? (
-            <div className="grid grid-cols-8 gap-0.5">
-              {searchResults.map(item => (
-                <button
-                  key={item.emoji}
-                  type="button"
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-accent"
-                  onClick={() => handleSelect(item.emoji)}
-                  title={item.name}
-                >
-                  {supportsSkintone(item.emoji) ? applySkintone(item.emoji, skinTone) : item.emoji}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">{t('emoji.no_results')}</p>
-            </div>
-          )
-        ) : activeCategory === 'recent' ? (
-          // Recent emojis
-          recentEmojis.length > 0 ? (
-            <div className="grid grid-cols-8 gap-0.5">
-              {recentEmojis.map((emoji, i) => (
-                <button
-                  key={`${emoji}-${i}`}
-                  type="button"
-                  className="flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-accent"
-                  onClick={() => handleSelect(emoji)}
-                >
-                  {emoji}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div className="flex h-full items-center justify-center">
-              <p className="text-sm text-muted-foreground">{t('emoji.no_recent')}</p>
-            </div>
-          )
-        ) : activeCategory.startsWith('custom:') ? (
-          // Custom emoji pack
-          (() => {
-            const pack = customPacks?.find(p => `custom:${p.id}` === activeCategory)
-            if (!pack || pack.emojis.length === 0) {
-              return (
-                <div className="flex h-full items-center justify-center">
-                  <p className="text-sm text-muted-foreground">{t('emoji.empty_pack')}</p>
-                </div>
+        {searchResults
+          ? (
+              // Search results
+              searchResults.length > 0
+                ? (
+                    <div className="grid grid-cols-8 gap-0.5">
+                      {searchResults.map(item => (
+                        <button
+                          key={item.emoji}
+                          type="button"
+                          className="flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-accent"
+                          onClick={() => handleSelect(item.emoji)}
+                          title={item.name}
+                        >
+                          {supportsSkintone(item.emoji) ? applySkintone(item.emoji, skinTone) : item.emoji}
+                        </button>
+                      ))}
+                    </div>
+                  )
+                : (
+                    <div className="flex h-full items-center justify-center">
+                      <p className="text-sm text-muted-foreground">{t('emoji.no_results')}</p>
+                    </div>
+                  )
+            )
+          : activeCategory === 'recent'
+            ? (
+                // Recent emojis
+                recentEmojis.length > 0
+                  ? (
+                      <div className="grid grid-cols-8 gap-0.5">
+                        {recentEmojis.map((emoji, i) => (
+                          <button
+                            key={`${emoji}-${i}`}
+                            type="button"
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-accent"
+                            onClick={() => handleSelect(emoji)}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  : (
+                      <div className="flex h-full items-center justify-center">
+                        <p className="text-sm text-muted-foreground">{t('emoji.no_recent')}</p>
+                      </div>
+                    )
               )
-            }
-            return (
-              <div className="grid grid-cols-8 gap-0.5">
-                {pack.emojis.map(emoji => (
-                  <button
-                    key={emoji.shortcode}
-                    type="button"
-                    className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-accent"
-                    onClick={() => handleCustomSelect(emoji)}
-                    title={`:${emoji.shortcode}:`}
-                  >
-                    <img
-                      src={emoji.url}
-                      alt={emoji.shortcode}
-                      className="h-6 w-6 object-contain"
-                      loading="lazy"
-                    />
-                  </button>
-                ))}
-              </div>
-            )
-          })()
-        ) : (
-          // Standard category
-          (() => {
-            const cat = EMOJI_CATEGORIES.find(c => c.id === activeCategory)
-            if (!cat) return null
-            return (
-              <div className="grid grid-cols-8 gap-0.5">
-                {cat.emojis.map(item => (
-                  <button
-                    key={item.emoji}
-                    type="button"
-                    className="flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-accent"
-                    onClick={() => handleSelect(item.emoji)}
-                    title={item.name}
-                  >
-                    {supportsSkintone(item.emoji) ? applySkintone(item.emoji, skinTone) : item.emoji}
-                  </button>
-                ))}
-              </div>
-            )
-          })()
-        )}
+            : activeCategory.startsWith('custom:')
+              ? (
+                  // Custom emoji pack
+                  (() => {
+                    const pack = customPacks?.find(p => `custom:${p.id}` === activeCategory)
+                    if (!pack || pack.emojis.length === 0) {
+                      return (
+                        <div className="flex h-full items-center justify-center">
+                          <p className="text-sm text-muted-foreground">{t('emoji.empty_pack')}</p>
+                        </div>
+                      )
+                    }
+                    return (
+                      <div className="grid grid-cols-8 gap-0.5">
+                        {pack.emojis.map(emoji => (
+                          <button
+                            key={emoji.shortcode}
+                            type="button"
+                            className="flex h-8 w-8 items-center justify-center rounded-md transition-colors hover:bg-accent"
+                            onClick={() => handleCustomSelect(emoji)}
+                            title={`:${emoji.shortcode}:`}
+                          >
+                            <img
+                              src={emoji.url}
+                              alt={emoji.shortcode}
+                              className="h-6 w-6 object-contain"
+                              loading="lazy"
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  })()
+                )
+              : (
+                  // Standard category
+                  (() => {
+                    const cat = EMOJI_CATEGORIES.find(c => c.id === activeCategory)
+                    if (!cat)
+                      return null
+                    return (
+                      <div className="grid grid-cols-8 gap-0.5">
+                        {cat.emojis.map(item => (
+                          <button
+                            key={item.emoji}
+                            type="button"
+                            className="flex h-8 w-8 items-center justify-center rounded-md text-lg transition-colors hover:bg-accent"
+                            onClick={() => handleSelect(item.emoji)}
+                            title={item.name}
+                          >
+                            {supportsSkintone(item.emoji) ? applySkintone(item.emoji, skinTone) : item.emoji}
+                          </button>
+                        ))}
+                      </div>
+                    )
+                  })()
+                )}
       </div>
 
       {/* Quick reactions at bottom */}

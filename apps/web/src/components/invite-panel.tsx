@@ -108,7 +108,13 @@ export function InviteDialog({ open, onClose }: InviteDialogProps) {
   const invites = useInviteRooms()
 
   return (
-    <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
+    <Dialog
+      open={open}
+      onOpenChange={(v) => {
+        if (!v)
+          onClose()
+      }}
+    >
       <DialogContent className="flex h-[min(85vh,600px)] flex-col overflow-hidden p-0 sm:max-w-[480px]" showCloseButton={false}>
         {/* Header */}
         <div className="flex items-center justify-between border-b border-border px-4 py-3">

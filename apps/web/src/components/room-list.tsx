@@ -1,4 +1,3 @@
-import type { RoomSummary } from '@matrix-web/matrix-client'
 import { useRoomsStore } from '@matrix-web/matrix-client'
 import { Search } from 'lucide-react'
 import { useMemo, useState } from 'react'
@@ -43,7 +42,7 @@ export function RoomList() {
     return filtered.sort((a, b) => b.timestamp - a.timestamp)
   }, [rooms, searchQuery, activeFilter])
 
-  const filters: { id: FilterTab; label: string }[] = [
+  const filters: { id: FilterTab, label: string }[] = [
     { id: 'all', label: t('room_list.filter_all') },
     { id: 'unread', label: t('room_list.filter_unread') },
     { id: 'direct', label: t('room_list.filter_direct') },

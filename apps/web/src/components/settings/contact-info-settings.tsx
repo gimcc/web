@@ -24,7 +24,7 @@ import { Input } from '../ui/input'
 
 type AddMode = 'idle' | 'email' | 'phone' | 'verify'
 
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const EMAIL_REGEX = /^[^\s@]+@[^\s@][^\s.@]*\.[^\s@]+$/
 const COUNTRY_CODE_REGEX = /^\+\d{1,3}$/
 
 function generateClientSecret(): string {
@@ -50,7 +50,7 @@ export function ContactInfoSettings() {
 
   const setSuccessWithAutoClear = (msg: string) => {
     setSuccess(msg)
-    setTimeout(() => setSuccess(null), 3000)
+    setTimeout(setSuccess, 3000, null)
   }
 
   const loadThreePids = useCallback(async () => {
@@ -376,7 +376,13 @@ export function ContactInfoSettings() {
       )}
 
       {/* Confirm delete dialog */}
-      <Dialog open={confirmDelete !== null} onOpenChange={(open) => { if (!open) setConfirmDelete(null) }}>
+      <Dialog
+        open={confirmDelete !== null}
+        onOpenChange={(open) => {
+          if (!open)
+            setConfirmDelete(null)
+        }}
+      >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>{t('contact_info.confirm_delete_title')}</DialogTitle>

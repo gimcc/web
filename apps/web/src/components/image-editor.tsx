@@ -1,4 +1,4 @@
-import { Check, Crop, Minus, Palette, Pencil, RotateCcw, Type, X } from 'lucide-react'
+import { Check, Crop, Palette, Pencil, RotateCcw, Type, X } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
@@ -44,7 +44,7 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   const [tool, setTool] = useState<Tool | null>(null)
   const [color, setColor] = useState('#ff0000')
   const [strokeWidth, setStrokeWidth] = useState(4)
-  const [isDrawing, setIsDrawing] = useState(false)
+  const [, setIsDrawing] = useState(false)
   const [paths, setPaths] = useState<DrawPath[]>([])
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null)
   const currentPathRef = useRef<DrawPath | null>(null)
@@ -85,10 +85,12 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   const renderCanvas = useCallback(() => {
     const canvas = canvasRef.current
     const img = imageRef.current
-    if (!canvas || !img) return
+    if (!canvas || !img)
+      return
 
     const ctx = canvas.getContext('2d')
-    if (!ctx) return
+    if (!ctx)
+      return
 
     canvas.width = img.naturalWidth
     canvas.height = img.naturalHeight
@@ -97,7 +99,8 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
 
     // Draw paths
     for (const path of paths) {
-      if (path.points.length < 2) continue
+      if (path.points.length < 2)
+        continue
       ctx.beginPath()
       ctx.strokeStyle = path.color
       ctx.lineWidth = path.width
@@ -157,13 +160,15 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   }, [paths, currentPath, textAnnotations, cropStart, cropEnd])
 
   useEffect(() => {
-    if (loaded) renderCanvas()
+    if (loaded)
+      renderCanvas()
   }, [loaded, renderCanvas])
 
   // Get canvas coordinates from mouse event
   const getCanvasCoords = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current
-    if (!canvas) return { x: 0, y: 0 }
+    if (!canvas)
+      return { x: 0, y: 0 }
     const rect = canvas.getBoundingClientRect()
     const scaleX = canvas.width / rect.width
     const scaleY = canvas.height / rect.height
@@ -181,11 +186,13 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
       currentPathRef.current = newPath
       setIsDrawing(true)
       setCurrentPath(newPath)
-    } else if (tool === 'crop') {
+    }
+    else if (tool === 'crop') {
       setIsCropping(true)
       setCropStart(coords)
       setCropEnd(coords)
-    } else if (tool === 'text') {
+    }
+    else if (tool === 'text') {
       setPendingText(coords)
       setTextInput('')
     }
@@ -196,7 +203,8 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
       const coords = getCanvasCoords(e)
       currentPathRef.current.points.push(coords)
       setCurrentPath({ ...currentPathRef.current })
-    } else if (tool === 'crop' && isCropping) {
+    }
+    else if (tool === 'crop' && isCropping) {
       const coords = getCanvasCoords(e)
       setCropEnd(coords)
     }
@@ -208,27 +216,31 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
       currentPathRef.current = null
       setCurrentPath(null)
       setIsDrawing(false)
-    } else if (tool === 'crop' && isCropping) {
+    }
+    else if (tool === 'crop' && isCropping) {
       setIsCropping(false)
     }
   }, [tool, isCropping])
 
   const handleApplyCrop = useCallback(() => {
-    if (!cropStart || !cropEnd || !imageRef.current) return
+    if (!cropStart || !cropEnd || !imageRef.current)
+      return
 
     const x = Math.min(cropStart.x, cropEnd.x)
     const y = Math.min(cropStart.y, cropEnd.y)
     const w = Math.abs(cropEnd.x - cropStart.x)
     const h = Math.abs(cropEnd.y - cropStart.y)
 
-    if (w < 10 || h < 10) return
+    if (w < 10 || h < 10)
+      return
 
     // Create a temporary canvas to crop
     const tempCanvas = document.createElement('canvas')
     tempCanvas.width = w
     tempCanvas.height = h
     const tempCtx = tempCanvas.getContext('2d')
-    if (!tempCtx) return
+    if (!tempCtx)
+      return
 
     // Draw the cropped region
     tempCtx.drawImage(canvasRef.current!, x, y, w, h, 0, 0, w, h)
@@ -244,10 +256,11 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
       setTool(null)
     }
     croppedImg.src = tempCanvas.toDataURL()
-  }, [cropStart, cropEnd, renderCanvas])
+  }, [cropStart, cropEnd])
 
   const handleAddText = useCallback(() => {
-    if (!pendingText || !textInput.trim()) return
+    if (!pendingText || !textInput.trim())
+      return
     setTextAnnotations(prev => [
       ...prev,
       {
@@ -274,18 +287,21 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   const renderExportCanvas = useCallback((): HTMLCanvasElement | null => {
     const canvas = canvasRef.current
     const img = imageRef.current
-    if (!canvas || !img) return null
+    if (!canvas || !img)
+      return null
 
     const exportCanvas = document.createElement('canvas')
     exportCanvas.width = img.naturalWidth
     exportCanvas.height = img.naturalHeight
     const ctx = exportCanvas.getContext('2d')
-    if (!ctx) return null
+    if (!ctx)
+      return null
 
     ctx.drawImage(img, 0, 0)
 
     for (const path of paths) {
-      if (path.points.length < 2) continue
+      if (path.points.length < 2)
+        continue
       ctx.beginPath()
       ctx.strokeStyle = path.color
       ctx.lineWidth = path.width
@@ -309,16 +325,19 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
 
   const handleSave = useCallback(() => {
     const exportCanvas = renderExportCanvas()
-    if (!exportCanvas) return
+    if (!exportCanvas)
+      return
 
     exportCanvas.toBlob((blob) => {
-      if (blob) onSave(blob)
+      if (blob)
+        onSave(blob)
     }, 'image/png')
   }, [onSave, renderExportCanvas])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onCancel()
+      if (e.key === 'Escape')
+        onCancel()
     }
     document.addEventListener('keydown', handleKeyDown)
     document.body.style.overflow = 'hidden'
@@ -340,7 +359,11 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
           {/* Tools */}
           <button
             type="button"
-            onClick={() => { setTool(tool === 'crop' ? null : 'crop'); setCropStart(null); setCropEnd(null) }}
+            onClick={() => {
+              setTool(tool === 'crop' ? null : 'crop')
+              setCropStart(null)
+              setCropEnd(null)
+            }}
             className={cn(
               'rounded-md p-2 transition-colors',
               tool === 'crop' ? 'bg-white/20 text-white' : 'text-white/70 hover:bg-white/10',
@@ -462,19 +485,21 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
 
       {/* Canvas area */}
       <div className="flex flex-1 items-center justify-center overflow-auto p-4">
-        {loadError ? (
-          <p className="text-sm text-white/70">{t('image_editor.load_error')}</p>
-        ) : (
-          <canvas
-            ref={canvasRef}
-            className="max-h-full max-w-full cursor-crosshair"
-            style={{ imageRendering: 'auto' }}
-            onMouseDown={handleMouseDown}
-            onMouseMove={handleMouseMove}
-            onMouseUp={handleMouseUp}
-            onMouseLeave={handleMouseUp}
-          />
-        )}
+        {loadError
+          ? (
+              <p className="text-sm text-white/70">{t('image_editor.load_error')}</p>
+            )
+          : (
+              <canvas
+                ref={canvasRef}
+                className="max-h-full max-w-full cursor-crosshair"
+                style={{ imageRendering: 'auto' }}
+                onMouseDown={handleMouseDown}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp}
+              />
+            )}
       </div>
 
       {/* Text input dialog */}
@@ -488,7 +513,10 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
               type="text"
               value={textInput}
               onChange={e => setTextInput(e.target.value)}
-              onKeyDown={e => { if (e.key === 'Enter') handleAddText() }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter')
+                  handleAddText()
+              }}
               className="mb-3 w-64 rounded-md border border-border bg-background px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
               autoFocus
               placeholder={t('image_editor.text_placeholder')}

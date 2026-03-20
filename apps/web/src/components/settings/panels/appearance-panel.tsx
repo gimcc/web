@@ -1,7 +1,7 @@
+import type { SendKey } from '../../../hooks/use-send-key'
 import { Command, CornerDownLeft, Download, Globe, Monitor, Moon, Palette, Sun, Upload } from 'lucide-react'
 import { useCallback, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { SendKey } from '../../../hooks/use-send-key'
 import { useSendKey } from '../../../hooks/use-send-key'
 import { useTheme } from '../../../hooks/use-theme'
 import { cn } from '../../../lib/utils'

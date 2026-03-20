@@ -62,6 +62,7 @@ export function MessageSearch({ roomId, onClose }: MessageSearchProps) {
       return text
     const regex = new RegExp(`(${query.replace(RE_SPECIAL_CHARS, '\\$&')})`, 'gi')
     const parts = text.split(regex)
+
     return parts.map((part, i) =>
       regex.test(part)
         ? <mark key={i} className="bg-primary/20 text-foreground">{part}</mark>

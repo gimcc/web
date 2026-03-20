@@ -44,7 +44,7 @@ export function DeviceManagement() {
 
   const setSuccessWithAutoClear = (msg: string) => {
     setSuccess(msg)
-    setTimeout(() => setSuccess(null), 3000)
+    setTimeout(setSuccess, 3000, null)
   }
 
   const loadDevices = useCallback(async () => {
@@ -281,7 +281,13 @@ export function DeviceManagement() {
             )}
 
       {/* Confirm delete dialog */}
-      <Dialog open={confirmDeleteId !== null && !showPasswordPrompt} onOpenChange={(open) => { if (!open) handleCancelDelete() }}>
+      <Dialog
+        open={confirmDeleteId !== null && !showPasswordPrompt}
+        onOpenChange={(open) => {
+          if (!open)
+            handleCancelDelete()
+        }}
+      >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>{t('devices.confirm_delete_title')}</DialogTitle>
@@ -301,7 +307,13 @@ export function DeviceManagement() {
       </Dialog>
 
       {/* UIA password prompt dialog */}
-      <Dialog open={showPasswordPrompt} onOpenChange={(open) => { if (!open) handleCancelDelete() }}>
+      <Dialog
+        open={showPasswordPrompt}
+        onOpenChange={(open) => {
+          if (!open)
+            handleCancelDelete()
+        }}
+      >
         <DialogContent showCloseButton={false}>
           <DialogHeader>
             <DialogTitle>{t('devices.auth_required_title')}</DialogTitle>

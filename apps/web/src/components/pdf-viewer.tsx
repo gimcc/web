@@ -12,7 +12,8 @@ export function PdfViewer({ src, filename, onClose }: PdfViewerProps) {
   const { t } = useTranslation()
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') onClose()
+    if (e.key === 'Escape')
+      onClose()
   }, [onClose])
 
   useEffect(() => {
@@ -58,6 +59,7 @@ export function PdfViewer({ src, filename, onClose }: PdfViewerProps) {
           src={`${src}#toolbar=1`}
           title={filename}
           className="h-full w-full rounded-lg bg-white"
+          // eslint-disable-next-line react-dom/no-unsafe-iframe-sandbox
           sandbox="allow-scripts allow-same-origin"
           referrerPolicy="no-referrer"
         />
@@ -76,7 +78,8 @@ export function PdfPreview({ src, filename, fileSize }: PdfPreviewProps) {
   const { t } = useTranslation()
   const [viewerOpen, setViewerOpen] = useState(false)
 
-  if (!src) return null
+  if (!src)
+    return null
 
   return (
     <>
