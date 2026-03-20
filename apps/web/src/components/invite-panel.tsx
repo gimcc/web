@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { Avatar } from './ui/avatar'
-import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { Dialog, DialogClose, DialogContent } from './ui/dialog'
 
 function useInviteRooms(): RoomSummary[] {
   const rooms = useRoomsStore(s => s.rooms)
@@ -98,38 +98,37 @@ function InviteItem({ room }: { room: RoomSummary }) {
   )
 }
 
-export function InviteBell() {
+interface InviteDialogProps {
+  open: boolean
+  onClose: () => void
+}
+
+export function InviteDialog({ open, onClose }: InviteDialogProps) {
   const { t } = useTranslation()
   const invites = useInviteRooms()
 
   return (
-    <Popover>
-      <PopoverTrigger asChild>
-        <button
-          type="button"
-          className="relative rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-          aria-label={t('invite.invitations')}
-        >
-          <Bell className="h-5 w-5" />
-          {invites.length > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-white">
-              {invites.length > 99 ? '99+' : invites.length}
-            </span>
-          )}
-        </button>
-      </PopoverTrigger>
-      <PopoverContent className="w-80 overflow-hidden p-0" side="bottom" align="end">
-        <div className="flex items-center justify-between border-b border-border bg-muted/30 px-4 py-2.5">
-          <p className="text-sm font-semibold text-foreground">
-            {t('invite.invitations')}
-          </p>
-          {invites.length > 0 && (
-            <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
-              {invites.length}
-            </span>
-          )}
+    <Dialog open={open} onOpenChange={v => { if (!v) onClose() }}>
+      <DialogContent className="flex h-[min(85vh,600px)] flex-col overflow-hidden p-0 sm:max-w-[480px]" showCloseButton={false}>
+        {/* Header */}
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <div className="flex items-center gap-2">
+            <h2 className="text-base font-semibold text-foreground">
+              {t('invite.invitations')}
+            </h2>
+            {invites.length > 0 && (
+              <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[11px] font-medium text-primary-foreground">
+                {invites.length}
+              </span>
+            )}
+          </div>
+          <DialogClose className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground">
+            <X className="h-5 w-5" />
+          </DialogClose>
         </div>
-        <div className="max-h-72 overflow-y-auto">
+
+        {/* Invite list */}
+        <div className="flex-1 overflow-y-auto">
           {invites.length === 0
             ? (
                 <div className="flex flex-col items-center gap-2 px-4 py-8">
@@ -147,7 +146,28 @@ export function InviteBell() {
                 </div>
               )}
         </div>
-      </PopoverContent>
-    </Popover>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export function InviteBell({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation()
+  const invites = useInviteRooms()
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="relative rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+      aria-label={t('invite.invitations')}
+    >
+      <Bell className="h-5 w-5" />
+      {invites.length > 0 && (
+        <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-0.5 text-[10px] font-medium text-white">
+          {invites.length > 99 ? '99+' : invites.length}
+        </span>
+      )}
+    </button>
   )
 }

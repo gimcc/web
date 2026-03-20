@@ -35,8 +35,8 @@ function ImageMessage({ message }: MediaMessageProps) {
     <>
       <button
         type="button"
-        className="mt-1 block overflow-hidden rounded-lg"
-        onClick={() => setLightboxOpen(true)}
+        className="relative block"
+        onClick={() => message.status !== 'sending' && setLightboxOpen(true)}
         style={{ width: displayW, height: displayH }}
       >
         {thumbnailSrc || fullSrc
@@ -45,7 +45,7 @@ function ImageMessage({ message }: MediaMessageProps) {
                 src={thumbnailSrc || fullSrc}
                 alt={message.body}
                 className={cn(
-                  'rounded-lg object-cover',
+                  'block object-cover',
                   message.status === 'sending' && 'opacity-60',
                 )}
                 style={{ width: displayW, height: displayH }}
@@ -55,7 +55,7 @@ function ImageMessage({ message }: MediaMessageProps) {
           : (
               <div
                 className={cn(
-                  'flex items-center justify-center rounded-lg bg-muted',
+                  'flex items-center justify-center bg-muted',
                   message.status === 'sending' && 'opacity-60',
                 )}
                 style={{ width: displayW, height: displayH }}
@@ -63,6 +63,16 @@ function ImageMessage({ message }: MediaMessageProps) {
                 <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
               </div>
             )}
+        {message.status === 'sending' && (message.uploadProgress ?? 0) < 100 && (
+          <div className="absolute inset-x-0 bottom-0 bg-black/40 px-2 py-1">
+            <div className="h-1 w-full overflow-hidden rounded-full bg-white/30">
+              <div
+                className="h-full rounded-full bg-white transition-all duration-200"
+                style={{ width: `${message.uploadProgress ?? 0}%` }}
+              />
+            </div>
+          </div>
+        )}
       </button>
 
       {lightboxOpen && fullSrc && (
@@ -90,7 +100,7 @@ function VideoMessage({ message }: MediaMessageProps) {
         src={videoSrc}
         controls
         autoPlay
-        className="mt-1 max-h-[300px] rounded-lg"
+        className="max-h-[300px]"
         style={{ maxWidth }}
       >
         <track kind="captions" />
@@ -101,7 +111,7 @@ function VideoMessage({ message }: MediaMessageProps) {
   return (
     <button
       type="button"
-      className="relative mt-1 block overflow-hidden rounded-lg bg-muted"
+      className="relative block overflow-hidden bg-muted"
       style={{ maxWidth, height: 200 }}
       onClick={() => setPlaying(true)}
     >
@@ -181,7 +191,7 @@ function FileMessage({ message }: MediaMessageProps) {
   return (
     <button
       type="button"
-      className="mt-1 flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
+      className="flex items-center gap-3 rounded-lg border border-border bg-muted/50 px-3 py-2 transition-colors hover:bg-muted"
       onClick={() => void handleDownload()}
     >
       <File className="h-8 w-8 shrink-0 text-muted-foreground" />
@@ -207,7 +217,7 @@ function AudioMessage({ message }: MediaMessageProps) {
     return null
 
   return (
-    <div className="mt-1 max-w-[320px]">
+    <div className="max-w-[320px]">
       <VoicePlayer url={audioSrc} duration={message.info?.duration} />
     </div>
   )
@@ -234,10 +244,25 @@ export function MediaMessage({ message }: MediaMessageProps) {
   const { t } = useTranslation()
 
   if (message.status === 'sending' && !message.url) {
+    const pct = message.uploadProgress ?? 0
     return (
-      <div className="mt-1 flex items-center gap-2 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" />
-        {t('chat.uploading')}
+      <div className="mt-1 space-y-1">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          {t('chat.uploading')}
+          {pct > 0 && (
+            <span className="text-xs">
+              {pct}
+              %
+            </span>
+          )}
+        </div>
+        <div className="h-1 w-32 overflow-hidden rounded-full bg-muted">
+          <div
+            className="h-full rounded-full bg-primary transition-all duration-200"
+            style={{ width: `${pct}%` }}
+          />
+        </div>
       </div>
     )
   }

@@ -1,8 +1,9 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
 import { LogOut } from 'lucide-react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../../ui/button'
-import { ContactInfoSettings } from '../contact-info-settings'
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '../../ui/dialog'
 import { DeviceManagement } from '../device-management'
 import { IgnoredUsersSettings } from '../ignored-users-settings'
 
@@ -33,6 +34,7 @@ export function AccountPanel() {
   const session = useAuthStore(s => s.session)
   const logout = useAuthStore(s => s.logout)
   const mockMode = useAuthStore(s => s.mockMode)
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false)
 
   return (
     <div className="space-y-6">
@@ -74,11 +76,6 @@ export function AccountPanel() {
         )}
       </div>
 
-      {/* Contact info */}
-      <div className="rounded-lg border border-border p-4">
-        <ContactInfoSettings />
-      </div>
-
       {/* Device management */}
       <div className="rounded-lg border border-border p-4">
         <DeviceManagement />
@@ -98,12 +95,32 @@ export function AccountPanel() {
               {t('auth.sign_out_description')}
             </p>
           </div>
-          <Button variant="destructive" size="sm" onClick={logout}>
+          <Button variant="destructive" size="sm" onClick={() => setShowLogoutConfirm(true)}>
             <LogOut className="mr-1.5 h-3.5 w-3.5" />
             {t('auth.sign_out')}
           </Button>
         </div>
       </div>
+
+      {/* Logout confirmation dialog */}
+      <Dialog open={showLogoutConfirm} onOpenChange={setShowLogoutConfirm}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>{t('auth.sign_out')}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            {t('auth.sign_out_confirm')}
+          </p>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowLogoutConfirm(false)}>
+              {t('common.cancel')}
+            </Button>
+            <Button variant="destructive" onClick={logout}>
+              {t('auth.sign_out')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

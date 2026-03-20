@@ -1,11 +1,11 @@
 import type { ReceiptInfo, TimelineMessageItem } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { AlertCircle, Check, CheckCheck, Clock, MessageSquare } from 'lucide-react'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { MediaMessage } from './media-message'
-import { MessageActions } from './message-actions'
+import { MessageActionChevron, MessageReactionButton } from './message-actions'
 import { MessageContent } from './message-content'
 import { ReactionBar } from './reaction-bar'
 import { StickerMessage } from './sticker-message'
@@ -71,14 +71,14 @@ function ReplyPreview({ replyTo, isSelf, onJump }: {
         'mb-1 flex w-full flex-col rounded-md px-2.5 py-1.5 text-left transition-colors',
         'border-l-3',
         isSelf
-          ? 'border-primary-foreground/40 bg-primary/20 hover:bg-primary/30'
+          ? 'border-primary/50 bg-primary/10 hover:bg-primary/20'
           : 'border-primary/50 bg-accent/40 hover:bg-accent/60',
       )}
     >
-      <span className={cn('text-xs font-semibold', isSelf ? 'text-primary-foreground/80' : 'text-primary')}>
+      <span className={cn('text-xs font-semibold', 'text-primary')}>
         {replyTo.senderName || replyTo.senderId}
       </span>
-      <span className={cn('truncate text-xs', isSelf ? 'text-primary-foreground/60' : 'text-muted-foreground')}>
+      <span className={cn('truncate text-xs', 'text-muted-foreground')}>
         {replyTo.body || '...'}
       </span>
     </button>
@@ -100,7 +100,7 @@ function BubbleMeta({ time, isSelf, status, hasReceipts, edited, t }: {
   return (
     <span className={cn(
       'inline-flex shrink-0 items-center gap-0.5 text-[10px] leading-none',
-      isSelf ? 'text-primary-foreground/60' : 'text-muted-foreground',
+      'text-muted-foreground',
     )}
     >
       {edited && <span>{`(${t('message.edited')})`}</span>}
@@ -136,6 +136,7 @@ export function MessageBubble({
   const isEmote = message.msgtype === 'm.emote'
   const isSticker = message.type === 'm.sticker' || message.msgtype === 'm.sticker'
   const isMedia = ['m.image', 'm.video', 'm.file', 'm.audio'].includes(message.msgtype)
+  const isVisualMedia = ['m.image', 'm.video'].includes(message.msgtype)
   const hasReceipts = (receipts?.length ?? 0) > 0
 
   const timeStr = useMemo(() => formatTime(message.timestamp), [message.timestamp])
@@ -168,25 +169,45 @@ export function MessageBubble({
     onReport?.(message.eventId)
   }, [message.eventId, onReport])
 
-  // Shared action bar
-  const actionBar = message.status === 'sent' && onReaction
+  const handleCopy = useCallback(() => {
+    if (message.body) {
+      navigator.clipboard.writeText(message.body)
+    }
+  }, [message.body])
+
+  const [emojiPickerOpen, setEmojiPickerOpen] = useState(false)
+  const [chevronOpen, setChevronOpen] = useState(false)
+
+  const canAct = message.status === 'sent' && onReaction
+
+  // Chevron dropdown — inside bubble
+  const chevron = canAct
+    ? (
+        <MessageActionChevron
+          isSelf={isSelf}
+          isPinned={isPinned}
+          onEdit={isSelf && onEdit ? handleEdit : undefined}
+          onDelete={isSelf && onDelete ? handleDelete : undefined}
+          onReply={onReply ? handleReply : undefined}
+          onThread={onThread ? handleThread : undefined}
+          onPin={onPin ? handlePin : undefined}
+          onReport={!isSelf && onReport ? handleReport : undefined}
+          onCopy={message.body ? handleCopy : undefined}
+          onOpenChange={setChevronOpen}
+        />
+      )
+    : null
+
+  // Emoji reaction button — outside bubble
+  const emojiButton = canAct
     ? (
         <div className={cn(
-          'absolute top-0 hidden group-hover:block z-10',
-          isSelf ? 'left-0 -translate-x-full pl-1' : 'right-0 translate-x-full pr-1',
-        )}
-        >
-          <MessageActions
-            onReaction={handleReaction}
-            isSelf={isSelf}
-            isPinned={isPinned}
-            onEdit={isSelf && onEdit ? handleEdit : undefined}
-            onDelete={isSelf && onDelete ? handleDelete : undefined}
-            onReply={onReply ? handleReply : undefined}
-            onThread={onThread ? handleThread : undefined}
-            onPin={onPin ? handlePin : undefined}
-            onReport={!isSelf && onReport ? handleReport : undefined}
-          />
+          'absolute top-1/2 -translate-y-1/2 z-30',
+          // Stay visible when picker is open, otherwise show on hover
+          emojiPickerOpen ? 'block' : 'hidden group-hover/bubble:block',
+          isSelf ? 'left-0 -translate-x-full pl-2' : 'right-0 translate-x-full pr-2',
+        )}>
+          <MessageReactionButton onReaction={handleReaction} onOpenChange={setEmojiPickerOpen} />
         </div>
       )
     : null
@@ -227,7 +248,6 @@ export function MessageBubble({
         {message.reactions && message.reactions.length > 0 && (
           <ReactionBar reactions={message.reactions} onToggle={handleReaction} />
         )}
-        {actionBar}
       </div>
     )
   }
@@ -237,7 +257,7 @@ export function MessageBubble({
     return (
       <div
         className={cn(
-          'group relative flex px-4 transition-colors duration-500',
+          'group relative flex px-4 transition-colors duration-500 hover:z-20',
           collapsed ? 'py-0.5' : 'py-1',
           isSelf ? 'justify-end' : 'justify-start',
           highlighted && 'bg-primary/10',
@@ -275,7 +295,7 @@ export function MessageBubble({
             </button>
           )}
 
-          {actionBar}
+          {emojiButton}
         </div>
       </div>
     )
@@ -283,7 +303,7 @@ export function MessageBubble({
 
   // ---- Normal / media message (bubble) ----
   const bubbleBg = isSelf
-    ? 'bg-primary text-primary-foreground'
+    ? 'bg-primary/15 text-foreground'
     : 'bg-muted text-foreground'
 
   const bubbleRadius = isSelf
@@ -293,7 +313,7 @@ export function MessageBubble({
   return (
     <div
       className={cn(
-        'group relative flex px-4 transition-colors duration-500',
+        'group relative flex px-4 transition-colors duration-500 hover:z-20',
         collapsed ? 'py-0.5' : 'py-1',
         isSelf ? 'justify-end' : 'justify-start',
         highlighted && 'bg-primary/10',
@@ -308,27 +328,87 @@ export function MessageBubble({
       {!isSelf && collapsed && <div className="mr-2 w-7 shrink-0" />}
 
       <div className={cn('relative max-w-[75%]', 'group/bubble')}>
-        <div className={cn('relative overflow-hidden px-2.5 pb-1.5 pt-1.5', bubbleBg, bubbleRadius)}>
-          {/* Sender name — only for others, only when not collapsed */}
-          {!isSelf && !collapsed && (
-            <p className="mb-0.5 text-xs font-semibold text-primary">{message.senderName}</p>
-          )}
+        {isVisualMedia ? (
+          /* Image/Video bubble — no padding, timestamp + chevron overlay */
+          <div className={cn('relative inline-block overflow-hidden leading-[0]', bubbleRadius)}>
+            {/* Sender name — overlay top-left */}
+            {!isSelf && !collapsed && (
+              <p className="absolute top-1 left-2 z-10 rounded-md bg-black/40 px-1.5 py-0.5 text-[10px] font-semibold text-white backdrop-blur-sm">{message.senderName}</p>
+            )}
 
-          {/* Reply preview */}
-          {message.replyTo && (
-            <ReplyPreview replyTo={message.replyTo} isSelf={isSelf} onJump={onJumpToEvent} />
-          )}
+            {/* Media content */}
+            <MediaMessage message={message} />
 
-          {/* Content */}
-          {isMedia
-            ? <MediaMessage message={message} />
-            : <MessageContent message={message} />}
+            {/* Chevron dropdown — overlay top-right */}
+            {chevron && (
+              <span className={cn('absolute top-1 right-1 z-10 rounded-sm bg-black/40 px-0.5 backdrop-blur-sm [&_button]:text-white/80 [&_button:hover]:text-white', chevronOpen ? 'inline-flex' : 'hidden group-hover/bubble:inline-flex')}>
+                {chevron}
+              </span>
+            )}
 
-          {/* Timestamp + status */}
-          <div className={cn('flex items-center gap-0.5 pt-0.5', isSelf ? 'justify-end' : 'justify-end')}>
-            <BubbleMeta time={timeStr} isSelf={isSelf} status={message.status} hasReceipts={hasReceipts} edited={message.edited} t={t} />
+            {/* Timestamp — overlay bottom-right */}
+            <div className="absolute bottom-1 right-2 z-10">
+              <span className="inline-flex items-center gap-0.5 rounded-md bg-black/50 px-1.5 py-0.5 text-[10px] leading-none text-white backdrop-blur-sm">
+                {message.edited && <span>{`(${t('message.edited')})`}</span>}
+                <span>{timeStr}</span>
+                {isSelf && <MessageStatus status={message.status} hasReceipts={hasReceipts} />}
+              </span>
+            </div>
+
+            {/* Emoji reaction button */}
+            {emojiButton}
           </div>
-        </div>
+        ) : (
+          /* Text bubble */
+          <div className={cn('relative min-w-[80px] px-2.5 pb-1.5 pt-1.5', bubbleBg, bubbleRadius)}>
+            {/* Sender name — only for others, only when not collapsed */}
+            {!isSelf && !collapsed && (
+              <p className="mb-0.5 text-xs font-semibold text-primary">{message.senderName}</p>
+            )}
+
+            {/* Reply preview */}
+            {message.replyTo && (
+              <ReplyPreview replyTo={message.replyTo} isSelf={isSelf} onJump={onJumpToEvent} />
+            )}
+
+            {/* Chevron dropdown — inside bubble, top-right */}
+            {chevron && (
+              <span className={cn(
+                'absolute top-1 right-1 z-10',
+                chevronOpen ? 'inline-flex' : 'hidden group-hover/bubble:inline-flex',
+                isSelf
+                  ? 'bg-gradient-to-l from-primary/15 via-primary/10 to-transparent pl-4 pr-0.5 rounded-sm'
+                  : 'bg-gradient-to-l from-muted via-muted/90 to-transparent pl-4 pr-0.5 rounded-sm',
+              )}>
+                {chevron}
+              </span>
+            )}
+
+            {/* Content */}
+            {isMedia
+              ? (
+                  <>
+                    <MediaMessage message={message} />
+                    <div className="flex items-center justify-end gap-0.5 pt-0.5">
+                      <BubbleMeta time={timeStr} isSelf={isSelf} status={message.status} hasReceipts={hasReceipts} edited={message.edited} t={t} />
+                    </div>
+                  </>
+                )
+              : (
+                  <>
+                    <div className="pb-3.5">
+                      <MessageContent message={message} />
+                    </div>
+                    <span className="absolute bottom-1 right-2">
+                      <BubbleMeta time={timeStr} isSelf={isSelf} status={message.status} hasReceipts={hasReceipts} edited={message.edited} t={t} />
+                    </span>
+                  </>
+                )}
+
+            {/* Emoji reaction button */}
+            {emojiButton}
+          </div>
+        )}
 
         {/* URL preview — outside bubble */}
         {!isMedia && message.msgtype === 'm.text' && message.body && (
@@ -362,9 +442,6 @@ export function MessageBubble({
             {t('chat.failed_to_send')}
           </button>
         )}
-
-        {/* Hover action bar */}
-        {actionBar}
       </div>
     </div>
   )

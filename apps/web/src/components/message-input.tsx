@@ -24,6 +24,7 @@ import { CornerUpLeft, Mic, Paperclip, Pencil, Send, Smile, Sticker, X } from 'l
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { addRecentEmoji } from '../hooks/use-recent-emojis'
+import { useSendKey } from '../hooks/use-send-key'
 import { filterCommands, findCommand, parseCommandInput } from '../lib/commands'
 import { renderMarkdown } from '../lib/markdown'
 import { CommandPanel } from './command-panel'
@@ -49,6 +50,7 @@ let uploadIdCounter = 0
 
 export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit, onCancelReply }: MessageInputProps) {
   const { t } = useTranslation()
+  const { sendKey } = useSendKey()
   const mockMode = useAuthStore(s => s.mockMode)
   const session = useAuthStore(s => s.session)
   const setDraft = useDraftsStore(s => s.setDraft)
@@ -333,6 +335,10 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   }, [text])
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
+    // Skip all Enter handling during IME composition
+    if (e.nativeEvent.isComposing || e.keyCode === 229)
+      return
+
     // Mention panel navigation
     if (matchedMembers.length > 0) {
       if (e.key === 'ArrowUp') {
@@ -395,12 +401,24 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
       }
     }
 
-    // Send on Enter (without Shift)
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      void sendCurrentMessage()
+    // Send message based on send key preference
+    if (e.key === 'Enter') {
+      if (sendKey === 'enter') {
+        // Enter sends, Shift+Enter newline
+        if (!e.shiftKey) {
+          e.preventDefault()
+          void sendCurrentMessage()
+        }
+      }
+      else {
+        // Cmd/Ctrl+Enter sends, Enter is newline
+        if (e.metaKey || e.ctrlKey) {
+          e.preventDefault()
+          void sendCurrentMessage()
+        }
+      }
     }
-  }, [matchedMembers, selectedMemberIndex, insertMention, matchedCommands, selectedCommandIndex, sendCurrentMessage, editingMessage, replyingTo, onCancelEdit, onCancelReply])
+  }, [matchedMembers, selectedMemberIndex, insertMention, matchedCommands, selectedCommandIndex, sendCurrentMessage, editingMessage, replyingTo, onCancelEdit, onCancelReply, sendKey])
 
   const handleCommandSelect = useCallback((cmd: CommandDefinition) => {
     setText(`${cmd.name} `)

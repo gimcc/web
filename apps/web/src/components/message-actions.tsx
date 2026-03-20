@@ -1,12 +1,17 @@
-import { CornerUpLeft, Flag, MessageSquare, Pencil, Pin, SmilePlus, Trash2 } from 'lucide-react'
+import { ChevronDown, Copy, CornerUpLeft, Flag, MessageSquare, Pencil, Pin, Plus, SmilePlus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { addRecentEmoji } from '../hooks/use-recent-emojis'
 import { QUICK_REACTIONS } from '../lib/emoji-data'
+import { cn } from '../lib/utils'
 import { EmojiPicker } from './emoji-picker'
-import { Button } from './ui/button'
-import { Separator } from './ui/separator'
-import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from './ui/dropdown-menu'
 
 interface MessageActionsProps {
   onReaction: (emoji: string) => void
@@ -18,208 +23,220 @@ interface MessageActionsProps {
   onThread?: () => void
   onPin?: () => void
   onReport?: () => void
+  onCopy?: () => void
 }
 
-export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete, onReply, onThread, onPin, onReport }: MessageActionsProps) {
+/**
+ * Chevron dropdown — sits inside the bubble (top-right area).
+ * Clicking it opens a dropdown menu with message actions.
+ */
+export function MessageActionChevron({
+  isSelf,
+  isPinned,
+  onEdit,
+  onDelete,
+  onReply,
+  onThread,
+  onPin,
+  onReport,
+  onCopy,
+  onOpenChange,
+}: Omit<MessageActionsProps, 'onReaction'> & { onOpenChange?: (open: boolean) => void }) {
   const { t } = useTranslation()
-  const [showPicker, setShowPicker] = useState(false)
-  const pickerRef = useRef<HTMLDivElement>(null)
+
+  return (
+    <DropdownMenu modal={false} onOpenChange={onOpenChange}>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            'inline-flex items-center justify-center rounded-sm p-0.5 transition-colors',
+            'hover:bg-black/10 dark:hover:bg-white/10',
+            'text-muted-foreground hover:text-foreground',
+          )}
+          onClick={e => e.stopPropagation()}
+        >
+          <ChevronDown className="h-4 w-4" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align={isSelf ? 'end' : 'start'} side="bottom" className="min-w-[160px]">
+        {onReply && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onReply() }}>
+            <CornerUpLeft className="h-4 w-4" />
+            {t('message.reply')}
+          </DropdownMenuItem>
+        )}
+
+        {onCopy && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onCopy() }}>
+            <Copy className="h-4 w-4" />
+            {t('message.copy')}
+          </DropdownMenuItem>
+        )}
+
+        {isSelf && onEdit && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit() }}>
+            <Pencil className="h-4 w-4" />
+            {t('message.edit')}
+          </DropdownMenuItem>
+        )}
+
+        {onPin && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onPin() }}>
+            <Pin className={cn('h-4 w-4', isPinned && 'text-primary')} />
+            {isPinned ? t('message.unpin') : t('message.pin')}
+          </DropdownMenuItem>
+        )}
+
+        {onThread && (
+          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onThread() }}>
+            <MessageSquare className="h-4 w-4" />
+            {t('message.thread')}
+          </DropdownMenuItem>
+        )}
+
+        {!isSelf && onReport && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); onReport() }}>
+              <Flag className="h-4 w-4" />
+              {t('report.title')}
+            </DropdownMenuItem>
+          </>
+        )}
+
+        {isSelf && onDelete && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem variant="destructive" onClick={(e) => { e.stopPropagation(); onDelete() }}>
+              <Trash2 className="h-4 w-4" />
+              {t('message.delete')}
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
+/**
+ * Emoji quick-reaction button — sits outside the bubble.
+ * Click opens a quick-reaction panel (6 emojis + "+" for full picker).
+ */
+export function MessageReactionButton({ onReaction, onOpenChange }: { onReaction: (emoji: string) => void, onOpenChange?: (open: boolean) => void }) {
+  const { t } = useTranslation()
+  const [showQuick, setShowQuick] = useState(false)
+  const [showFullPicker, setShowFullPicker] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
-  const handleClose = useCallback(() => setShowPicker(false), [])
+  const handleClose = useCallback(() => {
+    setShowQuick(false)
+    setShowFullPicker(false)
+    onOpenChange?.(false)
+  }, [onOpenChange])
 
-  // Close picker on outside click
   useEffect(() => {
-    if (!showPicker)
-      return
+    if (!showQuick && !showFullPicker) return
 
     function handleClickOutside(e: MouseEvent) {
-      if (
-        pickerRef.current && !pickerRef.current.contains(e.target as Node)
-        && buttonRef.current && !buttonRef.current.contains(e.target as Node)
-      ) {
-        setShowPicker(false)
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        handleClose()
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [showPicker])
+  }, [showQuick, showFullPicker, handleClose])
 
   return (
-    <div className="relative">
-      {/* Quick reaction buttons */}
-      <div className="flex items-center gap-0.5 rounded-md border border-border bg-popover px-1 shadow-sm">
-        {QUICK_REACTIONS.slice(0, 3).map(emoji => (
-          <Button
-            key={emoji}
-            variant="ghost"
-            size="icon-xs"
-            className="text-sm"
-            onClick={(e) => {
-              e.stopPropagation()
-              onReaction(emoji)
-            }}
-          >
-            {emoji}
-          </Button>
-        ))}
+    <div className="relative" ref={containerRef}>
+      <button
+        ref={buttonRef}
+        type="button"
+        className="flex items-center justify-center rounded-full bg-background/80 p-2 shadow-sm border border-border/50 transition-colors hover:bg-accent"
+        onClick={(e) => {
+          e.stopPropagation()
+          if (showQuick || showFullPicker) {
+            handleClose()
+          }
+          else {
+            setShowQuick(true)
+            onOpenChange?.(true)
+          }
+        }}
+        aria-label={t('message.add_reaction')}
+      >
+        <SmilePlus className="h-5 w-5 text-muted-foreground" />
+      </button>
 
-        <Separator orientation="vertical" className="mx-0.5 h-4" />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              ref={buttonRef}
-              variant="ghost"
-              size="icon-xs"
+      {/* Quick reaction panel */}
+      {showQuick && !showFullPicker && (
+        <div className="absolute bottom-full right-0 z-50 mb-1.5">
+          <div className="flex items-center gap-0.5 rounded-full border border-border bg-popover px-2 py-1.5 shadow-lg">
+            {QUICK_REACTIONS.map(emoji => (
+              <button
+                key={emoji}
+                type="button"
+                className="flex h-8 w-8 items-center justify-center rounded-full text-xl transition-transform hover:scale-125"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  addRecentEmoji(emoji)
+                  onReaction(emoji)
+                  handleClose()
+                }}
+              >
+                {emoji}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
               onClick={(e) => {
                 e.stopPropagation()
-                setShowPicker(v => !v)
+                setShowQuick(false)
+                setShowFullPicker(true)
               }}
               aria-label={t('message.add_reaction')}
             >
-              <SmilePlus className="h-4 w-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>{t('message.add_reaction')}</TooltipContent>
-        </Tooltip>
+              <Plus className="h-5 w-5" />
+            </button>
+          </div>
+        </div>
+      )}
 
-        {onReply && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onReply()
-                }}
-                aria-label={t('message.reply')}
-              >
-                <CornerUpLeft className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('message.reply')}</TooltipContent>
-          </Tooltip>
-        )}
-
-        {isSelf && onEdit && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onEdit()
-                }}
-                aria-label={t('message.edit')}
-              >
-                <Pencil className="h-3.5 w-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('message.edit')}</TooltipContent>
-          </Tooltip>
-        )}
-
-        {isSelf && onDelete && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className="hover:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDelete()
-                }}
-                aria-label={t('message.delete')}
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('message.delete')}</TooltipContent>
-          </Tooltip>
-        )}
-
-        {onPin && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onPin()
-                }}
-                aria-label={isPinned ? t('message.unpin') : t('message.pin')}
-              >
-                <Pin className={`h-3.5 w-3.5 ${isPinned ? 'text-primary' : ''}`} />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{isPinned ? t('message.unpin') : t('message.pin')}</TooltipContent>
-          </Tooltip>
-        )}
-
-        {!isSelf && onReport && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon-xs"
-                className="hover:text-destructive"
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onReport()
-                }}
-                aria-label={t('report.title')}
-              >
-                <Flag className="h-3.5 w-3.5" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>{t('report.title')}</TooltipContent>
-          </Tooltip>
-        )}
-
-        {onThread && (
-          <>
-            <Separator orientation="vertical" className="mx-0.5 h-4" />
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon-xs"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onThread()
-                  }}
-                  aria-label={t('message.thread')}
-                >
-                  <MessageSquare className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{t('message.thread')}</TooltipContent>
-            </Tooltip>
-          </>
-        )}
-      </div>
-
-      {/* Emoji picker popover */}
-      {showPicker && (
-        <div
-          ref={pickerRef}
-          className="absolute right-0 top-full z-50 mt-1"
-        >
+      {/* Full emoji picker */}
+      {showFullPicker && (
+        <div className="absolute bottom-full right-0 z-50 mb-1.5">
           <EmojiPicker
             onSelect={(emoji) => {
               addRecentEmoji(emoji)
               onReaction(emoji)
+              handleClose()
             }}
             onClose={handleClose}
           />
         </div>
       )}
+    </div>
+  )
+}
+
+// Keep backward-compatible export for other layouts (compact/modern)
+export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete, onReply, onThread, onPin, onReport }: MessageActionsProps) {
+  return (
+    <div className="flex items-center gap-1">
+      <MessageReactionButton onReaction={onReaction} />
+      <MessageActionChevron
+        isSelf={isSelf}
+        isPinned={isPinned}
+        onEdit={onEdit}
+        onDelete={onDelete}
+        onReply={onReply}
+        onThread={onThread}
+        onPin={onPin}
+        onReport={onReport}
+      />
     </div>
   )
 }

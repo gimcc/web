@@ -1,6 +1,6 @@
 import type { TimelineMessageItem } from '@matrix-web/matrix-client'
 import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
-import { Bell, LogOut, Search, Settings, Users } from 'lucide-react'
+import { Bell, LogOut, MessageSquare, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { JumpToDate } from '../../components/chat/jump-to-date'
@@ -17,6 +17,9 @@ import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { TombstoneBanner } from '../../components/room/tombstone-banner'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
 import { ThreadPanel } from '../../components/thread-panel'
+import { Avatar } from '../../components/ui/avatar'
+import { Button } from '../../components/ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/tooltip'
 import { useDeepLinkHandler } from '../../hooks/use-deep-link'
 import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
@@ -24,10 +27,13 @@ import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 function ChatPlaceholder() {
   const { t } = useTranslation()
   return (
-    <div className="flex h-full items-center justify-center">
+    <div className="flex h-full items-center justify-center bg-muted/20">
       <div className="text-center">
-        <h2 className="text-lg font-medium text-foreground">{t('chat.welcome_title')}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-muted">
+          <MessageSquare className="h-8 w-8 text-muted-foreground" />
+        </div>
+        <h2 className="text-xl font-semibold text-foreground">{t('chat.welcome_title')}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">
           {t('chat.welcome_subtitle')}
         </p>
       </div>
@@ -91,63 +97,97 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
     catch { /* ignore */ }
   }, [roomId, mockMode, setActiveRoom])
 
+  const roomName = room?.name ?? roomId
+
   return (
     <div className="flex h-full">
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Room header */}
-        <div className="flex items-center gap-2 border-b border-border px-3 py-2 sm:gap-3 sm:px-4 sm:py-3">
-          <h2 className="truncate text-base font-semibold text-foreground sm:text-lg">
-            {room?.name ?? roomId}
-          </h2>
-          {room?.topic && (
-            <span className="hidden truncate text-sm text-muted-foreground sm:block">
-              {room.topic}
-            </span>
-          )}
-          <div className="ml-auto flex items-center gap-1">
+        <div className="flex items-center gap-3 border-b border-border px-3 py-2 sm:px-4 sm:py-2.5">
+          <Avatar
+            name={roomName}
+            src={room?.avatarUrl ?? undefined}
+            size="sm"
+          />
+          <div className="min-w-0 flex-1">
+            <h2 className="truncate text-sm font-semibold text-foreground sm:text-base">
+              {roomName}
+            </h2>
+            <p className="hidden truncate text-xs text-muted-foreground sm:block">
+              {room?.topic
+                ? room.topic
+                : room?.isDirect
+                  ? t('chat.direct_message')
+                  : room?.memberCount
+                    ? t('chat.members_count', { count: room.memberCount })
+                    : ''}
+            </p>
+          </div>
+          <div className="flex items-center gap-0.5">
             <SyncStatusIndicator />
             {!mockMode && <RoomNotificationToggle roomId={roomId} />}
             <JumpToDate onJumpToDate={handleJumpToDate} />
-            <button
-              type="button"
-              onClick={() => {
-                setShowSearch(v => !v)
-                setShowMembers(false)
-              }}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label={t('ux.search')}
-            >
-              <Search className="h-4 w-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowMembers(v => !v)
-                setShowSearch(false)
-              }}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label={t('member.title')}
-            >
-              <Users className="h-4 w-4" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => {
+                    setShowSearch(v => !v)
+                    setShowMembers(false)
+                  }}
+                  aria-label={t('ux.search')}
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('ux.search')}</TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={() => {
+                    setShowMembers(v => !v)
+                    setShowSearch(false)
+                  }}
+                  aria-label={t('member.title')}
+                >
+                  <Users className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('member.title')}</TooltipContent>
+            </Tooltip>
             {!room?.isDirect && (
-              <button
-                type="button"
-                onClick={() => setShowSettings(true)}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label={t('room.settings_title')}
-              >
-                <Settings className="h-4 w-4" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => setShowSettings(true)}
+                    aria-label={t('room.settings_title')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('room.settings_title')}</TooltipContent>
+              </Tooltip>
             )}
-            <button
-              type="button"
-              onClick={handleLeaveRoom}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-destructive"
-              aria-label={t('room.leave')}
-            >
-              <LogOut className="h-4 w-4" />
-            </button>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  onClick={handleLeaveRoom}
+                  className="text-muted-foreground hover:text-destructive"
+                  aria-label={t('room.leave')}
+                >
+                  <LogOut className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('room.leave')}</TooltipContent>
+            </Tooltip>
           </div>
         </div>
 

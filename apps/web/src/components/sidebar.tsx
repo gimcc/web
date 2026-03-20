@@ -1,5 +1,5 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
-import { LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
+import { Menu, Plus, Settings, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
@@ -41,7 +41,6 @@ function ConnectionIndicator() {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const { t } = useTranslation()
   const session = useAuthStore(s => s.session)
-  const logout = useAuthStore(s => s.logout)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [contactsOpen, setContactsOpen] = useState(false)
   const [newChatOpen, setNewChatOpen] = useState(false)
@@ -67,7 +66,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         )}
       >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+        <div className="flex items-center justify-between px-4 py-3">
           <h1 className="text-lg font-semibold text-foreground">{t('app.name')}</h1>
           <div className="flex items-center gap-1">
             <InviteBell onClick={() => setInviteOpen(true)} />
@@ -102,7 +101,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border px-4 py-3">
+        <div className="border-t border-border px-4 py-2.5">
           <div className="flex items-center justify-between">
             <div className="min-w-0">
               <p className="truncate text-sm font-medium text-foreground">
@@ -136,19 +135,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   </Button>
                 </TooltipTrigger>
                 <TooltipContent>{t('sidebar.settings')}</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-xs"
-                    onClick={logout}
-                    aria-label={t('sidebar.logout')}
-                  >
-                    <LogOut className="h-4 w-4" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>{t('sidebar.logout')}</TooltipContent>
               </Tooltip>
             </div>
           </div>

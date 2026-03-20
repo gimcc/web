@@ -44,7 +44,8 @@
     "no_account": "还没有账户？",
     "has_account": "已有账户？",
     "sign_out": "退出登录",
-    "sign_out_description": "从此设备退出你的账户。"
+    "sign_out_description": "从此设备退出你的账户。",
+    "sign_out_confirm": "确定要退出登录吗？退出后需要重新登录才能访问你的账户。"
   },
   "lock": {
     "title": "已锁定",
@@ -70,6 +71,10 @@
   },
   "room_list": {
     "search_placeholder": "搜索房间...",
+    "filter_all": "全部",
+    "filter_unread": "未读",
+    "filter_direct": "私信",
+    "filter_groups": "群组",
     "section_direct": "私信",
     "section_group": "群组",
     "empty_search": "未找到房间",
@@ -127,6 +132,7 @@
     "title": "新建对话",
     "mode_dm": "私信",
     "mode_group": "群聊",
+    "mode_room": "房间",
     "group_name_placeholder": "群组名称",
     "search_dm_placeholder": "用户名或 @user:server",
     "search_group_placeholder": "用户名或 @user:server",
@@ -284,7 +290,10 @@
     "message_layout": "消息布局",
     "layout_bubble": "气泡",
     "layout_compact": "紧凑",
-    "layout_modern": "现代"
+    "layout_modern": "现代",
+    "send_key": "发送消息",
+    "send_key_enter_hint": "Shift+Enter 换行",
+    "send_key_cmd_enter_hint": "Enter 换行"
   },
   "about": {
     "title": "关于",
@@ -357,6 +366,7 @@
     "edit": "编辑",
     "delete": "删除",
     "reply": "回复",
+    "copy": "复制",
     "add_reaction": "添加回应",
     "editing_message": "正在编辑消息",
     "edit_placeholder": "编辑消息...",
@@ -370,12 +380,14 @@
     "unpin": "取消置顶",
     "pinned_count": "{{count}} 条置顶消息"
   },
+  "reaction": {
+    "all": "全部",
+    "you": "你",
+    "click_to_remove": "点击可移除"
+  },
   "room": {
     "create_title": "创建房间",
     "create_button": "创建房间",
-    "join_title": "加入房间",
-    "join_button": "加入",
-    "joining": "加入中...",
     "leave": "离开房间",
     "leave_confirm": "确定要离开此房间吗？",
     "settings_title": "房间设置",
@@ -397,14 +409,6 @@
     "error_join": "加入房间失败",
     "error_leave": "离开房间失败",
     "error_settings": "保存设置失败",
-    "error_browse": "加载房间目录失败",
-    "explore_title": "探索房间",
-    "explore": "探索",
-    "server_label": "服务器",
-    "server_placeholder": "matrix.org",
-    "featured_rooms": "热门房间",
-    "load_more": "加载更多",
-    "total_rooms": "共 {{count}} 个房间",
     "members": "{{count}} 位成员",
     "already_joined": "已加入",
     "alias_tab": "别名",

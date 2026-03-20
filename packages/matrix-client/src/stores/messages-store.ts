@@ -51,6 +51,8 @@ export interface TimelineMessage {
     }
   }
   filename?: string
+  // Upload progress (0–100)
+  uploadProgress?: number
   // Thread fields
   threadRootId?: string
   threadReplyCount?: number

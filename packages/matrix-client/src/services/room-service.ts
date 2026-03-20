@@ -218,22 +218,6 @@ export async function leaveRoom(
   }
 }
 
-export interface PublicRoomInfo {
-  roomId: string
-  name: string
-  topic: string | null
-  canonicalAlias: string | null
-  memberCount: number
-  worldReadable: boolean
-  avatarUrl: string | null
-}
-
-export interface BrowsePublicRoomsResult {
-  rooms: PublicRoomInfo[]
-  nextBatch: string | null
-  totalRoomCount: number | null
-}
-
 /**
  * Search public rooms on a server.
  */
@@ -254,46 +238,6 @@ export async function searchPublicRooms(
     memberCount: room.num_joined_members ?? 0,
     worldReadable: room.world_readable ?? false,
   }))
-}
-
-/**
- * Browse public rooms on a specific server with pagination.
- */
-export async function browsePublicRooms(
-  client: MatrixClient,
-  options: {
-    server?: string
-    query?: string
-    limit?: number
-    since?: string
-  } = {},
-): Promise<BrowsePublicRoomsResult> {
-  const { server, query, limit = 20, since } = options
-
-  const requestOptions: Parameters<MatrixClient['publicRooms']>[0] = {
-    limit,
-    ...(query ? { filter: { generic_search_term: query } } : {}),
-    ...(since ? { since } : {}),
-    ...(server ? { server } : {}),
-  }
-
-  const response = await client.publicRooms(requestOptions)
-
-  return {
-    rooms: (response.chunk ?? []).map((room: PublicRoomChunk) => ({
-      roomId: room.room_id,
-      name: room.name ?? room.canonical_alias ?? room.room_id,
-      topic: room.topic ?? null,
-      canonicalAlias: room.canonical_alias ?? null,
-      memberCount: room.num_joined_members ?? 0,
-      worldReadable: room.world_readable ?? false,
-      avatarUrl: room.avatar_url
-        ? client.mxcUrlToHttp(room.avatar_url, 40, 40, 'crop') ?? null
-        : null,
-    })),
-    nextBatch: response.next_batch ?? null,
-    totalRoomCount: response.total_room_count_estimate ?? null,
-  }
 }
 
 /**

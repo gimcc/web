@@ -232,7 +232,6 @@ export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
 export { reportEvent } from './services/report-service'
 export {
   addRoomAlias,
-  browsePublicRooms,
   createDmRoom,
   createGroupRoom,
   createRoom,
@@ -248,7 +247,7 @@ export {
   updateRoomName,
   updateRoomTopic,
 } from './services/room-service'
-export type { BrowsePublicRoomsResult, CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, PublicRoomInfo, UserSearchResult } from './services/room-service'
+export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, UserSearchResult } from './services/room-service'
 // Services — search
 export { searchMessages } from './services/search-service'
 export type { SearchResult } from './services/search-service'
@@ -270,6 +269,7 @@ export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,
   mxcToThumbnailUrl,
+  resendUpload,
   uploadAndSendFile,
 } from './services/upload-service'
 export type { UploadOptions, UploadResult } from './services/upload-service'

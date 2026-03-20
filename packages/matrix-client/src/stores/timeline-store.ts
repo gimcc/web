@@ -36,6 +36,8 @@ export interface TimelineStoreState {
   confirmOptimistic: (roomId: string, tempId: string, realId: string, updates?: Partial<TimelineMessage>) => void
   /** Mark optimistic as failed */
   failOptimistic: (roomId: string, tempId: string) => void
+  /** Update fields on an optimistic message (e.g. upload progress) */
+  updateOptimistic: (roomId: string, tempId: string, updates: Partial<TimelineMessage>) => void
   /** Remove an optimistic message entirely */
   removeOptimistic: (roomId: string, tempId: string) => void
   /** Add an optimistic reaction */
@@ -90,6 +92,18 @@ export const useTimelineStore = create<TimelineStoreState>((set, get) => ({
     optimistic.set(
       roomId,
       existing.map(m => m.eventId === tempId ? { ...m, status: 'failed' as const } : m),
+    )
+    set({ optimistic })
+  },
+
+  updateOptimistic: (roomId, tempId, updates) => {
+    const optimistic = new Map(get().optimistic)
+    const existing = optimistic.get(roomId)
+    if (!existing)
+      return
+    optimistic.set(
+      roomId,
+      existing.map(m => m.eventId === tempId ? { ...m, ...updates } : m),
     )
     set({ optimistic })
   },

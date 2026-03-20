@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   getNotificationPermission,
@@ -11,11 +11,12 @@ export function NotificationsPanel() {
   const { t } = useTranslation()
   const enabled = useNotificationStore(s => s.enabled)
   const setEnabled = useNotificationStore(s => s.setEnabled)
-  const permission = getNotificationPermission()
+  const [permission, setPermission] = useState(getNotificationPermission)
 
   const handleCheckedChange = useCallback(async (checked: boolean) => {
     if (checked) {
       const granted = await requestNotificationPermission()
+      setPermission(getNotificationPermission())
       if (granted) {
         setEnabled(true)
       }
@@ -24,6 +25,9 @@ export function NotificationsPanel() {
       setEnabled(false)
     }
   }, [setEnabled])
+
+  const isUnsupported = permission === 'unsupported'
+  const isDenied = permission === 'denied'
 
   return (
     <div className="space-y-6">
@@ -38,7 +42,7 @@ export function NotificationsPanel() {
           <div>
             <p className="text-sm font-medium text-foreground">{t('notifications.enable')}</p>
             <p className="text-xs text-muted-foreground">
-              {permission === 'denied'
+              {isDenied
                 ? t('notifications.blocked')
                 : t('notifications.enable_desc')}
             </p>
@@ -46,7 +50,7 @@ export function NotificationsPanel() {
           <Switch
             checked={enabled}
             onCheckedChange={checked => void handleCheckedChange(checked)}
-            disabled={permission === 'denied'}
+            disabled={isUnsupported}
           />
         </div>
 

@@ -44,7 +44,8 @@
     "no_account": "Don't have an account?",
     "has_account": "Already have an account?",
     "sign_out": "Sign Out",
-    "sign_out_description": "Sign out of your account on this device."
+    "sign_out_description": "Sign out of your account on this device.",
+    "sign_out_confirm": "Are you sure you want to sign out? You will need to sign in again to access your account."
   },
   "lock": {
     "title": "Locked",
@@ -70,6 +71,10 @@
   },
   "room_list": {
     "search_placeholder": "Search rooms...",
+    "filter_all": "All",
+    "filter_unread": "Unread",
+    "filter_direct": "Direct",
+    "filter_groups": "Groups",
     "section_direct": "Direct Messages",
     "section_group": "Rooms",
     "empty_search": "No rooms found",
@@ -127,6 +132,7 @@
     "title": "New Chat",
     "mode_dm": "Direct Message",
     "mode_group": "Group Chat",
+    "mode_room": "Room",
     "group_name_placeholder": "Group name",
     "search_dm_placeholder": "Username or @user:server",
     "search_group_placeholder": "Username or @user:server",
@@ -284,7 +290,10 @@
     "message_layout": "Message Layout",
     "layout_bubble": "Bubble",
     "layout_compact": "Compact",
-    "layout_modern": "Modern"
+    "layout_modern": "Modern",
+    "send_key": "Send Message",
+    "send_key_enter_hint": "Shift+Enter for newline",
+    "send_key_cmd_enter_hint": "Enter for newline"
   },
   "about": {
     "title": "About",
@@ -357,6 +366,7 @@
     "edit": "Edit",
     "delete": "Delete",
     "reply": "Reply",
+    "copy": "Copy",
     "add_reaction": "Add reaction",
     "editing_message": "Editing message",
     "edit_placeholder": "Edit message...",
@@ -370,12 +380,14 @@
     "unpin": "Unpin message",
     "pinned_count": "{{count}} pinned message(s)"
   },
+  "reaction": {
+    "all": "All",
+    "you": "You",
+    "click_to_remove": "Click to remove"
+  },
   "room": {
     "create_title": "Create Room",
     "create_button": "Create Room",
-    "join_title": "Join Room",
-    "join_button": "Join",
-    "joining": "Joining...",
     "leave": "Leave Room",
     "leave_confirm": "Are you sure you want to leave this room?",
     "settings_title": "Room Settings",
@@ -397,14 +409,6 @@
     "error_join": "Failed to join room",
     "error_leave": "Failed to leave room",
     "error_settings": "Failed to save settings",
-    "error_browse": "Failed to load room directory",
-    "explore_title": "Explore Rooms",
-    "explore": "Explore",
-    "server_label": "Server",
-    "server_placeholder": "matrix.org",
-    "featured_rooms": "Popular Rooms",
-    "load_more": "Load more",
-    "total_rooms": "{{count}} rooms available",
     "members": "{{count}} members",
     "already_joined": "Joined",
     "alias_tab": "Aliases",

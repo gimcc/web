@@ -202,7 +202,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
           topic: null,
           avatarUrl: null,
           isDirect: false,
-          isEncrypted: false,
+          isEncrypted: true,
           membership: 'join',
           memberCount: selectedUsers.length + 1,
           lastMessage: null,
@@ -218,6 +218,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
         roomId = await createGroupRoom(client, {
           name: groupName.trim(),
           userIds: selectedUsers.map(u => u.userId),
+          encrypted: true,
         })
       }
 
@@ -253,6 +254,7 @@ export function NewChatDialog({ open, onClose }: NewChatDialogProps) {
         name: roomName.trim(),
         topic: roomTopic.trim() || undefined,
         isPublic: roomIsPublic,
+        encrypted: !roomIsPublic,
       })
 
       setActiveRoom(roomId)

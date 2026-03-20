@@ -37,6 +37,7 @@ export interface TimelineMessageItem {
     thumbnail_info?: { w?: number, h?: number, size?: number, mimetype?: string }
   }
   filename?: string
+  uploadProgress?: number
   threadRootId?: string
   threadReplyCount?: number
   isThreadRoot?: boolean

@@ -1,5 +1,6 @@
 import type { RoomSummary } from '@matrix-web/matrix-client'
 import { getMatrixClient } from '@matrix-web/matrix-client'
+import { Users } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { EncryptionBadge } from './crypto/encryption-badge'
@@ -76,7 +77,13 @@ export function RoomListItem({ room, isActive, onSelect }: RoomListItemProps) {
           src={room.avatarUrl ?? undefined}
           size="md"
         />
-        {dmUserId && <PresenceDot userId={dmUserId} />}
+        {dmUserId
+          ? <PresenceDot userId={dmUserId} />
+          : !room.isDirect && (
+            <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-muted ring-2 ring-background">
+              <Users className="h-2.5 w-2.5 text-muted-foreground" />
+            </span>
+          )}
       </div>
 
       <div className="min-w-0 flex-1">

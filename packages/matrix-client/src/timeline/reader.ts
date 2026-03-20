@@ -269,6 +269,7 @@ function optimisticToItem(msg: TimelineMessage): TimelineMessageItem {
     thumbnailUrl: msg.thumbnailUrl,
     info: msg.info,
     filename: msg.filename,
+    uploadProgress: msg.uploadProgress,
     threadRootId: msg.threadRootId,
     threadReplyCount: msg.threadReplyCount,
     isThreadRoot: msg.isThreadRoot,
