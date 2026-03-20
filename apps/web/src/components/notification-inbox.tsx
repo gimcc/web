@@ -15,7 +15,7 @@ interface NotificationInboxProps {
 }
 
 export function NotificationInbox({ onClose }: NotificationInboxProps) {
-  const { t } = useTranslation()
+  const { t, i18n: { language } } = useTranslation()
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const timelineVersion = useTimelineStore(s => s.versions)
   const [items, setItems] = useState<NotificationItem[]>([])
@@ -49,7 +49,7 @@ export function NotificationInbox({ onClose }: NotificationInboxProps) {
   }, [items, refreshNotifications])
 
   const formatTime = useMemo(() => {
-    const formatter = new Intl.RelativeTimeFormat(undefined, { numeric: 'auto' })
+    const formatter = new Intl.RelativeTimeFormat(language, { numeric: 'auto' })
     return (ts: number) => {
       const diff = Date.now() - ts
       if (diff < 60_000)
@@ -60,7 +60,7 @@ export function NotificationInbox({ onClose }: NotificationInboxProps) {
         return formatter.format(-Math.floor(diff / 3_600_000), 'hour')
       return formatter.format(-Math.floor(diff / 86_400_000), 'day')
     }
-  }, [])
+  }, [language])
 
   return (
     <div className="flex h-full w-72 flex-col border-l border-border bg-background">

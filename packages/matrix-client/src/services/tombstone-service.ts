@@ -34,6 +34,9 @@ export async function followTombstone(
   client: MatrixClient,
   replacementRoomId: string,
 ): Promise<string> {
+  if (!replacementRoomId.startsWith('!'))
+    throw new Error('Invalid replacement room ID format')
+
   const room = client.getRoom(replacementRoomId)
   if (room && room.getMyMembership() === 'join')
     return replacementRoomId

@@ -1,10 +1,14 @@
 import { Info } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
+import { useDeveloperMode } from '../../../hooks/use-developer-mode'
+import { Switch } from '../../ui/switch'
 
 const APP_VERSION = __APP_VERSION__
 
 export function AboutPanel() {
   const { t } = useTranslation()
+  const [devMode, setDevMode] = useDeveloperMode()
+
   return (
     <div className="space-y-6">
       <div>
@@ -40,6 +44,15 @@ export function AboutPanel() {
         <p className="text-xs text-muted-foreground">
           {t('about.long_description')}
         </p>
+      </div>
+
+      {/* Developer Mode toggle */}
+      <div className="flex items-center justify-between rounded-lg border border-border p-4">
+        <div>
+          <span className="text-sm font-medium text-foreground">{t('dev_tools.enable_dev_mode')}</span>
+          <p className="text-xs text-muted-foreground">{t('dev_tools.dev_mode_hint')}</p>
+        </div>
+        <Switch checked={devMode} onCheckedChange={setDevMode} />
       </div>
     </div>
   )

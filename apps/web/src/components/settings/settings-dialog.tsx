@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDeveloperMode } from '../../hooks/use-developer-mode'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { AboutPanel } from './panels/about-panel'
@@ -21,17 +22,22 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<SettingsTab>('account')
+  const [devMode] = useDeveloperMode()
 
-  const TABS: { id: SettingsTab, label: string }[] = [
-    { id: 'account', label: t('settings.tab.account') },
-    { id: 'security', label: t('settings.tab.security') },
-    { id: 'encryption', label: t('settings.tab.encryption') },
-    { id: 'notifications', label: t('settings.tab.notifications') },
-    { id: 'push_rules', label: t('push_rules.title') },
-    { id: 'appearance', label: t('settings.tab.appearance') },
-    { id: 'dev_tools', label: t('dev_tools.title') },
-    { id: 'about', label: t('settings.tab.about') },
-  ]
+  const TABS = useMemo(() => {
+    const tabs: { id: SettingsTab, label: string }[] = [
+      { id: 'account', label: t('settings.tab.account') },
+      { id: 'security', label: t('settings.tab.security') },
+      { id: 'encryption', label: t('settings.tab.encryption') },
+      { id: 'notifications', label: t('settings.tab.notifications') },
+      { id: 'push_rules', label: t('push_rules.title') },
+      { id: 'appearance', label: t('settings.tab.appearance') },
+    ]
+    if (devMode)
+      tabs.push({ id: 'dev_tools', label: t('dev_tools.title') })
+    tabs.push({ id: 'about', label: t('settings.tab.about') })
+    return tabs
+  }, [t, devMode])
 
   return (
     <Dialog
@@ -66,7 +72,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           <TabsContent value="notifications" className="m-0 overflow-y-auto p-6"><NotificationsPanel /></TabsContent>
           <TabsContent value="push_rules" className="m-0 overflow-y-auto p-6"><PushRulesPanel /></TabsContent>
           <TabsContent value="appearance" className="m-0 overflow-y-auto p-6"><AppearancePanel /></TabsContent>
-          <TabsContent value="dev_tools" className="m-0 overflow-y-auto p-6"><DevToolsPanel /></TabsContent>
+          {devMode && <TabsContent value="dev_tools" className="m-0 overflow-y-auto p-6"><DevToolsPanel /></TabsContent>}
           <TabsContent value="about" className="m-0 overflow-y-auto p-6"><AboutPanel /></TabsContent>
         </Tabs>
       </DialogContent>

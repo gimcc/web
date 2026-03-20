@@ -472,7 +472,9 @@
     "no_data": "未找到账户数据",
     "error_save": "保存账户数据失败",
     "error_parse": "无效的 JSON",
-    "saved": "账户数据已保存"
+    "saved": "账户数据已保存",
+    "enable_dev_mode": "启用开发者模式",
+    "dev_mode_hint": "启用开发者模式以访问账户数据工具。"
   },
   "report": {
     "title": "举报",

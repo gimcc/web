@@ -1,6 +1,19 @@
-import type { MatrixClient } from 'matrix-js-sdk'
+import type { IPushRule, MatrixClient } from 'matrix-js-sdk'
+import { PushRuleActionName, PushRuleKind as SdkPushRuleKind, TweakName } from 'matrix-js-sdk'
 
 export type PushRuleKind = 'override' | 'underride' | 'sender' | 'room' | 'content'
+
+const KIND_MAP: Record<PushRuleKind, SdkPushRuleKind> = {
+  override: SdkPushRuleKind.Override,
+  underride: SdkPushRuleKind.Underride,
+  sender: SdkPushRuleKind.SenderSpecific,
+  room: SdkPushRuleKind.RoomSpecific,
+  content: SdkPushRuleKind.ContentSpecific,
+}
+
+const REVERSE_KIND_MAP = new Map<SdkPushRuleKind, PushRuleKind>(
+  Object.entries(KIND_MAP).map(([k, v]) => [v, k as PushRuleKind]),
+)
 
 export interface PushRule {
   ruleId: string
@@ -18,6 +31,18 @@ export interface PushRulesSet {
   special: PushRule[]
 }
 
+function mapRule(rule: IPushRule, sdkKind: SdkPushRuleKind): PushRule {
+  return {
+    ruleId: rule.rule_id,
+    kind: REVERSE_KIND_MAP.get(sdkKind) ?? 'override',
+    enabled: rule.enabled ?? true,
+    default: rule.default ?? false,
+    pattern: rule.pattern,
+    conditions: rule.conditions as Array<Record<string, unknown>> | undefined,
+    actions: rule.actions as Array<string | Record<string, unknown>>,
+  }
+}
+
 /**
  * Get all push rules organized by category.
  */
@@ -31,18 +56,10 @@ export async function getPushRules(client: MatrixClient): Promise<PushRulesSet> 
   if (!globalRules)
     return { global, keyword, special }
 
-  for (const kind of ['override', 'underride'] as const) {
-    const rules = (globalRules as any)[kind] ?? []
+  for (const sdkKind of [SdkPushRuleKind.Override, SdkPushRuleKind.Underride] as const) {
+    const rules: IPushRule[] = globalRules[sdkKind] ?? []
     for (const rule of rules) {
-      const mapped: PushRule = {
-        ruleId: rule.rule_id,
-        kind,
-        enabled: rule.enabled ?? true,
-        default: rule.default ?? false,
-        conditions: rule.conditions,
-        actions: rule.actions ?? [],
-      }
-
+      const mapped = mapRule(rule, sdkKind)
       if (rule.rule_id.startsWith('.m.'))
         special.push(mapped)
       else
@@ -50,16 +67,9 @@ export async function getPushRules(client: MatrixClient): Promise<PushRulesSet> 
     }
   }
 
-  const contentRules = (globalRules as any).content ?? []
+  const contentRules: IPushRule[] = globalRules[SdkPushRuleKind.ContentSpecific] ?? []
   for (const rule of contentRules) {
-    keyword.push({
-      ruleId: rule.rule_id,
-      kind: 'content',
-      enabled: rule.enabled ?? true,
-      default: rule.default ?? false,
-      pattern: rule.pattern,
-      actions: rule.actions ?? [],
-    })
+    keyword.push(mapRule(rule, SdkPushRuleKind.ContentSpecific))
   }
 
   return { global, keyword, special }
@@ -74,7 +84,7 @@ export async function togglePushRule(
   ruleId: string,
   enabled: boolean,
 ): Promise<void> {
-  await client.setPushRuleEnabled('global', kind as any, ruleId, enabled)
+  await client.setPushRuleEnabled('global', KIND_MAP[kind], ruleId, enabled)
 }
 
 /**
@@ -84,10 +94,10 @@ export async function addKeywordRule(
   client: MatrixClient,
   keyword: string,
 ): Promise<void> {
-  await client.addPushRule('global', 'content' as any, keyword, {
-    actions: ['notify', { set_tweak: 'highlight' }],
+  await client.addPushRule('global', SdkPushRuleKind.ContentSpecific, keyword, {
+    actions: [PushRuleActionName.Notify, { set_tweak: TweakName.Highlight }],
     pattern: keyword,
-  } as any)
+  })
 }
 
 /**
@@ -97,5 +107,5 @@ export async function removeKeywordRule(
   client: MatrixClient,
   ruleId: string,
 ): Promise<void> {
-  await client.deletePushRule('global', 'content' as any, ruleId)
+  await client.deletePushRule('global', SdkPushRuleKind.ContentSpecific, ruleId)
 }

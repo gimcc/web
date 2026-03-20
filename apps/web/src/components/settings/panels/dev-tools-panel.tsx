@@ -34,8 +34,12 @@ function AccountDataRow({
 
   const handleSave = useCallback(async () => {
     try {
-      const parsed = JSON.parse(jsonText)
-      await onSave(entry.type, parsed)
+      const parsed: unknown = JSON.parse(jsonText)
+      if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+        setError(t('dev_tools.error_parse'))
+        return
+      }
+      await onSave(entry.type, parsed as Record<string, unknown>)
       setEditing(false)
       setError(null)
     }
@@ -103,8 +107,37 @@ function AccountDataRow({
   )
 }
 
+const DEV_MODE_KEY = 'matrix-web-dev-mode'
+
+export function useDevMode() {
+  const [enabled, setEnabled] = useState(() => {
+    try {
+      return localStorage.getItem(DEV_MODE_KEY) === 'true'
+    }
+    catch {
+      return false
+    }
+  })
+
+  const toggle = useCallback((value: boolean) => {
+    setEnabled(value)
+    try {
+      if (value)
+        localStorage.setItem(DEV_MODE_KEY, 'true')
+      else
+        localStorage.removeItem(DEV_MODE_KEY)
+    }
+    catch {
+      // localStorage unavailable
+    }
+  }, [])
+
+  return { enabled, toggle }
+}
+
 export function DevToolsPanel() {
   const { t } = useTranslation()
+  const { enabled: devMode, toggle: toggleDevMode } = useDevMode()
   const [globalData, setGlobalData] = useState<AccountDataEntry[]>([])
   const [roomData, setRoomData] = useState<AccountDataEntry[]>([])
   const [roomId, setRoomId] = useState('')
@@ -158,6 +191,23 @@ export function DevToolsPanel() {
         <p className="mt-1 text-sm text-muted-foreground">{t('dev_tools.description')}</p>
       </div>
 
+      {/* Developer mode toggle */}
+      <label className="flex items-center justify-between gap-3">
+        <span className="text-sm text-foreground">{t('dev_tools.enable_dev_mode')}</span>
+        <input
+          type="checkbox"
+          checked={devMode}
+          onChange={e => toggleDevMode(e.target.checked)}
+          className="h-4 w-4 rounded border-border"
+        />
+      </label>
+
+      {!devMode && (
+        <p className="text-xs text-muted-foreground">{t('dev_tools.dev_mode_hint')}</p>
+      )}
+
+      {devMode && (
+        <>
       {/* Global account data */}
       <div className="space-y-3">
         <h4 className="text-sm font-medium text-foreground">{t('dev_tools.global_data')}</h4>
@@ -194,6 +244,8 @@ export function DevToolsPanel() {
           </div>
         )}
       </div>
+        </>
+      )}
     </div>
   )
 }

@@ -472,7 +472,9 @@
     "no_data": "No account data found",
     "error_save": "Failed to save account data",
     "error_parse": "Invalid JSON",
-    "saved": "Account data saved"
+    "saved": "Account data saved",
+    "enable_dev_mode": "Enable Developer Mode",
+    "dev_mode_hint": "Enable developer mode to access account data tools."
   },
   "report": {
     "title": "Report",

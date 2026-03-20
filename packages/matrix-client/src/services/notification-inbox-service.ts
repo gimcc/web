@@ -1,4 +1,5 @@
 import type { MatrixClient } from 'matrix-js-sdk'
+import { NotificationCountType } from 'matrix-js-sdk'
 
 export interface NotificationItem {
   eventId: string
@@ -22,12 +23,13 @@ export function getNotifications(client: MatrixClient): NotificationItem[] {
     if (room.getMyMembership() !== 'join')
       continue
 
-    const highlight = room.getUnreadNotificationCount('highlight' as any) ?? 0
+    const highlight = room.getUnreadNotificationCount(NotificationCountType.Highlight) ?? 0
     if (highlight === 0)
       continue
 
     const events = room.getLiveTimeline().getEvents()
-    for (let i = events.length - 1; i >= 0 && items.length < 100; i--) {
+    let collected = 0
+    for (let i = events.length - 1; i >= 0 && collected < highlight && items.length < 100; i--) {
       const event = events[i]!
       const type = event.getType()
       if (type !== 'm.room.message' && type !== 'm.sticker')
@@ -35,6 +37,10 @@ export function getNotifications(client: MatrixClient): NotificationItem[] {
 
       const sender = event.getSender()
       if (sender === myUserId)
+        continue
+
+      // Check that this individual event is actually a highlight notification
+      if (room.getUnreadCountForEventContext(NotificationCountType.Highlight, event) === 0)
         continue
 
       const content = event.getContent()
@@ -50,6 +56,7 @@ export function getNotifications(client: MatrixClient): NotificationItem[] {
         timestamp: event.getTs(),
         read: false,
       })
+      collected++
     }
   }
 

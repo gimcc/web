@@ -1,4 +1,5 @@
-import type { MatrixClient } from 'matrix-js-sdk'
+import type { ISendEventResponse, MatrixClient } from 'matrix-js-sdk'
+import { EventType } from 'matrix-js-sdk'
 
 export type JoinRule = 'public' | 'invite' | 'knock' | 'restricted' | 'knock_restricted'
 
@@ -23,5 +24,13 @@ export async function setRoomJoinRule(
   roomId: string,
   rule: JoinRule,
 ): Promise<void> {
-  await client.sendStateEvent(roomId, 'm.room.join_rules' as any, { join_rule: rule })
+  // Our JoinRule type includes 'knock_restricted' which isn't in the SDK's JoinRule enum,
+  // so we cast the method to accept our broader string union.
+  const sendStateEventFn = client.sendStateEvent.bind(client) as (
+    roomId: string,
+    eventType: string,
+    content: Record<string, unknown>,
+    stateKey?: string,
+  ) => Promise<ISendEventResponse>
+  await sendStateEventFn(roomId, EventType.RoomJoinRules, { join_rule: rule })
 }

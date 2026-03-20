@@ -1,25 +1,32 @@
-import type { MatrixClient } from 'matrix-js-sdk'
+import type { MatrixClient, MatrixEvent } from 'matrix-js-sdk'
 
 export interface AccountDataEntry {
   type: string
   content: Record<string, unknown>
 }
 
+interface ClientStore {
+  accountData?: Map<string, MatrixEvent>
+}
+
+interface RoomWithAccountData {
+  accountData?: Map<string, MatrixEvent>
+}
+
 /**
  * Get all global account data entries.
  */
 export function getAccountData(client: MatrixClient): AccountDataEntry[] {
-  const store = (client as any).store
+  const store = (client as unknown as { store?: ClientStore }).store
   if (!store?.accountData)
     return []
 
   const entries: AccountDataEntry[] = []
-  const data = store.accountData as Map<string, any>
 
-  for (const [type, event] of data) {
+  for (const [type, event] of store.accountData) {
     entries.push({
       type,
-      content: event.getContent?.() ?? event.content ?? {},
+      content: event.getContent?.() ?? {},
     })
   }
 
@@ -33,7 +40,9 @@ export function getAccountDataByType(
   client: MatrixClient,
   type: string,
 ): Record<string, unknown> | null {
-  const event = client.getAccountData(type as any)
+  // Dynamic event types require casting; the SDK constrains to known event type keys.
+  const getAccountDataFn = client.getAccountData.bind(client) as (t: string) => MatrixEvent | undefined
+  const event = getAccountDataFn(type)
   if (!event)
     return null
   return event.getContent() ?? null
@@ -47,7 +56,9 @@ export async function setAccountData(
   type: string,
   content: Record<string, unknown>,
 ): Promise<void> {
-  await client.setAccountData(type as any, content as any)
+  // Dynamic event types require casting; the SDK constrains to known event type keys.
+  const setAccountDataFn = client.setAccountData.bind(client) as (t: string, c: Record<string, unknown>) => Promise<unknown>
+  await setAccountDataFn(type, content)
 }
 
 /**
@@ -62,7 +73,7 @@ export function getRoomAccountData(
     return []
 
   const entries: AccountDataEntry[] = []
-  const data = (room as any).accountData as Map<string, any> | undefined
+  const data = (room as unknown as RoomWithAccountData).accountData
 
   if (data) {
     for (const [type, event] of data) {
@@ -85,5 +96,7 @@ export async function setRoomAccountData(
   type: string,
   content: Record<string, unknown>,
 ): Promise<void> {
-  await client.setRoomAccountData(roomId, type as any, content)
+  // Dynamic event types require casting; the SDK constrains to known event type keys.
+  const setRoomAccountDataFn = client.setRoomAccountData.bind(client) as (r: string, t: string, c: Record<string, unknown>) => Promise<unknown>
+  await setRoomAccountDataFn(roomId, type, content)
 }
