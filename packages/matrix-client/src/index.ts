@@ -74,6 +74,18 @@ export {
   queryKeys,
 } from './query/query-keys'
 
+// Services — account data
+export {
+  getAccountData,
+  getAccountDataByType,
+  getRoomAccountData,
+  setAccountData,
+  setRoomAccountData,
+} from './services/account-data-service'
+export type { AccountDataEntry } from './services/account-data-service'
+// Services — join rules
+export { getRoomJoinRule, setRoomJoinRule } from './services/join-rules-service'
+export type { JoinRule } from './services/join-rules-service'
 // Services — members
 export {
   banUser,
@@ -108,6 +120,9 @@ export {
   getMockKnownUsers,
   searchMockUsers,
 } from './services/mock-room-service'
+// Services — notification inbox
+export { getNotifications, markRoomNotificationsRead } from './services/notification-inbox-service'
+export type { NotificationItem } from './services/notification-inbox-service'
 // Services — notification levels
 export { getRoomNotificationLevel, setRoomNotificationLevel } from './services/notification-level-service'
 export type { RoomNotificationLevel } from './services/notification-level-service'
@@ -126,14 +141,25 @@ export {
   unpinMessage,
 } from './services/pin-service'
 export type { PresenceService } from './services/presence-service'
+// Services — push rules
+export {
+  addKeywordRule,
+  getPushRules,
+  removeKeywordRule,
+  togglePushRule,
+} from './services/push-rules-service'
+export type { PushRule, PushRuleKind, PushRulesSet } from './services/push-rules-service'
 
 export {
   redactReaction,
   sendReaction,
   toggleReaction,
 } from './services/reaction-service'
+
 // Services — receipts
 export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
+// Services — report
+export { reportEvent } from './services/report-service'
 export {
   createDmRoom,
   createGroupRoom,
@@ -157,6 +183,9 @@ export {
   sendThreadMessage,
 } from './services/thread-service'
 
+// Services — tombstone
+export { followTombstone, getRoomTombstone } from './services/tombstone-service'
+export type { TombstoneInfo } from './services/tombstone-service'
 export type { TypingService } from './services/typing-service'
 export {
   mxcToHttpUrl,

@@ -1,6 +1,6 @@
 import type { TimelineMessageItem } from '@matrix-web/matrix-client'
 import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
-import { LogOut, Search, Settings, Users } from 'lucide-react'
+import { Bell, LogOut, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { MessageSearch } from '../../components/chat/message-search'
@@ -8,9 +8,11 @@ import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { MemberListPanel } from '../../components/members/member-list-panel'
 import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
+import { NotificationInbox } from '../../components/notification-inbox'
 import { PinnedMessagesBar } from '../../components/pinned-messages-bar'
 import { RoomNotificationToggle } from '../../components/room-notification-toggle'
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
+import { TombstoneBanner } from '../../components/room/tombstone-banner'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
 import { ThreadPanel } from '../../components/thread-panel'
 import { useIdleDetector } from '../../hooks/use-idle-detector'
@@ -139,6 +141,9 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
           </div>
         </div>
 
+        {/* Tombstone banner */}
+        {!mockMode && <TombstoneBanner roomId={roomId} />}
+
         {/* Pinned messages */}
         {!mockMode && <PinnedMessagesBar roomId={roomId} refreshKey={pinRefreshKey} />}
 
@@ -203,6 +208,7 @@ export function ChatLayout() {
     s.activeRoomId ? s.rooms.get(s.activeRoomId)?.name ?? null : null,
   )
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [showNotifications, setShowNotifications] = useState(false)
 
   return (
     <div className="flex h-screen bg-background">
@@ -216,12 +222,28 @@ export function ChatLayout() {
         {/* Mobile header */}
         <div className="flex items-center border-b border-border px-4 py-2 md:hidden">
           <SidebarToggle onToggle={() => setSidebarOpen(true)} />
-          <span className="ml-3 text-sm font-medium text-foreground">
+          <span className="ml-3 flex-1 text-sm font-medium text-foreground">
             {activeRoomName ?? t('app.name')}
           </span>
+          <button
+            type="button"
+            onClick={() => setShowNotifications(v => !v)}
+            className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+            aria-label={t('notification_inbox.title')}
+          >
+            <Bell className="h-4 w-4" />
+          </button>
         </div>
 
-        {activeRoomId ? <ActiveRoomView roomId={activeRoomId} /> : <ChatPlaceholder />}
+        <div className="flex min-h-0 flex-1">
+          <div className="flex min-w-0 flex-1 flex-col">
+            {activeRoomId ? <ActiveRoomView roomId={activeRoomId} /> : <ChatPlaceholder />}
+          </div>
+
+          {showNotifications && (
+            <NotificationInbox onClose={() => setShowNotifications(false)} />
+          )}
+        </div>
       </main>
     </div>
   )

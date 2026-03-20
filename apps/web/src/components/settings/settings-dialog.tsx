@@ -5,11 +5,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { AboutPanel } from './panels/about-panel'
 import { AccountPanel } from './panels/account-panel'
 import { AppearancePanel } from './panels/appearance-panel'
+import { DevToolsPanel } from './panels/dev-tools-panel'
 import { EncryptionPanel } from './panels/encryption-panel'
 import { NotificationsPanel } from './panels/notifications-panel'
+import { PushRulesPanel } from './panels/push-rules-panel'
 import { SecurityPanel } from './panels/security-panel'
 
-type SettingsTab = 'account' | 'security' | 'encryption' | 'notifications' | 'appearance' | 'about'
+type SettingsTab = 'account' | 'security' | 'encryption' | 'notifications' | 'push_rules' | 'appearance' | 'dev_tools' | 'about'
 
 interface SettingsDialogProps {
   open: boolean
@@ -25,7 +27,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
     { id: 'security', label: t('settings.tab.security') },
     { id: 'encryption', label: t('settings.tab.encryption') },
     { id: 'notifications', label: t('settings.tab.notifications') },
+    { id: 'push_rules', label: t('push_rules.title') },
     { id: 'appearance', label: t('settings.tab.appearance') },
+    { id: 'dev_tools', label: t('dev_tools.title') },
     { id: 'about', label: t('settings.tab.about') },
   ]
 
@@ -60,7 +64,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           <TabsContent value="security" className="m-0 overflow-y-auto p-6"><SecurityPanel /></TabsContent>
           <TabsContent value="encryption" className="m-0 overflow-y-auto p-6"><EncryptionPanel /></TabsContent>
           <TabsContent value="notifications" className="m-0 overflow-y-auto p-6"><NotificationsPanel /></TabsContent>
+          <TabsContent value="push_rules" className="m-0 overflow-y-auto p-6"><PushRulesPanel /></TabsContent>
           <TabsContent value="appearance" className="m-0 overflow-y-auto p-6"><AppearancePanel /></TabsContent>
+          <TabsContent value="dev_tools" className="m-0 overflow-y-auto p-6"><DevToolsPanel /></TabsContent>
           <TabsContent value="about" className="m-0 overflow-y-auto p-6"><AboutPanel /></TabsContent>
         </Tabs>
       </DialogContent>

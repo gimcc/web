@@ -405,6 +405,85 @@
     "mentions": "仅提及",
     "mute": "静音"
   },
+  "join_rules": {
+    "title": "加入规则",
+    "description": "控制用户如何加入此房间。",
+    "public": "公开",
+    "public_desc": "任何人都可以加入，无需邀请。",
+    "invite": "仅限邀请",
+    "invite_desc": "用户必须被邀请才能加入。",
+    "knock": "敲门",
+    "knock_desc": "用户可以请求加入，管理员需审批。",
+    "error_save": "更新加入规则失败",
+    "saved": "加入规则已更新",
+    "no_permission": "您没有权限修改加入规则"
+  },
+  "tombstone": {
+    "title": "房间已升级",
+    "message": "此房间已升级。",
+    "reason": "{{reason}}",
+    "follow": "前往新房间",
+    "error_follow": "加入新房间失败"
+  },
+  "notification_inbox": {
+    "title": "通知",
+    "empty": "暂无通知",
+    "mark_read": "全部标为已读",
+    "go_to_room": "前往房间"
+  },
+  "push_rules": {
+    "title": "推送规则",
+    "description": "管理通知规则和关键词。",
+    "global": "全局规则",
+    "keyword": "关键词规则",
+    "special": "特殊规则",
+    "add_keyword": "添加关键词",
+    "keyword_placeholder": "输入关键词...",
+    "remove": "移除",
+    "enabled": "已启用",
+    "disabled": "已禁用",
+    "no_rules": "未配置规则",
+    "error_toggle": "切换规则失败",
+    "error_add": "添加关键词失败",
+    "error_remove": "移除关键词失败"
+  },
+  "notification_mode": {
+    "title": "通知模式",
+    "all": "所有消息",
+    "all_desc": "接收所有消息的通知。",
+    "mentions": "仅提及",
+    "mentions_desc": "仅在被提及时接收通知。",
+    "mute": "静音",
+    "mute_desc": "不接收任何通知。"
+  },
+  "dev_tools": {
+    "title": "开发者工具",
+    "description": "查看和编辑账户数据以进行调试。",
+    "global_data": "全局账户数据",
+    "room_data": "房间账户数据",
+    "room_id_label": "房间 ID",
+    "room_id_placeholder": "输入房间 ID 以检查...",
+    "type": "类型",
+    "content": "内容",
+    "edit": "编辑",
+    "add": "添加条目",
+    "save": "保存",
+    "delete": "删除",
+    "no_data": "未找到账户数据",
+    "error_save": "保存账户数据失败",
+    "error_parse": "无效的 JSON",
+    "saved": "账户数据已保存"
+  },
+  "report": {
+    "title": "举报",
+    "message_title": "举报消息",
+    "reason_label": "原因",
+    "reason_placeholder": "请说明举报原因",
+    "submit": "提交举报",
+    "submitting": "提交中...",
+    "success": "举报已提交，感谢反馈。",
+    "error": "举报提交失败"
+  },
   "pwa": {
     "update_available": "新版本可用",
     "reload": "更新"

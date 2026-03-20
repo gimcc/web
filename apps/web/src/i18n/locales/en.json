@@ -405,6 +405,85 @@
     "mentions": "Mentions only",
     "mute": "Mute"
   },
+  "join_rules": {
+    "title": "Join Rules",
+    "description": "Control how users can join this room.",
+    "public": "Public",
+    "public_desc": "Anyone can join without an invitation.",
+    "invite": "Invite Only",
+    "invite_desc": "Users must be invited to join.",
+    "knock": "Knock",
+    "knock_desc": "Users can request to join. Admins must approve.",
+    "error_save": "Failed to update join rules",
+    "saved": "Join rules updated",
+    "no_permission": "You do not have permission to change join rules"
+  },
+  "tombstone": {
+    "title": "Room Upgraded",
+    "message": "This room has been upgraded.",
+    "reason": "{{reason}}",
+    "follow": "Go to New Room",
+    "error_follow": "Failed to join the new room"
+  },
+  "notification_inbox": {
+    "title": "Notifications",
+    "empty": "No notifications",
+    "mark_read": "Mark all read",
+    "go_to_room": "Go to room"
+  },
+  "push_rules": {
+    "title": "Push Rules",
+    "description": "Manage notification rules and keywords.",
+    "global": "Global Rules",
+    "keyword": "Keyword Rules",
+    "special": "Special Rules",
+    "add_keyword": "Add Keyword",
+    "keyword_placeholder": "Enter keyword...",
+    "remove": "Remove",
+    "enabled": "Enabled",
+    "disabled": "Disabled",
+    "no_rules": "No rules configured",
+    "error_toggle": "Failed to toggle rule",
+    "error_add": "Failed to add keyword",
+    "error_remove": "Failed to remove keyword"
+  },
+  "notification_mode": {
+    "title": "Notification Mode",
+    "all": "All Messages",
+    "all_desc": "Receive notifications for all messages.",
+    "mentions": "Mentions Only",
+    "mentions_desc": "Only receive notifications when mentioned.",
+    "mute": "Mute",
+    "mute_desc": "Do not receive any notifications."
+  },
+  "dev_tools": {
+    "title": "Developer Tools",
+    "description": "View and edit account data for debugging.",
+    "global_data": "Global Account Data",
+    "room_data": "Room Account Data",
+    "room_id_label": "Room ID",
+    "room_id_placeholder": "Enter room ID to inspect...",
+    "type": "Type",
+    "content": "Content",
+    "edit": "Edit",
+    "add": "Add Entry",
+    "save": "Save",
+    "delete": "Delete",
+    "no_data": "No account data found",
+    "error_save": "Failed to save account data",
+    "error_parse": "Invalid JSON",
+    "saved": "Account data saved"
+  },
+  "report": {
+    "title": "Report",
+    "message_title": "Report Message",
+    "reason_label": "Reason",
+    "reason_placeholder": "Why are you reporting this?",
+    "submit": "Submit Report",
+    "submitting": "Submitting...",
+    "success": "Report submitted. Thank you.",
+    "error": "Failed to submit report"
+  },
   "pwa": {
     "update_available": "A new version is available",
     "reload": "Update"

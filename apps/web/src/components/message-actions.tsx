@@ -1,4 +1,4 @@
-import { CornerUpLeft, MessageSquare, Pencil, Pin, SmilePlus, Trash2 } from 'lucide-react'
+import { CornerUpLeft, Flag, MessageSquare, Pencil, Pin, SmilePlus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { EmojiPicker, QUICK_REACTIONS } from './emoji-picker'
@@ -12,9 +12,10 @@ interface MessageActionsProps {
   onReply?: () => void
   onThread?: () => void
   onPin?: () => void
+  onReport?: () => void
 }
 
-export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete, onReply, onThread, onPin }: MessageActionsProps) {
+export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete, onReply, onThread, onPin, onReport }: MessageActionsProps) {
   const { t } = useTranslation()
   const [showPicker, setShowPicker] = useState(false)
   const pickerRef = useRef<HTMLDivElement>(null)
@@ -126,6 +127,20 @@ export function MessageActions({ onReaction, isSelf, isPinned, onEdit, onDelete,
             aria-label={isPinned ? t('message.unpin') : t('message.pin')}
           >
             <Pin className={`h-3.5 w-3.5 ${isPinned ? 'text-primary' : ''}`} />
+          </button>
+        )}
+
+        {!isSelf && onReport && (
+          <button
+            type="button"
+            className="flex h-7 w-7 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent hover:text-destructive"
+            onClick={(e) => {
+              e.stopPropagation()
+              onReport()
+            }}
+            aria-label={t('report.title')}
+          >
+            <Flag className="h-3.5 w-3.5" />
           </button>
         )}
 

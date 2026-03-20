@@ -22,6 +22,7 @@ interface MessageBubbleProps {
   onReply?: (message: TimelineMessageItem) => void
   onThread?: (eventId: string) => void
   onPin?: (eventId: string) => void
+  onReport?: (eventId: string) => void
   onJumpToEvent?: (eventId: string) => void
   highlighted?: boolean
 }
@@ -124,6 +125,7 @@ export function MessageBubble({
   onReply,
   onThread,
   onPin,
+  onReport,
   onJumpToEvent,
   highlighted,
 }: MessageBubbleProps) {
@@ -160,6 +162,10 @@ export function MessageBubble({
     onPin?.(message.eventId)
   }, [message.eventId, onPin])
 
+  const handleReport = useCallback(() => {
+    onReport?.(message.eventId)
+  }, [message.eventId, onReport])
+
   // Shared action bar
   const actionBar = message.status === 'sent' && onReaction
     ? (
@@ -177,6 +183,7 @@ export function MessageBubble({
             onReply={onReply ? handleReply : undefined}
             onThread={onThread ? handleThread : undefined}
             onPin={onPin ? handlePin : undefined}
+            onReport={!isSelf && onReport ? handleReport : undefined}
           />
         </div>
       )
