@@ -1,16 +1,19 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useDeveloperMode } from '../../hooks/use-developer-mode'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '../ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs'
 import { AboutPanel } from './panels/about-panel'
 import { AccountPanel } from './panels/account-panel'
 import { AppearancePanel } from './panels/appearance-panel'
+import { DevToolsPanel } from './panels/dev-tools-panel'
 import { EncryptionPanel } from './panels/encryption-panel'
 import { NotificationsPanel } from './panels/notifications-panel'
 import { ProfilePanel } from './panels/profile-panel'
+import { PushRulesPanel } from './panels/push-rules-panel'
 import { SecurityPanel } from './panels/security-panel'
 
-type SettingsTab = 'profile' | 'account' | 'security' | 'encryption' | 'notifications' | 'appearance' | 'about'
+type SettingsTab = 'profile' | 'account' | 'security' | 'encryption' | 'notifications' | 'push_rules' | 'appearance' | 'dev_tools' | 'about'
 
 interface SettingsDialogProps {
   open: boolean
@@ -20,16 +23,23 @@ interface SettingsDialogProps {
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
+  const [devMode] = useDeveloperMode()
 
-  const TABS: { id: SettingsTab, label: string }[] = [
-    { id: 'profile', label: t('settings.tab.profile') },
-    { id: 'account', label: t('settings.tab.account') },
-    { id: 'security', label: t('settings.tab.security') },
-    { id: 'encryption', label: t('settings.tab.encryption') },
-    { id: 'notifications', label: t('settings.tab.notifications') },
-    { id: 'appearance', label: t('settings.tab.appearance') },
-    { id: 'about', label: t('settings.tab.about') },
-  ]
+  const TABS = useMemo(() => {
+    const tabs: { id: SettingsTab, label: string }[] = [
+      { id: 'profile', label: t('settings.tab.profile') },
+      { id: 'account', label: t('settings.tab.account') },
+      { id: 'security', label: t('settings.tab.security') },
+      { id: 'encryption', label: t('settings.tab.encryption') },
+      { id: 'notifications', label: t('settings.tab.notifications') },
+      { id: 'push_rules', label: t('push_rules.title') },
+      { id: 'appearance', label: t('settings.tab.appearance') },
+    ]
+    if (devMode)
+      tabs.push({ id: 'dev_tools', label: t('dev_tools.title') })
+    tabs.push({ id: 'about', label: t('settings.tab.about') })
+    return tabs
+  }, [t, devMode])
 
   return (
     <Dialog
@@ -63,7 +73,9 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
           <TabsContent value="security" className="m-0 overflow-y-auto p-6"><SecurityPanel /></TabsContent>
           <TabsContent value="encryption" className="m-0 overflow-y-auto p-6"><EncryptionPanel /></TabsContent>
           <TabsContent value="notifications" className="m-0 overflow-y-auto p-6"><NotificationsPanel /></TabsContent>
+          <TabsContent value="push_rules" className="m-0 overflow-y-auto p-6"><PushRulesPanel /></TabsContent>
           <TabsContent value="appearance" className="m-0 overflow-y-auto p-6"><AppearancePanel /></TabsContent>
+          {devMode && <TabsContent value="dev_tools" className="m-0 overflow-y-auto p-6"><DevToolsPanel /></TabsContent>}
           <TabsContent value="about" className="m-0 overflow-y-auto p-6"><AboutPanel /></TabsContent>
         </Tabs>
       </DialogContent>

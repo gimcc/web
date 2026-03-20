@@ -1,4 +1,4 @@
-import type { MatrixClient } from 'matrix-js-sdk'
+import type { ISendEventResponse, MatrixClient } from 'matrix-js-sdk'
 
 export interface PowerLevels {
   users: Record<string, number>
@@ -53,7 +53,10 @@ export async function updatePowerLevels(
   if (changes.redact !== undefined)
     updated.redact = changes.redact
 
-  await client.sendStateEvent(roomId, 'm.room.power_levels' as any, updated)
+  const sendStateFn = client.sendStateEvent.bind(client) as (
+    roomId: string, eventType: string, content: Record<string, unknown>, stateKey?: string,
+  ) => Promise<ISendEventResponse>
+  await sendStateFn(roomId, 'm.room.power_levels', updated as Record<string, unknown>)
 }
 
 export async function setUserPowerLevel(
@@ -69,5 +72,8 @@ export async function setUserPowerLevel(
   const users = { ...(current.users as Record<string, number> ?? {}) }
   users[userId] = level
 
-  await client.sendStateEvent(roomId, 'm.room.power_levels' as any, { ...current, users })
+  const sendStateFn = client.sendStateEvent.bind(client) as (
+    roomId: string, eventType: string, content: Record<string, unknown>, stateKey?: string,
+  ) => Promise<ISendEventResponse>
+  await sendStateFn(roomId, 'm.room.power_levels', { ...current, users } as Record<string, unknown>)
 }

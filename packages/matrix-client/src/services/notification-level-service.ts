@@ -37,5 +37,6 @@ export async function setRoomNotificationLevel(
   if (!client)
     throw new Error('Matrix client not initialized')
 
-  await client.setRoomAccountData(roomId, ACCOUNT_DATA_TYPE as any, { level })
+  const setRoomAccountDataFn = client.setRoomAccountData.bind(client) as (r: string, t: string, c: Record<string, unknown>) => Promise<unknown>
+  await setRoomAccountDataFn(roomId, ACCOUNT_DATA_TYPE, { level })
 }

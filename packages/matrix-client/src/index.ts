@@ -120,6 +120,16 @@ export {
 } from './services/account-service'
 export type { DeviceInfo, ThreePid } from './services/account-service'
 
+// Services — account data
+export {
+  getAccountData,
+  getAccountDataByType,
+  getRoomAccountData,
+  setAccountData,
+  setRoomAccountData,
+} from './services/account-data-service'
+export type { AccountDataEntry } from './services/account-data-service'
+
 // Services — custom emoji
 export {
   getAllEmojiPacks,
@@ -133,6 +143,9 @@ export type {
   EmojiPackImage,
   ResolvedEmojiPack,
 } from './services/custom-emoji-service'
+// Services — join rules
+export { getRoomJoinRule, setRoomJoinRule } from './services/join-rules-service'
+export type { JoinRule } from './services/join-rules-service'
 // Services — members
 export {
   banUser,
@@ -167,6 +180,9 @@ export {
   getMockKnownUsers,
   searchMockUsers,
 } from './services/mock-room-service'
+// Services — notification inbox
+export { getNotifications, markRoomNotificationsRead } from './services/notification-inbox-service'
+export type { NotificationItem } from './services/notification-inbox-service'
 // Services — notification levels
 export { getRoomNotificationLevel, setRoomNotificationLevel } from './services/notification-level-service'
 export type { RoomNotificationLevel } from './services/notification-level-service'
@@ -195,14 +211,25 @@ export {
 } from './services/profile-service'
 export type { UserProfile } from './services/profile-service'
 export type { PresenceService } from './services/presence-service'
+// Services — push rules
+export {
+  addKeywordRule,
+  getPushRules,
+  removeKeywordRule,
+  togglePushRule,
+} from './services/push-rules-service'
+export type { PushRule, PushRuleKind, PushRulesSet } from './services/push-rules-service'
 
 export {
   redactReaction,
   sendReaction,
   toggleReaction,
 } from './services/reaction-service'
+
 // Services — receipts
 export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
+// Services — report
+export { reportEvent } from './services/report-service'
 export {
   addRoomAlias,
   browsePublicRooms,
@@ -234,6 +261,10 @@ export {
 // Services — sticker
 export { sendSticker } from './services/sticker-service'
 export type { SendStickerOptions } from './services/sticker-service'
+
+// Services — tombstone
+export { followTombstone, getRoomTombstone } from './services/tombstone-service'
+export type { TombstoneInfo } from './services/tombstone-service'
 
 export type { TypingService } from './services/typing-service'
 export {

@@ -21,6 +21,7 @@ import { useLayoutPreference, type MessageLayout } from '../hooks/use-layout-pre
 import { MessageBubble } from './message-bubble'
 import { MessageCompact } from './message-compact'
 import { MessageModern } from './message-modern'
+import { ReportDialog } from './report-dialog'
 import { DayDivider, UnreadDivider } from './timeline-divider'
 import { MemberEventRow, StateEventRow } from './timeline-event-item'
 
@@ -254,6 +255,12 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     catch { /* ignore */ }
   }, [roomId, mockMode, pinnedIds, onPinChange])
 
+  const [reportEventId, setReportEventId] = useState<string | null>(null)
+
+  const handleReport = useCallback((eventId: string) => {
+    setReportEventId(eventId)
+  }, [])
+
   return (
     <div className="relative flex-1 overflow-hidden">
       <div
@@ -301,6 +308,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
                         onDelete={handleDelete}
                         onReply={onReplyMessage}
                         onPin={handlePin}
+                        onReport={handleReport}
                         onThread={onThread}
                         onJumpToEvent={handleJumpToEvent}
                       />
@@ -310,6 +318,16 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
               </div>
             )}
       </div>
+
+      {/* Report dialog */}
+      {reportEventId && (
+        <ReportDialog
+          open={!!reportEventId}
+          roomId={roomId}
+          eventId={reportEventId}
+          onClose={() => setReportEventId(null)}
+        />
+      )}
 
       {/* Scroll to bottom button */}
       {showScrollButton && (
@@ -343,6 +361,7 @@ interface TimelineRowProps {
   onDelete: (message: TimelineMessageItem) => void
   onReply?: (message: TimelineMessageItem) => void
   onPin: (eventId: string) => void
+  onReport: (eventId: string) => void
   onThread?: (eventId: string) => void
   onJumpToEvent: (eventId: string) => void
 }
@@ -360,6 +379,7 @@ function TimelineRow({
   onDelete,
   onReply,
   onPin,
+  onReport,
   onThread,
   onJumpToEvent,
 }: TimelineRowProps) {
@@ -385,6 +405,7 @@ function TimelineRow({
         onDelete,
         onReply,
         onPin: mockMode ? undefined : onPin,
+        onReport: mockMode ? undefined : onReport,
         onThread,
         onJumpToEvent,
       }

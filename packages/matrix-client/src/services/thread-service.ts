@@ -1,5 +1,12 @@
+import type { ISendEventResponse, MatrixClient } from 'matrix-js-sdk'
 import type { TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
+
+type SendEventFn = (roomId: string, eventType: string, content: Record<string, unknown>) => Promise<ISendEventResponse>
+
+function getSendEventFn(client: MatrixClient): SendEventFn {
+  return client.sendEvent.bind(client) as SendEventFn
+}
 import { getMatrixClient } from '../client/client-manager'
 import { useThreadsStore } from '../stores/threads-store'
 import { useTimelineStore } from '../stores/timeline-store'
@@ -57,7 +64,7 @@ export async function sendThreadMessage(
       },
     }
 
-    const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+    const response = await getSendEventFn(client)(roomId, EventType.RoomMessage, content as Record<string, unknown>)
 
     const threads = new Map(useThreadsStore.getState().threads)
     const threadMessages = threads.get(threadRootId)

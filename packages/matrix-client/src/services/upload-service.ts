@@ -1,5 +1,12 @@
+import type { ISendEventResponse, MatrixClient } from 'matrix-js-sdk'
 import type { TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
+
+type SendEventFn = (roomId: string, eventType: string, content: Record<string, unknown>) => Promise<ISendEventResponse>
+
+function getSendEventFn(client: MatrixClient): SendEventFn {
+  return client.sendEvent.bind(client) as SendEventFn
+}
 import { getMatrixClient } from '../client/client-manager'
 import { useTimelineStore } from '../stores/timeline-store'
 
@@ -130,7 +137,7 @@ export async function uploadAndSendFile(options: UploadOptions): Promise<UploadR
       info.h = optimistic.info.h
     }
 
-    const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+    const response = await getSendEventFn(client)(roomId, EventType.RoomMessage, content as Record<string, unknown>)
     useTimelineStore.getState().confirmOptimistic(roomId, tempEventId, response.event_id)
     // Defer blob revocation to next tick so the reader re-reads the SDK event
     // (which has the MXC URL) before the blob URL becomes invalid

@@ -96,7 +96,7 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
     try {
       // Save action level changes
       if (Object.keys(editedLevels).length > 0) {
-        await updatePowerLevels(client, roomId, editedLevels as any)
+        await updatePowerLevels(client, roomId, editedLevels)
       }
 
       // Save user power level changes
@@ -125,7 +125,7 @@ export function PermissionEditor({ roomId }: PermissionEditorProps) {
 
   const currentActionValue = (key: keyof PowerLevels) => {
     if (key in editedLevels)
-      return (editedLevels as any)[key] as number
+      return editedLevels[key as keyof typeof editedLevels] as number
     return powerLevels[key] as number
   }
 
