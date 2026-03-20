@@ -1,3 +1,4 @@
+import type { ISendEventResponse, MatrixEvent } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useTimelineStore } from '../stores/timeline-store'
 
@@ -27,7 +28,10 @@ export async function sendReaction(
   })
 
   try {
-    await client.sendEvent(roomId, 'm.reaction' as any, {
+    const sendEventFn = client.sendEvent.bind(client) as (
+      roomId: string, eventType: string, content: Record<string, unknown>,
+    ) => Promise<ISendEventResponse>
+    await sendEventFn(roomId, 'm.reaction', {
       'm.relates_to': {
         rel_type: 'm.annotation',
         event_id: targetEventId,
@@ -66,7 +70,7 @@ export async function redactReaction(
   try {
     const relations = room.relations.getChildEventsForEvent(targetEventId, 'm.annotation', 'm.reaction')
     if (relations) {
-      const sorted: Array<[string, Set<any>]> = relations.getSortedAnnotationsByKey() ?? []
+      const sorted: Array<[string, Set<MatrixEvent>]> = relations.getSortedAnnotationsByKey() ?? []
       for (const [key, events] of sorted) {
         if (key === emoji) {
           for (const e of events) {
@@ -120,7 +124,7 @@ export async function toggleReaction(
     try {
       const relations = room.relations.getChildEventsForEvent(targetEventId, 'm.annotation', 'm.reaction')
       if (relations) {
-        const sorted: Array<[string, Set<any>]> = relations.getSortedAnnotationsByKey() ?? []
+        const sorted: Array<[string, Set<MatrixEvent>]> = relations.getSortedAnnotationsByKey() ?? []
         for (const [key, events] of sorted) {
           if (key === emoji) {
             for (const e of events) {

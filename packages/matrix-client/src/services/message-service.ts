@@ -1,9 +1,15 @@
-import type { MatrixClient, MatrixEvent } from 'matrix-js-sdk'
+import type { ISendEventResponse, MatrixClient, MatrixEvent } from 'matrix-js-sdk'
 import type { ReplyTo, TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
 import { useTimelineStore } from '../stores/timeline-store'
 import { paginateBackward, roomHasMoreHistory } from '../timeline/reader'
+
+type SendEventFn = (roomId: string, eventType: string, content: Record<string, unknown>) => Promise<ISendEventResponse>
+
+function getSendEventFn(client: MatrixClient): SendEventFn {
+  return client.sendEvent.bind(client) as SendEventFn
+}
 
 const RE_AMP = /&/g
 const RE_LT = /</g
@@ -129,7 +135,7 @@ export async function sendTextMessage(
         ? { format: 'org.matrix.custom.html', formatted_body: options.formattedBody }
         : {}),
     }
-    const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+    const response = await getSendEventFn(client)(roomId, EventType.RoomMessage, content as Record<string, unknown>)
     useTimelineStore.getState().confirmOptimistic(roomId, tempEventId, response.event_id)
   }
   catch {
@@ -163,7 +169,7 @@ export async function editMessage(
     },
   }
 
-  await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+  await getSendEventFn(client)(roomId, EventType.RoomMessage, content as Record<string, unknown>)
   // The edit will be picked up by SDK and reflected on next version bump
   useTimelineStore.getState().bumpVersion(roomId)
 }
@@ -234,7 +240,7 @@ export async function sendReply(
       },
     }
 
-    const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
+    const response = await getSendEventFn(client)(roomId, EventType.RoomMessage, content as Record<string, unknown>)
     useTimelineStore.getState().confirmOptimistic(roomId, tempEventId, response.event_id)
   }
   catch {
