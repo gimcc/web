@@ -15,6 +15,7 @@ import { Ban, Crown, Search, Shield, UserMinus, UserPlus, X } from 'lucide-react
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
+import { UserProfileCard } from '../profile/user-profile-card'
 import { Avatar } from '../ui/avatar'
 import { Input } from '../ui/input'
 
@@ -45,6 +46,7 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   const [showInvite, setShowInvite] = useState(false)
   const [inviteQuery, setInviteQuery] = useState('')
   const [inviteResults, setInviteResults] = useState<{ userId: string, displayName: string | null }[]>([])
+  const [profileCardUserId, setProfileCardUserId] = useState<string | null>(null)
 
   useEffect(() => {
     const client = getMatrixClient()
@@ -148,14 +150,20 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
 
   const renderMember = (member: RoomMemberInfo) => (
     <div key={member.userId} className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-accent/50">
-      <Avatar name={member.displayName} src={member.avatarUrl ?? undefined} size="sm" />
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1">
-          <span className="truncate text-sm font-medium text-foreground">{member.displayName}</span>
-          {getRoleIcon(member.powerLevel)}
+      <button
+        type="button"
+        className="flex min-w-0 flex-1 items-center gap-2 text-left"
+        onClick={() => setProfileCardUserId(member.userId)}
+      >
+        <Avatar name={member.displayName} src={member.avatarUrl ?? undefined} size="sm" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1">
+            <span className="truncate text-sm font-medium text-foreground">{member.displayName}</span>
+            {getRoleIcon(member.powerLevel)}
+          </div>
+          <p className="truncate text-xs text-muted-foreground">{member.userId}</p>
         </div>
-        <p className="truncate text-xs text-muted-foreground">{member.userId}</p>
-      </div>
+      </button>
       {myPower >= 50 && member.powerLevel < myPower && (
         <div className="hidden items-center gap-0.5 group-hover:flex">
           <button type="button" onClick={() => handleKick(member.userId)} className="rounded p-1 text-muted-foreground hover:text-destructive" title={t('member.kick')}>
@@ -168,6 +176,17 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
       )}
     </div>
   )
+
+  const renderProfileCard = () => {
+    if (!profileCardUserId) return null
+    return (
+      <UserProfileCard
+        userId={profileCardUserId}
+        open={!!profileCardUserId}
+        onClose={() => setProfileCardUserId(null)}
+      />
+    )
+  }
 
   const renderGroup = (label: string, members: RoomMemberInfo[]) => {
     if (members.length === 0)
@@ -244,6 +263,8 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
               </div>
             )}
       </div>
+
+      {renderProfileCard()}
     </div>
   )
 }

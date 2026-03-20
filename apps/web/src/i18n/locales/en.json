@@ -148,6 +148,7 @@
       "encryption": "Encryption",
       "notifications": "Notifications",
       "appearance": "Appearance",
+      "profile": "Profile",
       "about": "About"
     }
   },
@@ -404,6 +405,26 @@
     "all": "All messages",
     "mentions": "Mentions only",
     "mute": "Mute"
+  },
+  "profile": {
+    "title": "Profile",
+    "description": "Manage your display name and avatar.",
+    "display_name": "Display Name",
+    "change_avatar": "Change Avatar",
+    "remove_avatar": "Remove Avatar",
+    "success_name": "Display name updated",
+    "success_avatar": "Avatar updated",
+    "success_avatar_removed": "Avatar removed",
+    "error_load": "Failed to load profile",
+    "error_name": "Failed to update display name",
+    "error_avatar": "Failed to update avatar"
+  },
+  "profile_card": {
+    "title": "User Profile",
+    "send_message": "Send Message",
+    "shared_rooms": "{{count}} shared room(s)",
+    "error_load": "Failed to load user profile",
+    "error_dm": "Failed to start conversation"
   },
   "pwa": {
     "update_available": "A new version is available",

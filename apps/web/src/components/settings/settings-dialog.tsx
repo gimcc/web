@@ -7,9 +7,10 @@ import { AccountPanel } from './panels/account-panel'
 import { AppearancePanel } from './panels/appearance-panel'
 import { EncryptionPanel } from './panels/encryption-panel'
 import { NotificationsPanel } from './panels/notifications-panel'
+import { ProfilePanel } from './panels/profile-panel'
 import { SecurityPanel } from './panels/security-panel'
 
-type SettingsTab = 'account' | 'security' | 'encryption' | 'notifications' | 'appearance' | 'about'
+type SettingsTab = 'profile' | 'account' | 'security' | 'encryption' | 'notifications' | 'appearance' | 'about'
 
 interface SettingsDialogProps {
   open: boolean
@@ -18,9 +19,10 @@ interface SettingsDialogProps {
 
 export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
   const { t } = useTranslation()
-  const [activeTab, setActiveTab] = useState<SettingsTab>('account')
+  const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
 
   const TABS: { id: SettingsTab, label: string }[] = [
+    { id: 'profile', label: t('settings.tab.profile') },
     { id: 'account', label: t('settings.tab.account') },
     { id: 'security', label: t('settings.tab.security') },
     { id: 'encryption', label: t('settings.tab.encryption') },
@@ -56,6 +58,7 @@ export function SettingsDialog({ open, onClose }: SettingsDialogProps) {
             ))}
           </TabsList>
 
+          <TabsContent value="profile" className="m-0 overflow-y-auto p-6"><ProfilePanel /></TabsContent>
           <TabsContent value="account" className="m-0 overflow-y-auto p-6"><AccountPanel /></TabsContent>
           <TabsContent value="security" className="m-0 overflow-y-auto p-6"><SecurityPanel /></TabsContent>
           <TabsContent value="encryption" className="m-0 overflow-y-auto p-6"><EncryptionPanel /></TabsContent>

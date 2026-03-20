@@ -125,6 +125,16 @@ export {
   pinMessage,
   unpinMessage,
 } from './services/pin-service'
+// Services — profile
+export {
+  getMyProfile,
+  getSharedRooms,
+  getUserProfile,
+  removeAvatar,
+  setDisplayName,
+  uploadAvatar,
+} from './services/profile-service'
+export type { UserProfile } from './services/profile-service'
 export type { PresenceService } from './services/presence-service'
 
 export {
