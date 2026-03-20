@@ -5,7 +5,7 @@ import {
   updateRoomTopic,
   useRoomsStore,
 } from '@matrix-web/matrix-client'
-import { Settings, Shield, X } from 'lucide-react'
+import { Hash, Settings, Shield, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
@@ -13,6 +13,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '../ui/dialog'
 import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
+import { AliasEditor } from './alias-editor'
 import { PermissionEditor } from './permission-editor'
 
 interface RoomSettingsDialogProps {
@@ -25,7 +26,7 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
   const { t } = useTranslation()
   const room = useRoomsStore(s => s.rooms.get(roomId))
 
-  const [activeTab, setActiveTab] = useState<'general' | 'permissions'>('general')
+  const [activeTab, setActiveTab] = useState<'general' | 'aliases' | 'permissions'>('general')
   const [name, setName] = useState('')
   const [topic, setTopic] = useState('')
   const [isSaving, setIsSaving] = useState(false)
@@ -87,11 +88,15 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
         </div>
 
         {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'general' | 'permissions')}>
+        <Tabs value={activeTab} onValueChange={v => setActiveTab(v as 'general' | 'aliases' | 'permissions')}>
           <TabsList variant="line" className="h-auto w-full rounded-none border-b border-border bg-transparent p-0">
             <TabsTrigger value="general" className="gap-1.5 rounded-none">
               <Settings className="h-4 w-4" />
               {t('permission.tab_general')}
+            </TabsTrigger>
+            <TabsTrigger value="aliases" className="gap-1.5 rounded-none">
+              <Hash className="h-4 w-4" />
+              {t('room.alias_tab')}
             </TabsTrigger>
             <TabsTrigger value="permissions" className="gap-1.5 rounded-none">
               <Shield className="h-4 w-4" />
@@ -128,6 +133,12 @@ export function RoomSettingsDialog({ open, roomId, onClose }: RoomSettingsDialog
               </div>
             )}
           </>
+        )}
+
+        {activeTab === 'aliases' && (
+          <div className="px-4 py-4">
+            <AliasEditor roomId={roomId} canEdit={canEdit} />
+          </div>
         )}
 
         {activeTab === 'permissions' && (

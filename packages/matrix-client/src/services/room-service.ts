@@ -207,6 +207,22 @@ export async function leaveRoom(
   }
 }
 
+export interface PublicRoomInfo {
+  roomId: string
+  name: string
+  topic: string | null
+  canonicalAlias: string | null
+  memberCount: number
+  worldReadable: boolean
+  avatarUrl: string | null
+}
+
+export interface BrowsePublicRoomsResult {
+  rooms: PublicRoomInfo[]
+  nextBatch: string | null
+  totalRoomCount: number | null
+}
+
 /**
  * Search public rooms on a server.
  */
@@ -227,6 +243,106 @@ export async function searchPublicRooms(
     memberCount: room.num_joined_members ?? 0,
     worldReadable: room.world_readable ?? false,
   }))
+}
+
+/**
+ * Browse public rooms on a specific server with pagination.
+ */
+export async function browsePublicRooms(
+  client: MatrixClient,
+  options: {
+    server?: string
+    query?: string
+    limit?: number
+    since?: string
+  } = {},
+): Promise<BrowsePublicRoomsResult> {
+  const { server, query, limit = 20, since } = options
+
+  const requestOptions: any = {
+    limit,
+    ...(query ? { filter: { generic_search_term: query } } : {}),
+    ...(since ? { since } : {}),
+  }
+
+  if (server) {
+    requestOptions.server = server
+  }
+
+  const response = await client.publicRooms(requestOptions)
+
+  return {
+    rooms: (response.chunk ?? []).map((room: any) => ({
+      roomId: room.room_id,
+      name: room.name ?? room.canonical_alias ?? room.room_id,
+      topic: room.topic ?? null,
+      canonicalAlias: room.canonical_alias ?? null,
+      memberCount: room.num_joined_members ?? 0,
+      worldReadable: room.world_readable ?? false,
+      avatarUrl: room.avatar_url
+        ? client.mxcUrlToHttp(room.avatar_url, 40, 40, 'crop') ?? null
+        : null,
+    })),
+    nextBatch: response.next_batch ?? null,
+    totalRoomCount: response.total_room_count_estimate ?? null,
+  }
+}
+
+/**
+ * Get room aliases (canonical + alternative).
+ */
+export function getRoomAliases(
+  client: MatrixClient,
+  roomId: string,
+): { canonical: string | null, alternatives: string[] } {
+  const room = client.getRoom(roomId)
+  if (!room) {
+    return { canonical: null, alternatives: [] }
+  }
+
+  const canonical = room.getCanonicalAlias() ?? null
+  const altAliases = room.getAltAliases?.() ?? []
+
+  return { canonical, alternatives: altAliases }
+}
+
+/**
+ * Add an alias to a room.
+ */
+export async function addRoomAlias(
+  client: MatrixClient,
+  alias: string,
+  roomId: string,
+): Promise<void> {
+  await client.createAlias(alias, roomId)
+}
+
+/**
+ * Remove an alias from a room.
+ */
+export async function removeRoomAlias(
+  client: MatrixClient,
+  alias: string,
+): Promise<void> {
+  await client.deleteAlias(alias)
+}
+
+/**
+ * Set the canonical (main) alias for a room.
+ */
+export async function setCanonicalAlias(
+  client: MatrixClient,
+  roomId: string,
+  alias: string | null,
+  altAliases: string[] = [],
+): Promise<void> {
+  const content: Record<string, unknown> = {
+    alt_aliases: altAliases,
+  }
+  if (alias) {
+    content.alias = alias
+  }
+  await client.sendStateEvent(roomId, 'm.room.canonical_alias' as any, content)
 }
 
 /**
