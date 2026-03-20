@@ -74,6 +74,22 @@ export {
   queryKeys,
 } from './query/query-keys'
 
+// Services — account (3PID, devices, ignored users)
+export {
+  addThreePid,
+  deleteDevice,
+  deleteDevices,
+  deleteThreePid,
+  getDevices,
+  getIgnoredUsers,
+  getThreePids,
+  ignoreUser,
+  renameDevice,
+  requestEmailToken,
+  requestMsisdnToken,
+  unignoreUser,
+} from './services/account-service'
+export type { DeviceInfo, ThreePid } from './services/account-service'
 // Services — members
 export {
   banUser,

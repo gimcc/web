@@ -408,5 +408,57 @@
   "pwa": {
     "update_available": "A new version is available",
     "reload": "Update"
+  },
+  "contact_info": {
+    "title": "Contact Information",
+    "emails": "Email Addresses",
+    "phones": "Phone Numbers",
+    "empty": "No contact information added.",
+    "add_email": "Add Email",
+    "add_phone": "Add Phone",
+    "email_label": "Email Address",
+    "email_placeholder": "user@example.com",
+    "phone_label": "Phone Number",
+    "phone_placeholder": "Phone number",
+    "send_verification": "Send Verification",
+    "sending": "Sending...",
+    "verify_email_hint": "A verification email has been sent. Click the link in the email, then click confirm below.",
+    "verify_phone_hint": "A verification code has been sent. Enter the code and confirm below.",
+    "confirm_verify": "Confirm",
+    "verifying": "Verifying...",
+    "success_added": "Contact information added successfully.",
+    "success_removed": "Contact information removed.",
+    "error_request_token": "Failed to send verification. Please check your input.",
+    "error_verify": "Verification failed. Please try again.",
+    "error_remove": "Failed to remove contact information."
+  },
+  "devices": {
+    "title": "Sessions",
+    "empty": "No sessions found.",
+    "current": "Current",
+    "device_id": "Session ID",
+    "last_ip": "Last IP",
+    "last_seen": "Last active",
+    "never": "Never",
+    "error_load": "Failed to load sessions.",
+    "error_rename": "Failed to rename session.",
+    "error_delete": "Failed to remove session.",
+    "success_renamed": "Session renamed.",
+    "success_deleted": "Session removed."
+  },
+  "ignored_users": {
+    "title": "Ignored Users",
+    "description": "Ignored users will not be able to send you messages. You will not see their messages in rooms.",
+    "empty": "No ignored users.",
+    "add": "Ignore User",
+    "user_id_label": "User ID",
+    "user_id_placeholder": "@user:server.org",
+    "ignore": "Ignore",
+    "ignoring": "Ignoring...",
+    "success_ignored": "{{userId}} is now ignored.",
+    "success_unignored": "{{userId}} is no longer ignored.",
+    "error_invalid_id": "Invalid user ID. Must be in the format @user:server.",
+    "error_ignore": "Failed to ignore user.",
+    "error_unignore": "Failed to unignore user."
   }
 }

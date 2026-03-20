@@ -2,6 +2,9 @@ import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
 import { LogOut } from 'lucide-react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../../ui/button'
+import { ContactInfoSettings } from '../contact-info-settings'
+import { DeviceManagement } from '../device-management'
+import { IgnoredUsersSettings } from '../ignored-users-settings'
 
 function ConnectionStatusBadge() {
   const { t } = useTranslation()
@@ -69,6 +72,21 @@ export function AccountPanel() {
             </span>
           </div>
         )}
+      </div>
+
+      {/* Contact info */}
+      <div className="rounded-lg border border-border p-4">
+        <ContactInfoSettings />
+      </div>
+
+      {/* Device management */}
+      <div className="rounded-lg border border-border p-4">
+        <DeviceManagement />
+      </div>
+
+      {/* Ignored users */}
+      <div className="rounded-lg border border-border p-4">
+        <IgnoredUsersSettings />
       </div>
 
       {/* Logout */}
