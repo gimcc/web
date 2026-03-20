@@ -78,7 +78,6 @@ export {
 export {
   addThreePid,
   deleteDevice,
-  deleteDevices,
   deleteThreePid,
   getDevices,
   getIgnoredUsers,

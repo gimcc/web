@@ -10,6 +10,14 @@ import { Monitor, Pencil, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog'
 import { Input } from '../ui/input'
 
 function formatLastSeen(ts: number | null, t: (key: string) => string): string {
@@ -29,6 +37,15 @@ export function DeviceManagement() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editName, setEditName] = useState('')
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [uiaPassword, setUiaPassword] = useState('')
+  const [uiaSession, setUiaSession] = useState<string | null>(null)
+  const [showPasswordPrompt, setShowPasswordPrompt] = useState(false)
+
+  const setSuccessWithAutoClear = (msg: string) => {
+    setSuccess(msg)
+    setTimeout(() => setSuccess(null), 3000)
+  }
 
   const loadDevices = useCallback(async () => {
     const client = getMatrixClient()
@@ -58,7 +75,7 @@ export function DeviceManagement() {
     setError(null)
     try {
       await renameDevice(client, deviceId, editName.trim())
-      setSuccess(t('devices.success_renamed'))
+      setSuccessWithAutoClear(t('devices.success_renamed'))
       setEditingId(null)
       setEditName('')
       await loadDevices()
@@ -68,7 +85,7 @@ export function DeviceManagement() {
     }
   }
 
-  const handleDelete = async (deviceId: string) => {
+  const handleDelete = async (deviceId: string, password?: string, uiaSessionId?: string) => {
     const client = getMatrixClient()
     if (!client)
       return
@@ -76,16 +93,49 @@ export function DeviceManagement() {
     setError(null)
     setDeletingId(deviceId)
     try {
-      await deleteDevice(client, deviceId)
-      setSuccess(t('devices.success_deleted'))
+      const auth = password
+        ? {
+            type: 'm.login.password',
+            user: session?.userId,
+            password,
+            ...(uiaSessionId ? { session: uiaSessionId } : {}),
+          }
+        : undefined
+      await deleteDevice(client, deviceId, auth)
+      setSuccessWithAutoClear(t('devices.success_deleted'))
+      setShowPasswordPrompt(false)
+      setUiaPassword('')
+      setUiaSession(null)
+      setConfirmDeleteId(null)
       await loadDevices()
     }
-    catch {
-      setError(t('devices.error_delete'))
+    catch (err: unknown) {
+      const matrixErr = err as { httpStatus?: number, data?: { session?: string, errcode?: string } }
+      if (matrixErr.httpStatus === 401 || matrixErr.data?.errcode === 'M_UNAUTHORIZED') {
+        setUiaSession(matrixErr.data?.session ?? null)
+        setShowPasswordPrompt(true)
+        setConfirmDeleteId(deviceId)
+      }
+      else {
+        setError(t('devices.error_delete'))
+        setConfirmDeleteId(null)
+      }
     }
     finally {
       setDeletingId(null)
     }
+  }
+
+  const handleConfirmDelete = (deviceId: string) => {
+    setConfirmDeleteId(deviceId)
+    setError(null)
+  }
+
+  const handleCancelDelete = () => {
+    setConfirmDeleteId(null)
+    setShowPasswordPrompt(false)
+    setUiaPassword('')
+    setUiaSession(null)
   }
 
   const currentDeviceId = session?.deviceId
@@ -216,7 +266,7 @@ export function DeviceManagement() {
                                 variant="ghost"
                                 size="sm"
                                 disabled={deletingId === device.deviceId}
-                                onClick={() => handleDelete(device.deviceId)}
+                                onClick={() => handleConfirmDelete(device.deviceId)}
                               >
                                 <Trash2 className="h-3.5 w-3.5 text-destructive" />
                               </Button>
@@ -229,6 +279,57 @@ export function DeviceManagement() {
                 })}
               </div>
             )}
+
+      {/* Confirm delete dialog */}
+      <Dialog open={confirmDeleteId !== null && !showPasswordPrompt} onOpenChange={(open) => { if (!open) handleCancelDelete() }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t('devices.confirm_delete_title')}</DialogTitle>
+            <DialogDescription>{t('devices.confirm_delete_message')}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelDelete}>{t('common.cancel')}</Button>
+            <Button
+              variant="destructive"
+              disabled={deletingId !== null}
+              onClick={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+            >
+              {t('common.remove')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* UIA password prompt dialog */}
+      <Dialog open={showPasswordPrompt} onOpenChange={(open) => { if (!open) handleCancelDelete() }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t('devices.auth_required_title')}</DialogTitle>
+            <DialogDescription>{t('devices.auth_required_message')}</DialogDescription>
+          </DialogHeader>
+          <Input
+            type="password"
+            autoFocus
+            placeholder={t('devices.auth_password_placeholder')}
+            value={uiaPassword}
+            onChange={e => setUiaPassword(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && uiaPassword && confirmDeleteId)
+                handleDelete(confirmDeleteId, uiaPassword, uiaSession ?? undefined)
+            }}
+          />
+          <DialogFooter>
+            <Button variant="outline" onClick={handleCancelDelete}>{t('common.cancel')}</Button>
+            <Button
+              variant="destructive"
+              disabled={!uiaPassword || deletingId !== null}
+              onClick={() => confirmDeleteId && handleDelete(confirmDeleteId, uiaPassword, uiaSession ?? undefined)}
+            >
+              {t('common.remove')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

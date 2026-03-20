@@ -9,6 +9,14 @@ import { Ban, Plus, X } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog'
 import { Input } from '../ui/input'
 
 export function IgnoredUsersSettings() {
@@ -20,6 +28,12 @@ export function IgnoredUsersSettings() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [confirmUnignore, setConfirmUnignore] = useState<string | null>(null)
+
+  const setSuccessWithAutoClear = (msg: string) => {
+    setSuccess(msg)
+    setTimeout(() => setSuccess(null), 3000)
+  }
 
   const loadIgnoredUsers = useCallback(() => {
     const client = getMatrixClient()
@@ -50,7 +64,7 @@ export function IgnoredUsersSettings() {
     setIsSubmitting(true)
     try {
       await ignoreUser(client, trimmed)
-      setSuccess(t('ignored_users.success_ignored', { userId: trimmed }))
+      setSuccessWithAutoClear(t('ignored_users.success_ignored', { userId: trimmed }))
       setUserId('')
       setShowAddForm(false)
       loadIgnoredUsers()
@@ -69,9 +83,10 @@ export function IgnoredUsersSettings() {
       return
 
     setError(null)
+    setConfirmUnignore(null)
     try {
       await unignoreUser(client, uid)
-      setSuccess(t('ignored_users.success_unignored', { userId: uid }))
+      setSuccessWithAutoClear(t('ignored_users.success_unignored', { userId: uid }))
       loadIgnoredUsers()
     }
     catch {
@@ -116,7 +131,7 @@ export function IgnoredUsersSettings() {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => handleUnignore(uid)}
+                      onClick={() => setConfirmUnignore(uid)}
                     >
                       <X className="h-3.5 w-3.5 text-destructive" />
                     </Button>
@@ -173,6 +188,27 @@ export function IgnoredUsersSettings() {
               </div>
             </form>
           )}
+
+      {/* Confirm unignore dialog */}
+      <Dialog open={confirmUnignore !== null} onOpenChange={(open) => { if (!open) setConfirmUnignore(null) }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t('ignored_users.confirm_unignore_title')}</DialogTitle>
+            <DialogDescription>
+              {t('ignored_users.confirm_unignore_message', { userId: confirmUnignore })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmUnignore(null)}>{t('common.cancel')}</Button>
+            <Button
+              variant="destructive"
+              onClick={() => confirmUnignore && handleUnignore(confirmUnignore)}
+            >
+              {t('ignored_users.unignore')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

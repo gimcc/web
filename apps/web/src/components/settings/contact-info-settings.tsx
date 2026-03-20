@@ -12,9 +12,20 @@ import { Mail, Phone, Plus, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '../ui/dialog'
 import { Input } from '../ui/input'
 
 type AddMode = 'idle' | 'email' | 'phone' | 'verify'
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const COUNTRY_CODE_REGEX = /^\+\d{1,3}$/
 
 function generateClientSecret(): string {
   return `mw_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`
@@ -35,6 +46,12 @@ export function ContactInfoSettings() {
   const [pendingSid, setPendingSid] = useState<string | null>(null)
   const [pendingSecret, setPendingSecret] = useState<string | null>(null)
   const [pendingMedium, setPendingMedium] = useState<'email' | 'msisdn' | null>(null)
+  const [confirmDelete, setConfirmDelete] = useState<{ medium: string, address: string } | null>(null)
+
+  const setSuccessWithAutoClear = (msg: string) => {
+    setSuccess(msg)
+    setTimeout(() => setSuccess(null), 3000)
+  }
 
   const loadThreePids = useCallback(async () => {
     const client = getMatrixClient()
@@ -45,12 +62,12 @@ export function ContactInfoSettings() {
       setThreePids(pids)
     }
     catch {
-      // silently fail
+      setError(t('contact_info.error_load'))
     }
     finally {
       setLoading(false)
     }
-  }, [])
+  }, [t])
 
   useEffect(() => {
     loadThreePids()
@@ -73,6 +90,11 @@ export function ContactInfoSettings() {
     const client = getMatrixClient()
     if (!client || !email)
       return
+
+    if (!EMAIL_REGEX.test(email)) {
+      setError(t('contact_info.error_invalid_email'))
+      return
+    }
 
     setError(null)
     setIsSubmitting(true)
@@ -98,6 +120,11 @@ export function ContactInfoSettings() {
     const client = getMatrixClient()
     if (!client || !phoneNumber)
       return
+
+    if (!COUNTRY_CODE_REGEX.test(countryCode)) {
+      setError(t('contact_info.error_invalid_country_code'))
+      return
+    }
 
     setError(null)
     setIsSubmitting(true)
@@ -129,7 +156,7 @@ export function ContactInfoSettings() {
     setIsSubmitting(true)
     try {
       await addThreePid(client, pendingSecret, pendingSid)
-      setSuccess(t('contact_info.success_added'))
+      setSuccessWithAutoClear(t('contact_info.success_added'))
       resetForm()
       await loadThreePids()
     }
@@ -147,9 +174,10 @@ export function ContactInfoSettings() {
       return
 
     setError(null)
+    setConfirmDelete(null)
     try {
       await deleteThreePid(client, medium, address)
-      setSuccess(t('contact_info.success_removed'))
+      setSuccessWithAutoClear(t('contact_info.success_removed'))
       await loadThreePids()
     }
     catch {
@@ -198,7 +226,7 @@ export function ContactInfoSettings() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(pid.medium, pid.address)}
+                        onClick={() => setConfirmDelete({ medium: pid.medium, address: pid.address })}
                       >
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
@@ -220,7 +248,7 @@ export function ContactInfoSettings() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleDelete(pid.medium, pid.address)}
+                        onClick={() => setConfirmDelete({ medium: pid.medium, address: pid.address })}
                       >
                         <Trash2 className="h-3.5 w-3.5 text-destructive" />
                       </Button>
@@ -301,8 +329,14 @@ export function ContactInfoSettings() {
               <Input
                 className="w-20"
                 value={countryCode}
-                onChange={e => setCountryCode(e.target.value)}
+                onChange={(e) => {
+                  let val = e.target.value
+                  if (val && !val.startsWith('+'))
+                    val = `+${val}`
+                  setCountryCode(val)
+                }}
                 placeholder="+1"
+                maxLength={4}
               />
               <Input
                 id="add-phone"
@@ -340,6 +374,27 @@ export function ContactInfoSettings() {
           </div>
         </form>
       )}
+
+      {/* Confirm delete dialog */}
+      <Dialog open={confirmDelete !== null} onOpenChange={(open) => { if (!open) setConfirmDelete(null) }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>{t('contact_info.confirm_delete_title')}</DialogTitle>
+            <DialogDescription>
+              {t('contact_info.confirm_delete_message', { address: confirmDelete?.address })}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setConfirmDelete(null)}>{t('common.cancel')}</Button>
+            <Button
+              variant="destructive"
+              onClick={() => confirmDelete && handleDelete(confirmDelete.medium, confirmDelete.address)}
+            >
+              {t('common.remove')}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

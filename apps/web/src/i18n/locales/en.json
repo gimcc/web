@@ -430,7 +430,12 @@
     "success_removed": "Contact information removed.",
     "error_request_token": "Failed to send verification. Please check your input.",
     "error_verify": "Verification failed. Please try again.",
-    "error_remove": "Failed to remove contact information."
+    "error_remove": "Failed to remove contact information.",
+    "error_load": "Failed to load contact information.",
+    "error_invalid_email": "Please enter a valid email address.",
+    "error_invalid_country_code": "Invalid country code. Use format like +1 or +86.",
+    "confirm_delete_title": "Remove Contact",
+    "confirm_delete_message": "Are you sure you want to remove {{address}}?"
   },
   "devices": {
     "title": "Sessions",
@@ -444,7 +449,12 @@
     "error_rename": "Failed to rename session.",
     "error_delete": "Failed to remove session.",
     "success_renamed": "Session renamed.",
-    "success_deleted": "Session removed."
+    "success_deleted": "Session removed.",
+    "confirm_delete_title": "Remove Session",
+    "confirm_delete_message": "Are you sure you want to remove this session? The device will be signed out.",
+    "auth_required_title": "Authentication Required",
+    "auth_required_message": "Enter your account password to confirm this action.",
+    "auth_password_placeholder": "Account password"
   },
   "ignored_users": {
     "title": "Ignored Users",
@@ -459,6 +469,9 @@
     "success_unignored": "{{userId}} is no longer ignored.",
     "error_invalid_id": "Invalid user ID. Must be in the format @user:server.",
     "error_ignore": "Failed to ignore user.",
-    "error_unignore": "Failed to unignore user."
+    "error_unignore": "Failed to unignore user.",
+    "confirm_unignore_title": "Unignore User",
+    "confirm_unignore_message": "Are you sure you want to unignore {{userId}}? They will be able to send you messages again.",
+    "unignore": "Unignore"
   }
 }

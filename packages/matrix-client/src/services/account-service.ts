@@ -81,15 +81,9 @@ export async function getDevices(client: MatrixClient): Promise<DeviceInfo[]> {
 export async function deleteDevice(
   client: MatrixClient,
   deviceId: string,
+  auth?: { type: string, user?: string, password?: string, session?: string },
 ): Promise<void> {
-  await client.deleteDevice(deviceId)
-}
-
-export async function deleteDevices(
-  client: MatrixClient,
-  deviceIds: string[],
-): Promise<void> {
-  await client.deleteMultipleDevices(deviceIds)
+  await client.deleteDevice(deviceId, auth)
 }
 
 export async function renameDevice(
