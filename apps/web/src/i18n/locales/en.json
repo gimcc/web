@@ -279,7 +279,11 @@
     "language": "Language",
     "color_theme": "Color Theme",
     "import_theme": "Import",
-    "export_theme": "Export"
+    "export_theme": "Export",
+    "message_layout": "Message Layout",
+    "layout_bubble": "Bubble",
+    "layout_compact": "Compact",
+    "layout_modern": "Modern"
   },
   "about": {
     "title": "About",
@@ -408,5 +412,32 @@
   "pwa": {
     "update_available": "A new version is available",
     "reload": "Update"
+  },
+  "jump_to_date": {
+    "title": "Jump to Date",
+    "label": "Select a date"
+  },
+  "pdf_viewer": {
+    "click_to_view": "Click to view PDF",
+    "download": "Download PDF"
+  },
+  "image_editor": {
+    "title": "Edit Image",
+    "crop": "Crop",
+    "draw": "Draw",
+    "text": "Text",
+    "apply_crop": "Apply Crop",
+    "reset": "Reset",
+    "send": "Done",
+    "text_label": "Enter text",
+    "text_placeholder": "Type annotation text...",
+    "add_text": "Add"
+  },
+  "sync_status": {
+    "connecting": "Connecting...",
+    "reconnecting": "Reconnecting...",
+    "error": "Sync error",
+    "disconnected": "Disconnected",
+    "last_sync": "Last sync: {{time}}"
   }
 }

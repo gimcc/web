@@ -3,6 +3,7 @@ import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsS
 import { LogOut, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { JumpToDate } from '../../components/chat/jump-to-date'
 import { MessageSearch } from '../../components/chat/message-search'
 import { TypingIndicator } from '../../components/chat/typing-indicator'
 import { MemberListPanel } from '../../components/members/member-list-panel'
@@ -10,6 +11,7 @@ import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
 import { PinnedMessagesBar } from '../../components/pinned-messages-bar'
 import { RoomNotificationToggle } from '../../components/room-notification-toggle'
+import { SyncStatusIndicator } from '../../components/sync-status-indicator'
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
 import { ThreadPanel } from '../../components/thread-panel'
@@ -45,6 +47,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const [editingMessage, setEditingMessage] = useState<TimelineMessageItem | null>(null)
   const [replyingTo, setReplyingTo] = useState<TimelineMessageItem | null>(null)
   const [pinRefreshKey, setPinRefreshKey] = useState(0)
+  const [jumpToTimestamp, setJumpToTimestamp] = useState<number | null>(null)
 
   const handleEditMessage = useCallback((message: TimelineMessageItem) => {
     setEditingMessage(message)
@@ -68,6 +71,12 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
     setPinRefreshKey(k => k + 1)
   }, [])
 
+  const handleJumpToDate = useCallback((timestamp: number) => {
+    setJumpToTimestamp(timestamp)
+    // Reset so the same date can be selected again
+    setTimeout(() => setJumpToTimestamp(null), 100)
+  }, [])
+
   const handleLeaveRoom = useCallback(async () => {
     if (mockMode)
       return
@@ -85,17 +94,19 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
     <div className="flex h-full">
       <div className="flex min-w-0 flex-1 flex-col">
         {/* Room header */}
-        <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-          <h2 className="text-lg font-semibold text-foreground">
+        <div className="flex items-center gap-2 border-b border-border px-3 py-2 sm:gap-3 sm:px-4 sm:py-3">
+          <h2 className="truncate text-base font-semibold text-foreground sm:text-lg">
             {room?.name ?? roomId}
           </h2>
           {room?.topic && (
-            <span className="truncate text-sm text-muted-foreground">
+            <span className="hidden truncate text-sm text-muted-foreground sm:block">
               {room.topic}
             </span>
           )}
           <div className="ml-auto flex items-center gap-1">
+            <SyncStatusIndicator />
             {!mockMode && <RoomNotificationToggle roomId={roomId} />}
+            <JumpToDate onJumpToDate={handleJumpToDate} />
             <button
               type="button"
               onClick={() => {
@@ -149,6 +160,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
           onReplyMessage={handleReplyMessage}
           onThread={handleOpenThread}
           onPinChange={handlePinChange}
+          jumpToTimestamp={jumpToTimestamp}
         />
 
         {/* Typing indicator */}
@@ -167,18 +179,52 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
         <RoomSettingsDialog open={showSettings} roomId={roomId} onClose={() => setShowSettings(false)} />
       </div>
 
-      {/* Right panel: members or search */}
-      {showMembers && <MemberListPanel roomId={roomId} onClose={() => setShowMembers(false)} />}
-      {showSearch && <MessageSearch roomId={roomId} onClose={() => setShowSearch(false)} />}
+      {/* Right panel: members or search — overlay on mobile, inline on desktop */}
+      {showMembers && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setShowMembers(false)}
+            aria-label={t('common.close')}
+          />
+          <div className="fixed inset-y-0 right-0 z-50 w-80 max-w-full lg:static lg:z-auto">
+            <MemberListPanel roomId={roomId} onClose={() => setShowMembers(false)} />
+          </div>
+        </>
+      )}
+      {showSearch && (
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={() => setShowSearch(false)}
+            aria-label={t('common.close')}
+          />
+          <div className="fixed inset-y-0 right-0 z-50 w-80 max-w-full lg:static lg:z-auto">
+            <MessageSearch roomId={roomId} onClose={() => setShowSearch(false)} />
+          </div>
+        </>
+      )}
 
-      {/* Thread side panel */}
+      {/* Thread side panel — overlay on mobile */}
       {activeThreadId && (
-        <ThreadPanel
-          roomId={roomId}
-          threadRootId={activeThreadId}
-          onClose={handleCloseThread}
-          onReaction={() => {}}
-        />
+        <>
+          <button
+            type="button"
+            className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+            onClick={handleCloseThread}
+            aria-label={t('common.close')}
+          />
+          <div className="fixed inset-y-0 right-0 z-50 w-80 max-w-full lg:static lg:z-auto">
+            <ThreadPanel
+              roomId={roomId}
+              threadRootId={activeThreadId}
+              onClose={handleCloseThread}
+              onReaction={() => {}}
+            />
+          </div>
+        </>
       )}
     </div>
   )
