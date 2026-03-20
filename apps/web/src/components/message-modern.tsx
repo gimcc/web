@@ -67,7 +67,7 @@ export function MessageModern({
 
   if (message.redacted) {
     return (
-      <div className="px-4 py-1">
+      <div className="px-6 py-1">
         <p className="text-sm italic text-muted-foreground">{t('message.deleted')}</p>
       </div>
     )
@@ -93,7 +93,7 @@ export function MessageModern({
   return (
     <div
       className={cn(
-        'group relative flex gap-3 px-4 transition-colors hover:bg-accent/30',
+        'group relative flex gap-3 px-6 transition-colors hover:bg-accent/30',
         collapsed ? 'py-0.5' : 'py-2',
         highlighted && 'bg-primary/10',
       )}
@@ -146,7 +146,13 @@ export function MessageModern({
         {/* Meta line */}
         {(message.edited || (isSelf && message.status)) && (
           <div className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
-            {message.edited && <span>({t('message.edited')})</span>}
+            {message.edited && (
+              <span>
+                (
+                {t('message.edited')}
+                )
+              </span>
+            )}
             {isSelf && message.status === 'sending' && <Clock className="h-3 w-3" />}
             {isSelf && message.status === 'sent' && !hasReceipts && <Check className="h-3 w-3" />}
             {isSelf && message.status === 'sent' && hasReceipts && <CheckCheck className="h-3 w-3 text-blue-500" />}

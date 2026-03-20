@@ -66,7 +66,7 @@ export function MessageCompact({
 
   if (message.redacted) {
     return (
-      <div className="flex items-baseline gap-2 px-3 py-0.5 text-xs">
+      <div className="flex items-baseline gap-2 px-5 py-0.5 text-xs">
         <span className="w-12 shrink-0 text-right text-muted-foreground/60">{timeStr}</span>
         <span className="italic text-muted-foreground">{t('message.deleted')}</span>
       </div>
@@ -93,7 +93,7 @@ export function MessageCompact({
   return (
     <div
       className={cn(
-        'group relative flex items-start gap-2 px-3 py-0.5 transition-colors hover:bg-accent/30',
+        'group relative flex items-start gap-2 px-5 py-0.5 transition-colors hover:bg-accent/30',
         highlighted && 'bg-primary/10',
       )}
     >
@@ -120,7 +120,12 @@ export function MessageCompact({
             className="mb-0.5 flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             <span className="truncate">
-              &gt; {message.replyTo.senderName}: {message.replyTo.body || '...'}
+              &gt;
+              {' '}
+              {message.replyTo.senderName}
+              :
+              {' '}
+              {message.replyTo.body || '...'}
             </span>
           </button>
         )}
@@ -135,7 +140,11 @@ export function MessageCompact({
           {/* Status indicators */}
           <span className="inline-flex shrink-0 items-center gap-0.5">
             {message.edited && (
-              <span className="text-[10px] text-muted-foreground">({t('message.edited')})</span>
+              <span className="text-[10px] text-muted-foreground">
+                (
+                {t('message.edited')}
+                )
+              </span>
             )}
             {isSelf && message.status === 'sending' && <Clock className="h-3 w-3 text-muted-foreground/70" />}
             {isSelf && message.status === 'sent' && !hasReceipts && <Check className="h-3 w-3 text-muted-foreground/70" />}

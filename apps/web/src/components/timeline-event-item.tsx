@@ -52,7 +52,7 @@ export function MemberEventRow({ item }: { item: TimelineMemberItem }) {
   const time = new Date(item.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className="flex items-center gap-2 px-4 py-1 text-muted-foreground">
+    <div className="flex items-center gap-2 px-6 py-1 text-muted-foreground">
       <MemberEventIcon membership={item.membership} prevMembership={item.prevMembership} />
       <span className="text-xs">{description}</span>
       <span className="text-xs opacity-50">{time}</span>
@@ -64,7 +64,7 @@ export function StateEventRow({ item }: { item: TimelineStateItem }) {
   const time = new Date(item.timestamp).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
   return (
-    <div className="flex items-center gap-2 px-4 py-1 text-muted-foreground">
+    <div className="flex items-center gap-2 px-6 py-1 text-muted-foreground">
       <Shield className="h-3 w-3" />
       <span className="text-xs">{item.description}</span>
       <span className="text-xs opacity-50">{time}</span>

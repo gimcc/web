@@ -24,7 +24,7 @@ export function DayDivider({ label, timestamp }: { label: string, timestamp?: nu
   }, [label, timestamp, t])
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2">
+    <div className="flex items-center gap-3 px-6 py-2">
       <div className="h-px flex-1 bg-border" />
       <span className="text-xs font-medium text-muted-foreground">{localizedLabel}</span>
       <div className="h-px flex-1 bg-border" />
@@ -35,7 +35,7 @@ export function DayDivider({ label, timestamp }: { label: string, timestamp?: nu
 export function UnreadDivider() {
   const { t } = useTranslation()
   return (
-    <div className="flex items-center gap-3 px-4 py-2">
+    <div className="flex items-center gap-3 px-6 py-2">
       <div className="h-px flex-1 bg-destructive/50" />
       <span className="text-xs font-semibold text-destructive">{t('chat.new_messages', 'New Messages')}</span>
       <div className="h-px flex-1 bg-destructive/50" />

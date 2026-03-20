@@ -174,6 +174,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
       setIsLoadingHistory(true)
       loadRoomHistory(roomId).finally(() => setIsLoadingHistory(false))
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasMore, isLoadingHistory, mockMode, roomId, items])
 
   const scrollToBottom = useCallback(() => {
@@ -275,7 +276,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     <div className="relative flex-1 overflow-hidden">
       <div
         ref={parentRef}
-        className="h-full overflow-y-auto"
+        className="h-full overflow-y-auto py-2"
         onScroll={handleScroll}
       >
         {items.length === 0
