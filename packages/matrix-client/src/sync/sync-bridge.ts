@@ -1,12 +1,13 @@
 import type { MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
-import { ClientEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
+import { ClientEvent, MatrixEventEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
-import { matrixEventToTimelineMessage } from '../services/message-service'
 import { syncRoomReceipts } from '../services/receipt-service'
 import { handleThreadEvent } from '../services/thread-service'
-import { useMessagesStore } from '../stores/messages-store'
 import { useRoomsStore } from '../stores/rooms-store'
+import { useTimelineStore } from '../stores/timeline-store'
 import { useThreadsStore } from '../stores/threads-store'
+import { matrixEventToTimelineMessage } from '../services/message-service'
+import { roomHasMoreHistory } from '../timeline/reader'
 
 export type QueryInvalidationCallback = (event: string, roomId?: string) => void
 
@@ -14,113 +15,123 @@ export function createSyncBridge(
   client: MatrixClient,
   onQueryInvalidation?: QueryInvalidationCallback,
 ): () => void {
-  // Sync initial room list when sync is prepared
+  const timelineStore = useTimelineStore.getState
+
+  // -----------------------------------------------------------------------
+  // Sync state
+  // -----------------------------------------------------------------------
   function onSync(state: string): void {
     if (state === 'PREPARED') {
       syncRoomList(client)
-      // Sync read receipts for all joined rooms
       const rooms = client.getRooms()
       for (const room of rooms) {
         syncRoomReceipts(room)
       }
+
+      // Set hasMore for the active room now that SDK has timeline data
+      const activeRoomId = useRoomsStore.getState().activeRoomId
+      if (activeRoomId) {
+        const hasMore = roomHasMoreHistory(client, activeRoomId)
+        timelineStore().setHasMore(activeRoomId, hasMore)
+        timelineStore().bumpVersion(activeRoomId)
+      }
+
       onQueryInvalidation?.('sync.prepared')
     }
   }
 
-  // Room timeline events (new messages)
-  function onTimeline(event: MatrixEvent, room: Room | undefined): void {
-    if (!room)
-      return
-    updateRoomFromEvent(client, room)
+  // -----------------------------------------------------------------------
+  // Timeline events — the core message processing
+  // -----------------------------------------------------------------------
+  function processTimelineEvent(event: MatrixEvent, room: Room): void {
+    const type = event.getType()
+    const roomId = room.roomId
 
-    // Append message to messages store if it's a room message
-    if (event.getType() === 'm.room.message') {
+    // Handle thread messages → route to threads store
+    if (type === 'm.room.message') {
       const content = event.getContent()
       const relatesTo = content['m.relates_to']
 
-      // Handle message edit (m.replace)
-      if (relatesTo?.rel_type === 'm.replace' && relatesTo.event_id) {
-        const newContent = content['m.new_content']
-        if (newContent) {
-          useMessagesStore.getState().updateMessage(room.roomId, relatesTo.event_id, {
-            body: newContent.body ?? '',
-            formattedBody: newContent.formatted_body,
-            edited: true,
-            editedAt: event.getTs(),
-          })
-        }
-      }
-      // Handle thread messages
-      else if (relatesTo?.rel_type === 'm.thread' && relatesTo.event_id) {
+      if (relatesTo?.rel_type === 'm.thread' && relatesTo.event_id) {
         const threadRootId = relatesTo.event_id as string
         const message = matrixEventToTimelineMessage(event, client)
         message.threadRootId = threadRootId
         const existing = useThreadsStore.getState().threads.get(threadRootId)
         const isEcho = existing?.some(m => m.eventId === message.eventId)
         useThreadsStore.getState().appendThreadMessage(threadRootId, message)
-        // Only increment reply count if this is a genuinely new message (not an echo of our optimistic send)
         if (!isEcho) {
-          handleThreadEvent(room.roomId, threadRootId)
+          handleThreadEvent(roomId, threadRootId)
         }
+        // Still bump version so thread reply count is visible in main timeline
+        timelineStore().bumpVersion(roomId)
+        return
       }
-      else {
-        // Skip server echo of our own sent messages — the optimistic update
-        // already added it and confirmMessage() will reconcile the event ID.
-        const sender = event.getSender()
-        const myUserId = client.getUserId()
-        if (sender === myUserId) {
-          const store = useMessagesStore.getState()
-          const timeline = store.getTimeline(room.roomId)
-          const eventId = event.getId()
-          const hasPending = timeline.some(
-            m => m.eventId === eventId || (m.status === 'sending' && m.senderId === myUserId),
-          )
-          if (hasPending) {
-            return
-          }
-        }
 
-        const message = matrixEventToTimelineMessage(event, client)
-        useMessagesStore.getState().appendMessages(room.roomId, [message])
-      }
-    }
+      // Confirm optimistic message if this is our own event
+      const sender = event.getSender()
+      const myUserId = client.getUserId()
+      const eventId = event.getId()
+      if (sender === myUserId && eventId) {
+        const optimistic = timelineStore().optimistic.get(roomId) ?? []
+        const echoBody = content.body ?? ''
 
-    // Handle reaction events
-    if (event.getType() === 'm.reaction' && !event.isRedacted()) {
-      const content = event.getContent()
-      const relatesTo = content['m.relates_to']
-      if (relatesTo?.rel_type === 'm.annotation' && relatesTo.event_id && relatesTo.key) {
-        const senderId = event.getSender() ?? ''
-        const reactionEventId = event.getId() ?? ''
-        useMessagesStore.getState().addReaction(
-          room.roomId,
-          relatesTo.event_id,
-          relatesTo.key,
-          senderId,
-          reactionEventId,
+        // Match by body content first (handles out-of-order echoes), fallback to FIFO
+        const pending = optimistic.find(
+          m => m.eventId.startsWith('~') && m.senderId === myUserId && m.status === 'sending' && m.body === echoBody,
+        ) ?? optimistic.find(
+          m => m.eventId.startsWith('~') && m.senderId === myUserId && m.status === 'sending',
         )
+        if (pending) {
+          timelineStore().confirmOptimistic(roomId, pending.eventId, eventId)
+          return // confirmOptimistic already bumps version
+        }
       }
     }
 
-    // Handle redaction events (remove reactions + mark messages as redacted)
-    if (event.getType() === 'm.room.redaction') {
-      const redactedId = event.getAssociatedId()
-      if (redactedId) {
-        useMessagesStore.getState().removeReactionByEventId(room.roomId, redactedId)
-        useMessagesStore.getState().redactMessage(room.roomId, redactedId)
-      }
-    }
-
-    onQueryInvalidation?.('room.timeline', room.roomId)
+    // For all other events (messages from others, reactions, redactions,
+    // member events, state events, stickers, etc.) — just bump version.
+    // The reader will pick them up from SDK on next render.
+    timelineStore().bumpVersion(roomId)
   }
 
-  // Room name changes
+  function onTimeline(event: MatrixEvent, room: Room | undefined, toStartOfTimeline: boolean | undefined): void {
+    if (!room) return
+
+    // Ignore historical events from pagination/scrollback
+    if (toStartOfTimeline) return
+
+    updateRoomFromEvent(client, room)
+
+    const type = event.getType()
+
+    // Encrypted events: wait for decryption to complete
+    if (type === 'm.room.encrypted') {
+      event.once(MatrixEventEvent.Decrypted, () => {
+        processTimelineEvent(event, room)
+      })
+      return
+    }
+
+    processTimelineEvent(event, room)
+  }
+
+  // -----------------------------------------------------------------------
+  // Timeline refresh — SDK resets timeline (sync gaps, limited timeline)
+  // -----------------------------------------------------------------------
+  function onTimelineRefresh(room: Room): void {
+    const hasMore = roomHasMoreHistory(client, room.roomId)
+    timelineStore().setHasMore(room.roomId, hasMore)
+    timelineStore().bumpVersion(room.roomId)
+  }
+
+  // -----------------------------------------------------------------------
+  // Room metadata events
+  // -----------------------------------------------------------------------
   function onRoomName(room: Room): void {
     updateRoomFromEvent(client, room)
     onQueryInvalidation?.('room.name', room.roomId)
   }
 
-  // Room membership changes
   function onMembership(_event: MatrixEvent, member: RoomMember): void {
     const room = client.getRoom(member.roomId)
     if (room) {
@@ -129,20 +140,17 @@ export function createSyncBridge(
     }
   }
 
-  // Room receipt (read markers)
   function onReceipt(_event: MatrixEvent, room: Room): void {
     updateRoomUnread(room)
     syncRoomReceipts(room)
     onQueryInvalidation?.('room.receipt', room.roomId)
   }
 
-  // Room added
   function onRoom(): void {
     syncRoomList(client)
     onQueryInvalidation?.('room.list')
   }
 
-  // My membership changes (join/invite/leave)
   function onMyMembership(room: Room, membership: string): void {
     if (membership === 'leave' || membership === 'ban') {
       useRoomsStore.getState().removeRoom(room.roomId)
@@ -158,8 +166,12 @@ export function createSyncBridge(
     }
   }
 
+  // -----------------------------------------------------------------------
+  // Register all listeners
+  // -----------------------------------------------------------------------
   client.on(ClientEvent.Sync, onSync)
   client.on(RoomEvent.Timeline, onTimeline)
+  client.on(RoomEvent.TimelineRefresh as any, onTimelineRefresh)
   client.on(RoomEvent.Name, onRoomName)
   client.on(RoomMemberEvent.Membership, onMembership)
   client.on(RoomEvent.Receipt, onReceipt)
@@ -169,6 +181,7 @@ export function createSyncBridge(
   return () => {
     client.removeListener(ClientEvent.Sync, onSync)
     client.removeListener(RoomEvent.Timeline, onTimeline)
+    client.removeListener(RoomEvent.TimelineRefresh as any, onTimelineRefresh)
     client.removeListener(RoomEvent.Name, onRoomName)
     client.removeListener(RoomMemberEvent.Membership, onMembership)
     client.removeListener(RoomEvent.Receipt, onReceipt)

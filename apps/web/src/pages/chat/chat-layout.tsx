@@ -1,4 +1,4 @@
-import type { TimelineMessage } from '@matrix-web/matrix-client'
+import type { TimelineMessage, TimelineMessageItem } from '@matrix-web/matrix-client'
 import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
 import { LogOut, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
@@ -42,16 +42,16 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const [showMembers, setShowMembers] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
   const [showSettings, setShowSettings] = useState(false)
-  const [editingMessage, setEditingMessage] = useState<TimelineMessage | null>(null)
-  const [replyingTo, setReplyingTo] = useState<TimelineMessage | null>(null)
+  const [editingMessage, setEditingMessage] = useState<TimelineMessageItem | null>(null)
+  const [replyingTo, setReplyingTo] = useState<TimelineMessageItem | null>(null)
   const [pinRefreshKey, setPinRefreshKey] = useState(0)
 
-  const handleEditMessage = useCallback((message: TimelineMessage) => {
+  const handleEditMessage = useCallback((message: TimelineMessageItem) => {
     setEditingMessage(message)
     setReplyingTo(null)
   }, [])
 
-  const handleReplyMessage = useCallback((message: TimelineMessage) => {
+  const handleReplyMessage = useCallback((message: TimelineMessageItem) => {
     setReplyingTo(message)
     setEditingMessage(null)
   }, [])

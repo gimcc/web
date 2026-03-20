@@ -1,4 +1,4 @@
-import type { RoomMemberInfo, TimelineMessage } from '@matrix-web/matrix-client'
+import type { RoomMemberInfo, TimelineMessage, TimelineMessageItem } from '@matrix-web/matrix-client'
 import type { CommandDefinition } from '../lib/commands'
 import type { PendingUpload } from './upload-preview'
 import {
@@ -27,8 +27,8 @@ import { VoiceRecorder } from './voice-recorder'
 
 interface MessageInputProps {
   roomId: string
-  editingMessage?: TimelineMessage | null
-  replyingTo?: TimelineMessage | null
+  editingMessage?: TimelineMessageItem | null
+  replyingTo?: TimelineMessageItem | null
   onCancelEdit?: () => void
   onCancelReply?: () => void
 }

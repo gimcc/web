@@ -1,4 +1,4 @@
-import type { TimelineMessage } from '@matrix-web/matrix-client'
+import type { TimelineMessage, TimelineMessageItem } from '@matrix-web/matrix-client'
 import {
   loadThreadTimeline,
   sendThreadMessage,
@@ -82,13 +82,24 @@ export function ThreadPanel({ roomId, threadRootId, onClose, onReaction }: Threa
 
       {/* Thread messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto">
-        {messages.map(msg => (
-          <MessageBubble
-            key={msg.eventId}
-            message={msg}
-            onReaction={onReaction}
-          />
-        ))}
+        {messages.map((msg): React.JSX.Element => {
+          const item: TimelineMessageItem = {
+            ...msg,
+            kind: 'message',
+            key: msg.eventId,
+            collapsed: false,
+            reactions: msg.reactions ?? [],
+            edited: msg.edited ?? false,
+            redacted: msg.redacted ?? false,
+          }
+          return (
+            <MessageBubble
+              key={msg.eventId}
+              message={item}
+              onReaction={onReaction}
+            />
+          )
+        })}
         {messages.length === 0 && (
           <div className="flex items-center justify-center py-8">
             <p className="text-xs text-muted-foreground">{t('chat.thread_empty')}</p>

@@ -10,6 +10,7 @@ import { useConnectionStore } from '../stores/connection-store'
 import { useCryptoStore } from '../stores/crypto-store'
 import { usePresenceStore } from '../stores/presence-store'
 import { useRoomsStore } from '../stores/rooms-store'
+import { useTimelineStore } from '../stores/timeline-store'
 import { useTypingStore } from '../stores/typing-store'
 import { createCryptoBridge } from '../sync/crypto-bridge'
 import { createPresenceBridge } from '../sync/presence-bridge'
@@ -174,6 +175,7 @@ export async function stopMatrixClient(): Promise<void> {
   useConnectionStore.getState().reset()
   useCryptoStore.getState().reset()
   useRoomsStore.getState().reset()
+  useTimelineStore.getState().reset()
   useTypingStore.getState().reset()
   usePresenceStore.getState().reset()
 }

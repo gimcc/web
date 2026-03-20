@@ -1,7 +1,7 @@
 import type { TimelineMessage } from '../stores/messages-store'
 import { EventType } from 'matrix-js-sdk'
 import { getMatrixClient } from '../client/client-manager'
-import { useMessagesStore } from '../stores/messages-store'
+import { useTimelineStore } from '../stores/timeline-store'
 import { useThreadsStore } from '../stores/threads-store'
 import { matrixEventToTimelineMessage } from './message-service'
 
@@ -18,8 +18,7 @@ export async function sendThreadMessage(
   options?: { formattedBody?: string },
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client)
-    throw new Error('Matrix client not initialized')
+  if (!client) throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
   const room = client.getRoom(roomId)
@@ -53,15 +52,12 @@ export async function sendThreadMessage(
         'rel_type': 'm.thread',
         'event_id': threadRootId,
         'is_falling_back': true,
-        'm.in_reply_to': {
-          event_id: threadRootId,
-        },
+        'm.in_reply_to': { event_id: threadRootId },
       },
     }
 
     const response = await client.sendEvent(roomId, EventType.RoomMessage, content as any)
 
-    // Update optimistic message with confirmed event ID
     const threads = new Map(useThreadsStore.getState().threads)
     const threadMessages = threads.get(threadRootId)
     if (threadMessages) {
@@ -76,11 +72,10 @@ export async function sendThreadMessage(
       useThreadsStore.getState().setThreadMessages(threadRootId, threads.get(threadRootId)!)
     }
 
-    // Increment reply count on the root message in main timeline
-    updateThreadReplyCount(roomId, threadRootId, 1)
+    // Bump version so thread reply count is reflected in main timeline
+    useTimelineStore.getState().bumpVersion(roomId)
   }
   catch {
-    // Mark as failed
     const threads = new Map(useThreadsStore.getState().threads)
     const threadMessages = threads.get(threadRootId)
     if (threadMessages) {
@@ -96,29 +91,25 @@ export async function sendThreadMessage(
 
 export function loadThreadTimeline(roomId: string, threadRootId: string): void {
   const client = getMatrixClient()
-  if (!client)
-    return
+  if (!client) return
 
   const room = client.getRoom(roomId)
-  if (!room)
-    return
+  if (!room) return
 
-  // Get the root message from main timeline
-  const rootMessage = useMessagesStore.getState().getTimeline(roomId).find(m => m.eventId === threadRootId)
-
-  // Find thread replies from the room timeline events
+  // Find root message from SDK timeline
   const events = room.getLiveTimeline().getEvents()
+  const rootEvent = events.find(e => e.getId() === threadRootId)
   const threadMessages: TimelineMessage[] = []
 
-  // Add root message first
-  if (rootMessage) {
-    threadMessages.push({ ...rootMessage, isThreadRoot: true })
+  if (rootEvent) {
+    const rootMsg = matrixEventToTimelineMessage(rootEvent, client)
+    rootMsg.isThreadRoot = true
+    threadMessages.push(rootMsg)
   }
 
-  // Gather replies that are part of this thread
+  // Gather thread replies
   for (const event of events) {
-    if (event.getType() !== 'm.room.message')
-      continue
+    if (event.getType() !== 'm.room.message') continue
     const content = event.getContent()
     const relatesTo = content['m.relates_to']
     if (relatesTo?.rel_type === 'm.thread' && relatesTo.event_id === threadRootId) {
@@ -128,26 +119,16 @@ export function loadThreadTimeline(roomId: string, threadRootId: string): void {
     }
   }
 
-  // Sort by timestamp
   threadMessages.sort((a, b) => a.timestamp - b.timestamp)
-
   useThreadsStore.getState().setThreadMessages(threadRootId, threadMessages)
 }
 
-function updateThreadReplyCount(roomId: string, threadRootId: string, delta: number): void {
-  const store = useMessagesStore.getState()
-  const timeline = store.getTimeline(roomId)
-  const rootIdx = timeline.findIndex(m => m.eventId === threadRootId)
-  if (rootIdx === -1)
-    return
-
-  const root = timeline[rootIdx]!
-  const updated = { ...root, threadReplyCount: (root.threadReplyCount ?? 0) + delta, isThreadRoot: true }
-  const newTimeline = [...timeline]
-  newTimeline[rootIdx] = updated
-  store.setTimeline(roomId, newTimeline, store.hasMore.get(roomId) ?? false)
-}
-
-export function handleThreadEvent(roomId: string, threadRootId: string): void {
-  updateThreadReplyCount(roomId, threadRootId, 1)
+/**
+ * Called by sync-bridge when a thread reply arrives via sync.
+ * Bumps version so thread reply count is visible in main timeline.
+ */
+export function handleThreadEvent(roomId: string, _threadRootId: string): void {
+  // Thread reply count is now computed by the reader from SDK Relations,
+  // so we just bump version to trigger a re-read.
+  useTimelineStore.getState().bumpVersion(roomId)
 }

@@ -1,46 +1,41 @@
-import type { ReceiptInfo, TimelineMessage } from '@matrix-web/matrix-client'
+import type { ReceiptInfo, TimelineItem, TimelineMessageItem } from '@matrix-web/matrix-client'
 import {
   deleteMessage,
   getPinnedEventIds,
   loadInitialTimeline,
   loadMockTimeline,
   loadRoomHistory,
-  pinMessage,
   resendMessage,
   sendReadReceipt,
   toggleMockReaction,
   toggleReaction,
-  unpinMessage,
   useAuthStore,
-  useMessagesStore,
   useReceiptsStore,
 } from '@matrix-web/matrix-client'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useRoomTimeline } from '../hooks/use-room-timeline'
 import { MessageBubble } from './message-bubble'
+import { DayDivider, UnreadDivider } from './timeline-divider'
+import { MemberEventRow, StateEventRow } from './timeline-event-item'
 
-const EMPTY_TIMELINE: TimelineMessage[] = []
 const EMPTY_RECEIPTS = new Map<string, ReceiptInfo[]>()
 
 interface MessageTimelineProps {
   roomId: string
-  onEditMessage?: (message: TimelineMessage) => void
-  onReplyMessage?: (message: TimelineMessage) => void
+  onEditMessage?: (message: TimelineMessageItem) => void
+  onReplyMessage?: (message: TimelineMessageItem) => void
   onThread?: (eventId: string) => void
   onPinChange?: () => void
 }
 
 export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread, onPinChange }: MessageTimelineProps) {
   const { t } = useTranslation()
-  // Subscribe to the Map reference directly so any appendMessages/setTimeline
-  // update (which creates a new Map) reliably triggers a re-render.
-  const timelines = useMessagesStore(s => s.timelines)
-  const hasMoreMap = useMessagesStore(s => s.hasMore)
-  const messages = timelines.get(roomId) ?? EMPTY_TIMELINE
-  const hasMore = hasMoreMap.get(roomId) ?? false
   const mockMode = useAuthStore(s => s.mockMode)
+  const { items, hasMore } = useRoomTimeline(roomId)
+
   const roomReceipts = useReceiptsStore(s => s.receipts.get(roomId))
   const receiptsByEvent = useMemo(() => {
     if (!roomReceipts)
@@ -62,13 +57,15 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
   const parentRef = useRef<HTMLDivElement>(null)
   const [showScrollButton, setShowScrollButton] = useState(false)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
-  const prevMessageCountRef = useRef(0)
+  const prevItemCountRef = useRef(0)
   const isAtBottomRef = useRef(true)
 
-  // Reload pinned IDs on room change
+  // Reload pinned IDs and reset scroll state on room change
   const prevRoomRef = useRef(roomId)
   if (prevRoomRef.current !== roomId) {
     prevRoomRef.current = roomId
+    prevItemCountRef.current = 0
+    isAtBottomRef.current = true
     setPinnedIds(mockMode ? new Set() : new Set(getPinnedEventIds(roomId)))
   }
 
@@ -83,39 +80,37 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
   }, [roomId, mockMode])
 
   const virtualizer = useVirtualizer({
-    count: messages.length,
+    count: items.length,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 52,
     overscan: 10,
   })
 
-  // Auto-scroll to bottom when new messages arrive (if user is near bottom)
+  // Auto-scroll to bottom when new items arrive (if user is near bottom)
   useLayoutEffect(() => {
-    if (messages.length > prevMessageCountRef.current && isAtBottomRef.current) {
-      virtualizer.scrollToIndex(messages.length - 1, { align: 'end' })
+    if (items.length === 0)
+      return
+    if (items.length > prevItemCountRef.current && isAtBottomRef.current) {
+      virtualizer.scrollToIndex(items.length - 1, { align: 'end' })
     }
-    prevMessageCountRef.current = messages.length
-  }, [messages.length, virtualizer])
+    prevItemCountRef.current = items.length
+  }, [items.length, virtualizer])
 
   // Send read receipt when at bottom and new messages arrive
   useEffect(() => {
-    if (mockMode || messages.length === 0 || !isAtBottomRef.current)
+    if (mockMode || items.length === 0 || !isAtBottomRef.current)
       return
-    const lastMessage = messages.at(-1)!
-    if (lastMessage.eventId.startsWith('~') || lastMessage.eventId === lastSentReceiptRef.current)
-      return
-    lastSentReceiptRef.current = lastMessage.eventId
-    void sendReadReceipt(roomId, lastMessage.eventId)
-  }, [messages, roomId, mockMode])
-
-  // Scroll to bottom on first load
-  useEffect(() => {
-    if (messages.length > 0) {
-      virtualizer.scrollToIndex(messages.length - 1, { align: 'end' })
+    // Find the last message item for receipt
+    for (let i = items.length - 1; i >= 0; i--) {
+      const item = items[i]!
+      if (item.kind === 'message' && !item.eventId.startsWith('~')) {
+        if (item.eventId === lastSentReceiptRef.current) break
+        lastSentReceiptRef.current = item.eventId
+        void sendReadReceipt(roomId, item.eventId)
+        break
+      }
     }
-  // Only on mount / room change
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [roomId])
+  }, [items, roomId, mockMode])
 
   // Track scroll position for auto-scroll and show/hide button
   const handleScroll = useCallback(() => {
@@ -126,14 +121,19 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     const distanceFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight
     const isNearBottom = distanceFromBottom < 100
     isAtBottomRef.current = isNearBottom
-    setShowScrollButton(!isNearBottom && messages.length > 0)
+    setShowScrollButton(!isNearBottom && items.length > 0)
 
     // Send read receipt when scrolling to bottom
-    if (isNearBottom && !mockMode && messages.length > 0) {
-      const lastMessage = messages.at(-1)!
-      if (!lastMessage.eventId.startsWith('~') && lastMessage.eventId !== lastSentReceiptRef.current) {
-        lastSentReceiptRef.current = lastMessage.eventId
-        void sendReadReceipt(roomId, lastMessage.eventId)
+    if (isNearBottom && !mockMode && items.length > 0) {
+      for (let i = items.length - 1; i >= 0; i--) {
+        const item = items[i]!
+        if (item.kind === 'message' && !item.eventId.startsWith('~')) {
+          if (item.eventId !== lastSentReceiptRef.current) {
+            lastSentReceiptRef.current = item.eventId
+            void sendReadReceipt(roomId, item.eventId)
+          }
+          break
+        }
       }
     }
 
@@ -142,11 +142,11 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
       setIsLoadingHistory(true)
       loadRoomHistory(roomId).finally(() => setIsLoadingHistory(false))
     }
-  }, [hasMore, isLoadingHistory, mockMode, roomId, messages])
+  }, [hasMore, isLoadingHistory, mockMode, roomId, items])
 
   const scrollToBottom = useCallback(() => {
-    virtualizer.scrollToIndex(messages.length - 1, { align: 'end' })
-  }, [virtualizer, messages.length])
+    virtualizer.scrollToIndex(items.length - 1, { align: 'end' })
+  }, [virtualizer, items.length])
 
   const handleResend = useCallback((eventId: string) => {
     void resendMessage(roomId, eventId)
@@ -163,18 +163,15 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
 
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
-  const handleDelete = useCallback((message: TimelineMessage) => {
+  const handleDelete = useCallback((message: TimelineMessageItem) => {
     if (mockMode)
       return
     if (pendingDelete === message.eventId) {
-      // Second click confirms
       void deleteMessage(roomId, message.eventId)
       setPendingDelete(null)
     }
     else {
-      // First click sets pending
       setPendingDelete(message.eventId)
-      // Auto-clear after 3 seconds
       setTimeout(setPendingDelete, 3000, null)
     }
   }, [roomId, mockMode, pendingDelete])
@@ -183,6 +180,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     if (mockMode)
       return
     try {
+      const { pinMessage, unpinMessage } = await import('@matrix-web/matrix-client')
       if (pinnedIds.has(eventId)) {
         await unpinMessage(roomId, eventId)
         setPinnedIds(prev => new Set([...prev].filter(id => id !== eventId)))
@@ -196,14 +194,6 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
     catch { /* ignore */ }
   }, [roomId, mockMode, pinnedIds, onPinChange])
 
-  if (messages.length === 0) {
-    return (
-      <div className="flex flex-1 items-center justify-center">
-        <p className="text-sm text-muted-foreground">{t('chat.empty_timeline')}</p>
-      </div>
-    )
-  }
-
   return (
     <div className="relative flex-1 overflow-hidden">
       <div
@@ -211,42 +201,51 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
         className="h-full overflow-y-auto"
         onScroll={handleScroll}
       >
-        <div
-          className="relative w-full"
-          style={{ height: virtualizer.getTotalSize() }}
-        >
-          {isLoadingHistory && (
-            <div className="flex justify-center py-2">
-              <span className="text-xs text-muted-foreground">{t('chat.loading_history')}</span>
-            </div>
-          )}
-
-          {virtualizer.getVirtualItems().map((virtualItem) => {
-            const message = messages[virtualItem.index]!
-            return (
-              <div
-                key={virtualItem.key}
-                data-index={virtualItem.index}
-                ref={virtualizer.measureElement}
-                className="absolute left-0 top-0 w-full"
-                style={{ transform: `translateY(${virtualItem.start}px)` }}
-              >
-                <MessageBubble
-                  message={message}
-                  receipts={receiptsByEvent.get(message.eventId)}
-                  isPinned={pinnedIds.has(message.eventId)}
-                  onResend={handleResend}
-                  onReaction={handleReaction}
-                  onEdit={onEditMessage}
-                  onDelete={handleDelete}
-                  onReply={onReplyMessage}
-                  onPin={mockMode ? undefined : handlePin}
-                  onThread={onThread}
-                />
+        {items.length === 0
+          ? (
+              <div className="flex h-full items-center justify-center">
+                <p className="text-sm text-muted-foreground">{t('chat.empty_timeline')}</p>
               </div>
             )
-          })}
-        </div>
+          : (
+              <div
+                className="relative w-full"
+                style={{ height: virtualizer.getTotalSize() }}
+              >
+                {isLoadingHistory && (
+                  <div className="flex justify-center py-2">
+                    <span className="text-xs text-muted-foreground">{t('chat.loading_history')}</span>
+                  </div>
+                )}
+
+                {virtualizer.getVirtualItems().map((virtualItem) => {
+                  const item = items[virtualItem.index]!
+                  return (
+                    <div
+                      key={virtualItem.key}
+                      data-index={virtualItem.index}
+                      ref={virtualizer.measureElement}
+                      className="absolute left-0 top-0 w-full"
+                      style={{ transform: `translateY(${virtualItem.start}px)` }}
+                    >
+                      <TimelineRow
+                        item={item}
+                        receiptsByEvent={receiptsByEvent}
+                        pinnedIds={pinnedIds}
+                        mockMode={mockMode}
+                        onResend={handleResend}
+                        onReaction={handleReaction}
+                        onEdit={onEditMessage}
+                        onDelete={handleDelete}
+                        onReply={onReplyMessage}
+                        onPin={handlePin}
+                        onThread={onThread}
+                      />
+                    </div>
+                  )
+                })}
+              </div>
+            )}
       </div>
 
       {/* Scroll to bottom button */}
@@ -262,4 +261,63 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
       )}
     </div>
   )
+}
+
+// ---------------------------------------------------------------------------
+// TimelineRow — renders a single TimelineItem based on its `kind`
+// ---------------------------------------------------------------------------
+
+interface TimelineRowProps {
+  item: TimelineItem
+  receiptsByEvent: Map<string, ReceiptInfo[]>
+  pinnedIds: Set<string>
+  mockMode: boolean
+  onResend: (eventId: string) => void
+  onReaction: (eventId: string, emoji: string) => void
+  onEdit?: (message: TimelineMessageItem) => void
+  onDelete: (message: TimelineMessageItem) => void
+  onReply?: (message: TimelineMessageItem) => void
+  onPin: (eventId: string) => void
+  onThread?: (eventId: string) => void
+}
+
+function TimelineRow({
+  item,
+  receiptsByEvent,
+  pinnedIds,
+  mockMode,
+  onResend,
+  onReaction,
+  onEdit,
+  onDelete,
+  onReply,
+  onPin,
+  onThread,
+}: TimelineRowProps) {
+  switch (item.kind) {
+    case 'day-divider':
+      return <DayDivider label={item.label} timestamp={item.timestamp} />
+    case 'unread-divider':
+      return <UnreadDivider />
+    case 'member-event':
+      return <MemberEventRow item={item} />
+    case 'state-event':
+      return <StateEventRow item={item} />
+    case 'message':
+      return (
+        <MessageBubble
+          message={item}
+          collapsed={item.collapsed}
+          receipts={receiptsByEvent.get(item.eventId)}
+          isPinned={pinnedIds.has(item.eventId)}
+          onResend={onResend}
+          onReaction={onReaction}
+          onEdit={onEdit}
+          onDelete={onDelete}
+          onReply={onReply}
+          onPin={mockMode ? undefined : onPin}
+          onThread={onThread}
+        />
+      )
+  }
 }

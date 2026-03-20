@@ -1,5 +1,5 @@
 import { getMatrixClient } from '../client/client-manager'
-import { useMessagesStore } from '../stores/messages-store'
+import { useTimelineStore } from '../stores/timeline-store'
 
 /** Track in-flight toggles to prevent double-tap races */
 const inflight = new Set<string>()
@@ -14,13 +14,16 @@ export async function sendReaction(
   emoji: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client)
-    throw new Error('Matrix client not initialized')
+  if (!client) throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
 
   // Optimistically add the reaction
-  useMessagesStore.getState().addReaction(roomId, targetEventId, emoji, userId)
+  useTimelineStore.getState().addOptimisticReaction(roomId, {
+    targetEventId,
+    emoji,
+    senderId: userId,
+  })
 
   try {
     const response = await client.sendEvent(roomId, 'm.reaction' as any, {
@@ -31,18 +34,14 @@ export async function sendReaction(
       },
     })
 
-    // Update the stored reaction event ID for future redaction
-    useMessagesStore.getState().updateReactionEventId(
-      roomId,
-      targetEventId,
-      emoji,
-      userId,
-      response.event_id,
-    )
+    // Remove optimistic — SDK will have the confirmed reaction on next version bump
+    useTimelineStore.getState().removeOptimisticReaction(roomId, targetEventId, emoji, userId)
+    // Bump version so the SDK reaction is read
+    useTimelineStore.getState().bumpVersion(roomId)
   }
   catch {
-    // Rollback on failure
-    useMessagesStore.getState().removeReaction(roomId, targetEventId, emoji, userId)
+    // Rollback
+    useTimelineStore.getState().removeOptimisticReaction(roomId, targetEventId, emoji, userId)
   }
 }
 
@@ -52,28 +51,43 @@ export async function redactReaction(
   emoji: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client)
-    throw new Error('Matrix client not initialized')
+  if (!client) throw new Error('Matrix client not initialized')
 
   const userId = client.getUserId() ?? ''
-  const store = useMessagesStore.getState()
-  const timeline = store.getTimeline(roomId)
-  const message = timeline.find(m => m.eventId === targetEventId)
-  const reaction = message?.reactions?.find(r => r.emoji === emoji)
-  const reactionEventId = reaction?.eventIds?.[userId]
 
-  if (!reactionEventId)
-    return
+  // Find the reaction event ID from SDK Relations
+  const room = client.getRoom(roomId)
+  if (!room) return
 
-  // Optimistically remove
-  store.removeReaction(roomId, targetEventId, emoji, userId)
+  let reactionEventId: string | undefined
+  try {
+    const relations = room.relations.getChildEventsForEvent(targetEventId, 'm.annotation', 'm.reaction')
+    if (relations) {
+      const sorted: Array<[string, Set<any>]> = relations.getSortedAnnotationsByKey() ?? []
+      for (const [key, events] of sorted) {
+        if (key === emoji) {
+          for (const e of events) {
+            if (e.getSender() === userId) {
+              reactionEventId = e.getId()
+              break
+            }
+          }
+        }
+      }
+    }
+  }
+  catch { /* ignore */ }
+
+  if (!reactionEventId) return
 
   try {
     await client.redactEvent(roomId, reactionEventId)
+    // Bump version so the redacted reaction is removed from SDK view
+    useTimelineStore.getState().bumpVersion(roomId)
   }
   catch {
-    // Rollback on failure
-    store.addReaction(roomId, targetEventId, emoji, userId, reactionEventId)
+    // Re-sync from SDK so the un-redacted reaction reappears
+    useTimelineStore.getState().bumpVersion(roomId)
   }
 }
 
@@ -83,21 +97,36 @@ export async function toggleReaction(
   emoji: string,
 ): Promise<void> {
   const client = getMatrixClient()
-  if (!client)
-    throw new Error('Matrix client not initialized')
+  if (!client) throw new Error('Matrix client not initialized')
 
-  // Prevent concurrent toggles for the same reaction
   const key = inflightKey(roomId, targetEventId, emoji)
-  if (inflight.has(key))
-    return
+  if (inflight.has(key)) return
   inflight.add(key)
 
   try {
     const userId = client.getUserId() ?? ''
-    const timeline = useMessagesStore.getState().getTimeline(roomId)
-    const message = timeline.find(m => m.eventId === targetEventId)
-    const reaction = message?.reactions?.find(r => r.emoji === emoji)
-    const hasReacted = reaction?.senderIds.includes(userId) ?? false
+    const room = client.getRoom(roomId)
+    if (!room) return
+
+    // Check if user has already reacted via SDK Relations
+    let hasReacted = false
+    try {
+      const relations = room.relations.getChildEventsForEvent(targetEventId, 'm.annotation', 'm.reaction')
+      if (relations) {
+        const sorted: Array<[string, Set<any>]> = relations.getSortedAnnotationsByKey() ?? []
+        for (const [key, events] of sorted) {
+          if (key === emoji) {
+            for (const e of events) {
+              if (e.getSender() === userId) {
+                hasReacted = true
+                break
+              }
+            }
+          }
+        }
+      }
+    }
+    catch { /* ignore */ }
 
     if (hasReacted) {
       await redactReaction(roomId, targetEventId, emoji)

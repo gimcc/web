@@ -1,4 +1,4 @@
-import type { ReceiptInfo, TimelineMessage } from '@matrix-web/matrix-client'
+import type { ReceiptInfo, TimelineMessageItem } from '@matrix-web/matrix-client'
 import { useAuthStore } from '@matrix-web/matrix-client'
 import { AlertCircle, Check, Loader2, MessageSquare } from 'lucide-react'
 import { useCallback, useMemo } from 'react'
@@ -12,19 +12,21 @@ import { ReadReceipts } from './read-receipts'
 import { UrlPreviewCards } from './url-preview-card'
 
 interface MessageBubbleProps {
-  message: TimelineMessage
+  message: TimelineMessageItem
+  /** When true, avatar and sender name are hidden (consecutive grouped messages) */
+  collapsed?: boolean
   receipts?: ReceiptInfo[]
   isPinned?: boolean
   onResend?: (eventId: string) => void
   onReaction?: (eventId: string, emoji: string) => void
-  onEdit?: (message: TimelineMessage) => void
-  onDelete?: (message: TimelineMessage) => void
-  onReply?: (message: TimelineMessage) => void
+  onEdit?: (message: TimelineMessageItem) => void
+  onDelete?: (message: TimelineMessageItem) => void
+  onReply?: (message: TimelineMessageItem) => void
   onThread?: (eventId: string) => void
   onPin?: (eventId: string) => void
 }
 
-function MessageStatusIcon({ status }: { status: TimelineMessage['status'] }) {
+function MessageStatusIcon({ status }: { status: TimelineMessageItem['status'] }) {
   switch (status) {
     case 'sending':
       return <Loader2 className="h-3 w-3 animate-spin text-muted-foreground" />
@@ -44,7 +46,7 @@ function formatTime(timestamp: number): string {
   })
 }
 
-function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessage['replyTo']> }) {
+function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessageItem['replyTo']> }) {
   return (
     <div className="mb-1 flex items-center gap-1.5 rounded border-l-2 border-primary/50 bg-accent/30 px-2 py-1">
       <span className="text-xs font-medium text-primary">
@@ -57,7 +59,7 @@ function ReplyPreview({ replyTo }: { replyTo: NonNullable<TimelineMessage['reply
   )
 }
 
-export function MessageBubble({ message, receipts, isPinned, onResend, onReaction, onEdit, onDelete, onReply, onThread, onPin }: MessageBubbleProps) {
+export function MessageBubble({ message, collapsed, receipts, isPinned, onResend, onReaction, onEdit, onDelete, onReply, onThread, onPin }: MessageBubbleProps) {
   const { t } = useTranslation()
   const userId = useAuthStore(s => s.session?.userId)
   const isSelf = message.senderId === userId
@@ -147,31 +149,38 @@ export function MessageBubble({ message, receipts, isPinned, onResend, onReactio
   return (
     <div
       className={cn(
-        'group relative flex gap-3 px-4 py-1.5 hover:bg-accent/50',
+        'group relative flex gap-3 px-4 hover:bg-accent/50',
+        collapsed ? 'py-0.5' : 'py-1.5',
         message.status === 'failed' && 'bg-destructive/5',
       )}
     >
-      {/* Avatar placeholder */}
-      <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
-        {message.senderName.charAt(0).toUpperCase()}
-      </div>
+      {/* Avatar placeholder — hidden when collapsed (grouped) */}
+      {collapsed
+        ? <div className="w-8 shrink-0" />
+        : (
+            <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-medium text-primary">
+              {message.senderName.charAt(0).toUpperCase()}
+            </div>
+          )}
 
       <div className="min-w-0 flex-1">
-        {/* Sender name and time */}
-        <div className="flex items-baseline gap-2">
-          <span className={cn(
-            'text-sm font-semibold',
-            isSelf ? 'text-primary' : 'text-foreground',
-          )}
-          >
-            {message.senderName}
-          </span>
-          <span className="text-xs text-muted-foreground">{timeStr}</span>
-          {isSelf && <MessageStatusIcon status={message.status} />}
-          {message.edited && (
-            <span className="text-xs text-muted-foreground">{`(${t('message.edited')})`}</span>
-          )}
-        </div>
+        {/* Sender name and time — hidden when collapsed */}
+        {!collapsed && (
+          <div className="flex items-baseline gap-2">
+            <span className={cn(
+              'text-sm font-semibold',
+              isSelf ? 'text-primary' : 'text-foreground',
+            )}
+            >
+              {message.senderName}
+            </span>
+            <span className="text-xs text-muted-foreground">{timeStr}</span>
+            {isSelf && <MessageStatusIcon status={message.status} />}
+            {message.edited && (
+              <span className="text-xs text-muted-foreground">{`(${t('message.edited')})`}</span>
+            )}
+          </div>
+        )}
 
         {/* Reply preview */}
         {message.replyTo && <ReplyPreview replyTo={message.replyTo} />}
