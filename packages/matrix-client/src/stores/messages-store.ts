@@ -6,7 +6,7 @@ export interface Reaction {
   emoji: string
   senderIds: string[]
   /** Maps senderId -> reaction eventId (needed for redaction) */
-  eventIds?: Record<string, string>
+  eventIds: Record<string, string>
 }
 
 export interface ReplyTo {
@@ -312,7 +312,7 @@ export const useMessagesStore = create<MessagesState>((set, get) => ({
         const reactions = m.reactions
           .map((r) => {
             // Find sender whose reaction eventId matches
-            const senderEntry = Object.entries(r.eventIds ?? {}).find(([, eid]) => eid === reactionEventId)
+            const senderEntry = Object.entries(r.eventIds).find(([, eid]) => eid === reactionEventId)
             if (!senderEntry)
               return r
             const senderIds = r.senderIds.filter(id => id !== senderEntry[0])

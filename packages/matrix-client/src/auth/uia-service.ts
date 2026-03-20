@@ -39,10 +39,13 @@ export type UiaAuth = UiaPasswordAuth | UiaDummyAuth
 /**
  * Check if an error response is a UIA challenge (HTTP 401 with flows).
  */
-export function isUiaChallenge(error: unknown): error is { data: UiaChallenge; httpStatus: number } {
-  if (typeof error !== 'object' || error === null) return false
-  if (!('httpStatus' in error) || error.httpStatus !== 401) return false
-  if (!('data' in error) || typeof error.data !== 'object' || error.data === null) return false
+export function isUiaChallenge(error: unknown): error is { data: UiaChallenge, httpStatus: number } {
+  if (typeof error !== 'object' || error === null)
+    return false
+  if (!('httpStatus' in error) || error.httpStatus !== 401)
+    return false
+  if (!('data' in error) || typeof error.data !== 'object' || error.data === null)
+    return false
   const data = error.data as Record<string, unknown>
   return Array.isArray(data.flows) && typeof data.session === 'string'
 }
@@ -51,7 +54,8 @@ export function isUiaChallenge(error: unknown): error is { data: UiaChallenge; h
  * Extract the UIA challenge from an error response.
  */
 export function extractUiaChallenge(error: unknown): UiaChallenge | null {
-  if (!isUiaChallenge(error)) return null
+  if (!isUiaChallenge(error))
+    return null
   return error.data
 }
 
@@ -61,14 +65,12 @@ export function extractUiaChallenge(error: unknown): UiaChallenge | null {
 export function getRemainingStages(challenge: UiaChallenge): string[] {
   const completed = new Set(challenge.completed ?? [])
 
-  // Find the first flow where all stages can be completed
-  for (const flow of challenge.flows) {
-    const remaining = flow.stages.filter(s => !completed.has(s))
-    if (remaining.length === 0) return []
-    return remaining
-  }
-
-  return challenge.flows[0]?.stages.filter(s => !completed.has(s)) ?? []
+  // Check the first flow for remaining stages
+  const flow = challenge.flows[0]
+  if (!flow)
+    return []
+  const remaining = flow.stages.filter(s => !completed.has(s))
+  return remaining
 }
 
 /**

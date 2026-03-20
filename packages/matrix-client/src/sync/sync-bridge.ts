@@ -1,4 +1,4 @@
-import type { MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
+import type { EmittedEvents, MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
 import { ClientEvent, MatrixEventEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
 import { matrixEventToTimelineMessage } from '../services/message-service'
@@ -176,24 +176,30 @@ export function createSyncBridge(
   // -----------------------------------------------------------------------
   // Register all listeners
   // -----------------------------------------------------------------------
+  // RoomEvent.TimelineRefresh and RoomEvent.UnreadNotifications are re-emitted by
+  // MatrixClient at runtime but missing from its TypedEventEmitter EmittedEvents union
+  // (SDK type gap in matrix-js-sdk@41). Cast to EmittedEvents instead of `any`.
+  const TimelineRefresh = RoomEvent.TimelineRefresh as unknown as EmittedEvents
+  const UnreadNotifications = RoomEvent.UnreadNotifications as unknown as EmittedEvents
+
   client.on(ClientEvent.Sync, onSync)
   client.on(RoomEvent.Timeline, onTimeline)
-  client.on(RoomEvent.TimelineRefresh as any, onTimelineRefresh)
+  client.on(TimelineRefresh, onTimelineRefresh)
   client.on(RoomEvent.Name, onRoomName)
   client.on(RoomMemberEvent.Membership, onMembership)
   client.on(RoomEvent.Receipt, onReceipt)
-  client.on(RoomEvent.UnreadNotifications as any, onUnreadNotifications)
+  client.on(UnreadNotifications, onUnreadNotifications)
   client.on(ClientEvent.Room, onRoom)
   client.on(RoomEvent.MyMembership, onMyMembership)
 
   return () => {
     client.removeListener(ClientEvent.Sync, onSync)
     client.removeListener(RoomEvent.Timeline, onTimeline)
-    client.removeListener(RoomEvent.TimelineRefresh as any, onTimelineRefresh)
+    client.removeListener(TimelineRefresh, onTimelineRefresh)
     client.removeListener(RoomEvent.Name, onRoomName)
     client.removeListener(RoomMemberEvent.Membership, onMembership)
     client.removeListener(RoomEvent.Receipt, onReceipt)
-    client.removeListener(RoomEvent.UnreadNotifications as any, onUnreadNotifications)
+    client.removeListener(UnreadNotifications, onUnreadNotifications)
     client.removeListener(ClientEvent.Room, onRoom)
     client.removeListener(RoomEvent.MyMembership, onMyMembership)
   }

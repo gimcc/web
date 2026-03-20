@@ -232,7 +232,11 @@ function getImageDimensions(file: File): Promise<{ w: number, h: number }> {
 export function mxcToHttpUrl(mxcUrl: string, homeserverUrl: string): string {
   if (!mxcUrl.startsWith('mxc://'))
     return mxcUrl
-  const [serverName, mediaId] = mxcUrl.slice(6).split('/')
+  const parts = mxcUrl.slice(6).split('/')
+  const serverName = parts[0]
+  const mediaId = parts[1]
+  if (!serverName || !mediaId)
+    return mxcUrl
   return `${homeserverUrl}/_matrix/media/v3/download/${serverName}/${mediaId}`
 }
 
@@ -245,6 +249,10 @@ export function mxcToThumbnailUrl(
 ): string {
   if (!mxcUrl.startsWith('mxc://'))
     return mxcUrl
-  const [serverName, mediaId] = mxcUrl.slice(6).split('/')
+  const parts = mxcUrl.slice(6).split('/')
+  const serverName = parts[0]
+  const mediaId = parts[1]
+  if (!serverName || !mediaId)
+    return mxcUrl
   return `${homeserverUrl}/_matrix/media/v3/thumbnail/${serverName}/${mediaId}?width=${width}&height=${height}&method=${method}`
 }

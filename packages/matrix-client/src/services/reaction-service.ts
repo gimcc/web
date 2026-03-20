@@ -29,7 +29,9 @@ export async function sendReaction(
 
   try {
     const sendEventFn = client.sendEvent.bind(client) as (
-      roomId: string, eventType: string, content: Record<string, unknown>,
+      roomId: string,
+      eventType: string,
+      content: Record<string, unknown>,
     ) => Promise<ISendEventResponse>
     await sendEventFn(roomId, 'm.reaction', {
       'm.relates_to': {

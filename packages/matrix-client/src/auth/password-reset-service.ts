@@ -47,16 +47,19 @@ export async function checkEmailValidation(
     }),
   })
 
-  if (response.ok) return true
+  if (response.ok)
+    return true
   const data = await response.json()
   // If we get a UIA 401 with completed stages including email, it's validated
   if (response.status === 401 && data.completed?.includes(AuthType.Email)) {
     return true
   }
   // If 401 without email completed, not yet validated
-  if (response.status === 401) return false
+  if (response.status === 401)
+    return false
   // M_UNAUTHORIZED means token not yet validated
-  if (data.errcode === 'M_UNAUTHORIZED') return false
+  if (data.errcode === 'M_UNAUTHORIZED')
+    return false
   return false
 }
 
@@ -73,7 +76,7 @@ export async function submitNewPassword(
 ): Promise<void> {
   const client = createClient({ baseUrl: homeserverUrl })
 
-  const authDict: { type: string; threepid_creds: { sid: string; client_secret: string } } = {
+  const authDict: { type: string, threepid_creds: { sid: string, client_secret: string } } = {
     type: AuthType.Email,
     threepid_creds: {
       sid,

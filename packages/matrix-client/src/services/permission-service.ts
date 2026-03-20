@@ -54,7 +54,10 @@ export async function updatePowerLevels(
     updated.redact = changes.redact
 
   const sendStateFn = client.sendStateEvent.bind(client) as (
-    roomId: string, eventType: string, content: Record<string, unknown>, stateKey?: string,
+    roomId: string,
+    eventType: string,
+    content: Record<string, unknown>,
+    stateKey?: string,
   ) => Promise<ISendEventResponse>
   await sendStateFn(roomId, 'm.room.power_levels', updated as Record<string, unknown>)
 }
@@ -73,7 +76,10 @@ export async function setUserPowerLevel(
   users[userId] = level
 
   const sendStateFn = client.sendStateEvent.bind(client) as (
-    roomId: string, eventType: string, content: Record<string, unknown>, stateKey?: string,
+    roomId: string,
+    eventType: string,
+    content: Record<string, unknown>,
+    stateKey?: string,
   ) => Promise<ISendEventResponse>
   await sendStateFn(roomId, 'm.room.power_levels', { ...current, users } as Record<string, unknown>)
 }

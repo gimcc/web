@@ -5,9 +5,9 @@ import { clearCryptoStore } from '../utils/clear-crypto-store'
 import {
   clearPersistedSession,
   loadPersistedSession,
-  loginWithToken as realLoginWithToken,
   persistSession,
   login as realLogin,
+  loginWithToken as realLoginWithToken,
   register as realRegister,
 } from './auth-service'
 import { mockLogin, mockRegister } from './mock-auth-service'

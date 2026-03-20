@@ -81,7 +81,8 @@ function resolvePackContent(
  */
 export function getUserEmojiPacks(): ResolvedEmojiPack[] {
   const client = getMatrixClient()
-  if (!client) return []
+  if (!client)
+    return []
 
   const homeserverUrl = client.baseUrl
 
@@ -105,11 +106,13 @@ export function getUserEmojiPacks(): ResolvedEmojiPack[] {
  */
 export function getRoomEmojiPacks(roomId: string): ResolvedEmojiPack[] {
   const client = getMatrixClient()
-  if (!client) return []
+  if (!client)
+    return []
 
   const homeserverUrl = client.baseUrl
   const room = client.getRoom(roomId)
-  if (!room) return []
+  if (!room)
+    return []
 
   const packs: ResolvedEmojiPack[] = []
 
@@ -155,7 +158,8 @@ export function getStickerPacks(roomId?: string): ResolvedEmojiPack[] {
  */
 export function getStickerMxcUrl(shortcode: string, roomId?: string): string | null {
   const client = getMatrixClient()
-  if (!client) return null
+  if (!client)
+    return null
 
   const isStickerUsage = (img: EmojiPackImage, packUsage?: string[]) => {
     const usage = img.usage ?? packUsage ?? ['emoticon']
@@ -167,7 +171,8 @@ export function getStickerMxcUrl(shortcode: string, roomId?: string): string | n
   if (userEmotes) {
     const content = userEmotes.getContent() as EmojiPackContent
     const img = content.images?.[shortcode]
-    if (img && isStickerUsage(img, content.pack?.usage)) return img.url
+    if (img && isStickerUsage(img, content.pack?.usage))
+      return img.url
   }
 
   // Search room emotes
@@ -178,7 +183,8 @@ export function getStickerMxcUrl(shortcode: string, roomId?: string): string | n
       for (const event of stateEvents) {
         const content = event.getContent() as EmojiPackContent
         const img = content.images?.[shortcode]
-        if (img && isStickerUsage(img, content.pack?.usage)) return img.url
+        if (img && isStickerUsage(img, content.pack?.usage))
+          return img.url
       }
     }
   }

@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+const PROTOCOL_PREFIX_RE = /^https?:\/\//
+const TRAILING_SLASHES_RE = /\/+$/
+const DOMAIN_RE = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)+$/i
+
 const wellKnownSchema = z.object({
   'm.homeserver': z.object({
     base_url: z.string().url(),
@@ -20,7 +24,7 @@ export interface WellKnownResult {
  * @returns The resolved homeserver URL, or null if discovery fails
  */
 export async function discoverHomeserver(domain: string): Promise<WellKnownResult | null> {
-  const normalizedDomain = domain.replace(/^https?:\/\//, '').replace(/\/+$/, '')
+  const normalizedDomain = domain.replace(PROTOCOL_PREFIX_RE, '').replace(TRAILING_SLASHES_RE, '')
 
   const url = `https://${normalizedDomain}/.well-known/matrix/client`
 
@@ -43,8 +47,8 @@ export async function discoverHomeserver(domain: string): Promise<WellKnownResul
     }
 
     return {
-      homeserverUrl: parsed.data['m.homeserver'].base_url.replace(/\/+$/, ''),
-      identityServerUrl: parsed.data['m.identity_server']?.base_url.replace(/\/+$/, ''),
+      homeserverUrl: parsed.data['m.homeserver'].base_url.replace(TRAILING_SLASHES_RE, ''),
+      identityServerUrl: parsed.data['m.identity_server']?.base_url.replace(TRAILING_SLASHES_RE, ''),
     }
   }
   catch {
@@ -60,5 +64,5 @@ export function isDomainInput(value: string): boolean {
   if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
     return false
   }
-  return /^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)+$/i.test(trimmed)
+  return DOMAIN_RE.test(trimmed)
 }

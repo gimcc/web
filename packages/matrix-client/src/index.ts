@@ -104,6 +104,16 @@ export {
   queryKeys,
 } from './query/query-keys'
 
+// Services — account data
+export {
+  getAccountData,
+  getAccountDataByType,
+  getRoomAccountData,
+  setAccountData,
+  setRoomAccountData,
+} from './services/account-data-service'
+export type { AccountDataEntry } from './services/account-data-service'
+
 // Services — account (3PID, devices, ignored users)
 export {
   addThreePid,
@@ -119,16 +129,6 @@ export {
   unignoreUser,
 } from './services/account-service'
 export type { DeviceInfo, ThreePid } from './services/account-service'
-
-// Services — account data
-export {
-  getAccountData,
-  getAccountDataByType,
-  getRoomAccountData,
-  setAccountData,
-  setRoomAccountData,
-} from './services/account-data-service'
-export type { AccountDataEntry } from './services/account-data-service'
 
 // Services — custom emoji
 export {
@@ -200,6 +200,7 @@ export {
   pinMessage,
   unpinMessage,
 } from './services/pin-service'
+export type { PresenceService } from './services/presence-service'
 // Services — profile
 export {
   getMyProfile,
@@ -210,7 +211,6 @@ export {
   uploadAvatar,
 } from './services/profile-service'
 export type { UserProfile } from './services/profile-service'
-export type { PresenceService } from './services/presence-service'
 // Services — push rules
 export {
   addKeywordRule,
@@ -251,15 +251,15 @@ export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser,
 // Services — search
 export { searchMessages } from './services/search-service'
 export type { SearchResult } from './services/search-service'
+// Services — sticker
+export { sendSticker } from './services/sticker-service'
+
+export type { SendStickerOptions } from './services/sticker-service'
 export {
   handleThreadEvent,
   loadThreadTimeline,
   sendThreadMessage,
 } from './services/thread-service'
-
-// Services — sticker
-export { sendSticker } from './services/sticker-service'
-export type { SendStickerOptions } from './services/sticker-service'
 
 // Services — tombstone
 export { followTombstone, getRoomTombstone } from './services/tombstone-service'
@@ -315,14 +315,6 @@ export type {
   UnreadDividerItem,
 } from './timeline/types'
 
-// Utils
-export {
-  formatUserId,
-  parseUserId,
-  resolveUserId,
-} from './utils/user-id'
-export type { ParsedUserId } from './utils/user-id'
-
 // Utils — matrix.to links
 export {
   buildMatrixToUrl,
@@ -332,6 +324,14 @@ export {
   parseMatrixToUrl,
 } from './utils/matrix-link'
 export type { MatrixLink, MatrixLinkType } from './utils/matrix-link'
+
+// Utils
+export {
+  formatUserId,
+  parseUserId,
+  resolveUserId,
+} from './utils/user-id'
+export type { ParsedUserId } from './utils/user-id'
 
 // Re-export crypto verification types for UI consumers
 export type {
