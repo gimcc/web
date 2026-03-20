@@ -431,7 +431,8 @@
     "send": "完成",
     "text_label": "输入文字",
     "text_placeholder": "输入标注文字...",
-    "add_text": "添加"
+    "add_text": "添加",
+    "load_error": "图片加载失败"
   },
   "sync_status": {
     "connecting": "连接中...",

@@ -47,7 +47,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const [editingMessage, setEditingMessage] = useState<TimelineMessageItem | null>(null)
   const [replyingTo, setReplyingTo] = useState<TimelineMessageItem | null>(null)
   const [pinRefreshKey, setPinRefreshKey] = useState(0)
-  const [jumpToTimestamp, setJumpToTimestamp] = useState<number | null>(null)
+  const [jumpToRequest, setJumpToRequest] = useState<{ timestamp: number; id: number } | null>(null)
 
   const handleEditMessage = useCallback((message: TimelineMessageItem) => {
     setEditingMessage(message)
@@ -72,9 +72,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   }, [])
 
   const handleJumpToDate = useCallback((timestamp: number) => {
-    setJumpToTimestamp(timestamp)
-    // Reset so the same date can be selected again
-    setTimeout(() => setJumpToTimestamp(null), 100)
+    setJumpToRequest({ timestamp, id: Date.now() })
   }, [])
 
   const handleLeaveRoom = useCallback(async () => {
@@ -160,7 +158,8 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
           onReplyMessage={handleReplyMessage}
           onThread={handleOpenThread}
           onPinChange={handlePinChange}
-          jumpToTimestamp={jumpToTimestamp}
+          jumpToTimestamp={jumpToRequest?.timestamp ?? null}
+          jumpToRequestId={jumpToRequest?.id ?? null}
         />
 
         {/* Typing indicator */}

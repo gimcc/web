@@ -17,7 +17,7 @@ import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useRoomTimeline } from '../hooks/use-room-timeline'
-import { useLayoutPreference } from '../hooks/use-layout-preference'
+import { useLayoutPreference, type MessageLayout } from '../hooks/use-layout-preference'
 import { MessageBubble } from './message-bubble'
 import { MessageCompact } from './message-compact'
 import { MessageModern } from './message-modern'
@@ -33,9 +33,10 @@ interface MessageTimelineProps {
   onThread?: (eventId: string) => void
   onPinChange?: () => void
   jumpToTimestamp?: number | null
+  jumpToRequestId?: number | null
 }
 
-export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread, onPinChange, jumpToTimestamp }: MessageTimelineProps) {
+export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThread, onPinChange, jumpToTimestamp, jumpToRequestId }: MessageTimelineProps) {
   const { t } = useTranslation()
   const mockMode = useAuthStore(s => s.mockMode)
   const { layout } = useLayoutPreference()
@@ -218,7 +219,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
         highlightTimerRef.current = setTimeout(setHighlightedEventId, 1500, null)
       }
     }
-  }, [jumpToTimestamp, items, virtualizer])
+  }, [jumpToTimestamp, jumpToRequestId, items, virtualizer])
 
   const [pendingDelete, setPendingDelete] = useState<string | null>(null)
 
@@ -331,7 +332,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
 
 interface TimelineRowProps {
   item: TimelineItem
-  layout: import('../hooks/use-layout-preference').MessageLayout
+  layout: MessageLayout
   receiptsByEvent: Map<string, ReceiptInfo[]>
   pinnedIds: Set<string>
   mockMode: boolean

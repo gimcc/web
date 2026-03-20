@@ -11,7 +11,16 @@ interface ImageEditorProps {
 
 type Tool = 'crop' | 'draw' | 'text'
 
-const COLORS = ['#ff0000', '#00ff00', '#0066ff', '#ffff00', '#ff00ff', '#ffffff', '#000000']
+const COLORS = ['#ff0000', '#00ff00', '#0066ff', '#ffff00', '#ff00ff', '#ffffff', '#000000'] as const
+const COLOR_NAMES: Record<string, string> = {
+  '#ff0000': 'Red',
+  '#00ff00': 'Green',
+  '#0066ff': 'Blue',
+  '#ffff00': 'Yellow',
+  '#ff00ff': 'Magenta',
+  '#ffffff': 'White',
+  '#000000': 'Black',
+}
 const STROKE_WIDTHS = [2, 4, 8]
 
 interface DrawPath {
@@ -38,23 +47,36 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   const [isDrawing, setIsDrawing] = useState(false)
   const [paths, setPaths] = useState<DrawPath[]>([])
   const [currentPath, setCurrentPath] = useState<DrawPath | null>(null)
+  const currentPathRef = useRef<DrawPath | null>(null)
   const [textAnnotations, setTextAnnotations] = useState<TextAnnotation[]>([])
   const [pendingText, setPendingText] = useState<{ x: number, y: number } | null>(null)
   const [textInput, setTextInput] = useState('')
   const [loaded, setLoaded] = useState(false)
+  const [loadError, setLoadError] = useState(false)
 
   // Crop state
   const [cropStart, setCropStart] = useState<{ x: number, y: number } | null>(null)
   const [cropEnd, setCropEnd] = useState<{ x: number, y: number } | null>(null)
   const [isCropping, setIsCropping] = useState(false)
 
-  // Load image
+  // Load image — try with CORS first, fall back without if server doesn't support it
   useEffect(() => {
+    setLoadError(false)
     const img = new Image()
     img.crossOrigin = 'anonymous'
     img.onload = () => {
       imageRef.current = img
       setLoaded(true)
+    }
+    img.onerror = () => {
+      // Retry without crossOrigin for non-CORS servers
+      const fallback = new Image()
+      fallback.onload = () => {
+        imageRef.current = fallback
+        setLoaded(true)
+      }
+      fallback.onerror = () => setLoadError(true)
+      fallback.src = imageUrl
     }
     img.src = imageUrl
   }, [imageUrl])
@@ -155,8 +177,10 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
     const coords = getCanvasCoords(e)
 
     if (tool === 'draw') {
+      const newPath = { points: [coords], color, width: strokeWidth }
+      currentPathRef.current = newPath
       setIsDrawing(true)
-      setCurrentPath({ points: [coords], color, width: strokeWidth })
+      setCurrentPath(newPath)
     } else if (tool === 'crop') {
       setIsCropping(true)
       setCropStart(coords)
@@ -168,24 +192,26 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
   }, [tool, color, strokeWidth, getCanvasCoords])
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (tool === 'draw' && isDrawing && currentPath) {
+    if (tool === 'draw' && currentPathRef.current) {
       const coords = getCanvasCoords(e)
-      setCurrentPath(prev => prev ? { ...prev, points: [...prev.points, coords] } : null)
+      currentPathRef.current.points.push(coords)
+      setCurrentPath({ ...currentPathRef.current })
     } else if (tool === 'crop' && isCropping) {
       const coords = getCanvasCoords(e)
       setCropEnd(coords)
     }
-  }, [tool, isDrawing, isCropping, currentPath, getCanvasCoords])
+  }, [tool, isCropping, getCanvasCoords])
 
   const handleMouseUp = useCallback(() => {
-    if (tool === 'draw' && isDrawing && currentPath) {
-      setPaths(prev => [...prev, currentPath])
+    if (tool === 'draw' && currentPathRef.current) {
+      setPaths(prev => [...prev, currentPathRef.current!])
+      currentPathRef.current = null
       setCurrentPath(null)
       setIsDrawing(false)
     } else if (tool === 'crop' && isCropping) {
       setIsCropping(false)
     }
-  }, [tool, isDrawing, isCropping, currentPath])
+  }, [tool, isCropping])
 
   const handleApplyCrop = useCallback(() => {
     if (!cropStart || !cropEnd || !imageRef.current) return
@@ -216,7 +242,6 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
       setCropStart(null)
       setCropEnd(null)
       setTool(null)
-      renderCanvas()
     }
     croppedImg.src = tempCanvas.toDataURL()
   }, [cropStart, cropEnd, renderCanvas])
@@ -243,30 +268,53 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
     setCropStart(null)
     setCropEnd(null)
     setTool(null)
-    renderCanvas()
-  }, [renderCanvas])
+  }, [])
+
+  // Render canvas for export (without crop overlay)
+  const renderExportCanvas = useCallback((): HTMLCanvasElement | null => {
+    const canvas = canvasRef.current
+    const img = imageRef.current
+    if (!canvas || !img) return null
+
+    const exportCanvas = document.createElement('canvas')
+    exportCanvas.width = img.naturalWidth
+    exportCanvas.height = img.naturalHeight
+    const ctx = exportCanvas.getContext('2d')
+    if (!ctx) return null
+
+    ctx.drawImage(img, 0, 0)
+
+    for (const path of paths) {
+      if (path.points.length < 2) continue
+      ctx.beginPath()
+      ctx.strokeStyle = path.color
+      ctx.lineWidth = path.width
+      ctx.lineCap = 'round'
+      ctx.lineJoin = 'round'
+      ctx.moveTo(path.points[0]!.x, path.points[0]!.y)
+      for (let i = 1; i < path.points.length; i++) {
+        ctx.lineTo(path.points[i]!.x, path.points[i]!.y)
+      }
+      ctx.stroke()
+    }
+
+    for (const ann of textAnnotations) {
+      ctx.font = `${ann.fontSize}px sans-serif`
+      ctx.fillStyle = ann.color
+      ctx.fillText(ann.text, ann.x, ann.y)
+    }
+
+    return exportCanvas
+  }, [paths, textAnnotations])
 
   const handleSave = useCallback(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
+    const exportCanvas = renderExportCanvas()
+    if (!exportCanvas) return
 
-    // Re-render without crop overlay
-    const savedCropStart = cropStart
-    const savedCropEnd = cropEnd
-    setCropStart(null)
-    setCropEnd(null)
-
-    // Need to render without crop overlay before saving
-    setTimeout(() => {
-      canvas.toBlob((blob) => {
-        if (blob) onSave(blob)
-      }, 'image/png')
-
-      // Restore crop overlay state
-      setCropStart(savedCropStart)
-      setCropEnd(savedCropEnd)
-    }, 50)
-  }, [onSave, cropStart, cropEnd])
+    exportCanvas.toBlob((blob) => {
+      if (blob) onSave(blob)
+    }, 'image/png')
+  }, [onSave, renderExportCanvas])
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -340,7 +388,7 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
                     color === c ? 'scale-125 border-white' : 'border-white/30',
                   )}
                   style={{ backgroundColor: c }}
-                  aria-label={c}
+                  aria-label={COLOR_NAMES[c] ?? c}
                 />
               ))}
             </div>
@@ -414,15 +462,19 @@ export function ImageEditor({ imageUrl, onSave, onCancel }: ImageEditorProps) {
 
       {/* Canvas area */}
       <div className="flex flex-1 items-center justify-center overflow-auto p-4">
-        <canvas
-          ref={canvasRef}
-          className="max-h-full max-w-full cursor-crosshair"
-          style={{ imageRendering: 'auto' }}
-          onMouseDown={handleMouseDown}
-          onMouseMove={handleMouseMove}
-          onMouseUp={handleMouseUp}
-          onMouseLeave={handleMouseUp}
-        />
+        {loadError ? (
+          <p className="text-sm text-white/70">{t('image_editor.load_error')}</p>
+        ) : (
+          <canvas
+            ref={canvasRef}
+            className="max-h-full max-w-full cursor-crosshair"
+            style={{ imageRendering: 'auto' }}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onMouseUp={handleMouseUp}
+            onMouseLeave={handleMouseUp}
+          />
+        )}
       </div>
 
       {/* Text input dialog */}

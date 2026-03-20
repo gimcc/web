@@ -58,6 +58,8 @@ export function PdfViewer({ src, filename, onClose }: PdfViewerProps) {
           src={`${src}#toolbar=1`}
           title={filename}
           className="h-full w-full rounded-lg bg-white"
+          sandbox="allow-scripts allow-same-origin"
+          referrerPolicy="no-referrer"
         />
       </div>
     </div>

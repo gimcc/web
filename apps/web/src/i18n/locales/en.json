@@ -431,7 +431,8 @@
     "send": "Done",
     "text_label": "Enter text",
     "text_placeholder": "Type annotation text...",
-    "add_text": "Add"
+    "add_text": "Add",
+    "load_error": "Failed to load image"
   },
   "sync_status": {
     "connecting": "Connecting...",
