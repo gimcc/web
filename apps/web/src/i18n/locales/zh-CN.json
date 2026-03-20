@@ -305,6 +305,47 @@
     "server": "服务器",
     "custom_server": "自定义服务器..."
   },
+  "forgot_password": {
+    "title": "重置密码",
+    "link": "忘记密码？",
+    "email_label": "邮箱地址",
+    "email_placeholder": "输入你的邮箱地址",
+    "send_email": "发送重置邮件",
+    "sending": "发送中...",
+    "check_email": "验证邮件已发送至 {{email}}。请点击邮件中的链接，然后点击下方按钮。",
+    "email_confirmed": "我已点击链接",
+    "resend_email": "重新发送邮件",
+    "new_password": "新密码",
+    "confirm_new_password": "确认新密码",
+    "reset_password": "重置密码",
+    "resetting": "重置中...",
+    "success": "密码重置成功。你现在可以使用新密码登录。",
+    "back_to_login": "返回登录",
+    "error_send": "发送重置邮件失败",
+    "error_reset": "密码重置失败"
+  },
+  "sso": {
+    "sign_in_sso": "使用 SSO 登录",
+    "sign_in_with": "使用 {{provider}} 登录",
+    "or_sign_in_with": "或使用以下方式登录",
+    "divider": "或"
+  },
+  "well_known": {
+    "discovering": "正在发现服务器..."
+  },
+  "uia": {
+    "title": "验证身份",
+    "description": "此操作需要身份验证。请输入密码以继续。",
+    "password_label": "密码",
+    "password_placeholder": "输入你的账户密码",
+    "verify": "验证",
+    "verifying": "验证中...",
+    "unsupported_stage": "不支持的认证类型: {{stage}}"
+  },
+  "token_login": {
+    "logging_in": "正在使用令牌登录...",
+    "error": "令牌登录失败"
+  },
   "message": {
     "edited": "已编辑",
     "deleted": "此消息已被删除",
