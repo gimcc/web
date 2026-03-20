@@ -3,6 +3,7 @@ import { getPinnedMessages, unpinMessage } from '@matrix-web/matrix-client'
 import { Pin, X } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Button } from './ui/button'
 
 interface PinnedMessagesBarProps {
   roomId: string
@@ -55,9 +56,10 @@ export function PinnedMessagesBar({ roomId, refreshKey }: PinnedMessagesBarProps
                 <span className="text-xs font-medium text-primary">{msg.senderName}</span>
                 <p className="truncate text-xs text-muted-foreground">{msg.body}</p>
               </div>
-              <button
-                type="button"
-                className="shrink-0 rounded p-0.5 text-muted-foreground hover:bg-accent hover:text-destructive"
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="h-5 w-5 shrink-0 rounded p-0 hover:text-destructive"
                 onClick={(e) => {
                   e.stopPropagation()
                   void handleUnpin(msg.eventId)
@@ -65,7 +67,7 @@ export function PinnedMessagesBar({ roomId, refreshKey }: PinnedMessagesBarProps
                 aria-label={t('message.unpin')}
               >
                 <X className="h-3 w-3" />
-              </button>
+              </Button>
             </div>
           ))}
         </div>

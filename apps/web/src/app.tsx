@@ -12,6 +12,7 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { RouterProvider } from 'react-router'
 import { PwaUpdatePrompt } from './components/pwa-update-prompt'
+import { TooltipProvider } from './components/ui/tooltip'
 import { useIdleDetector } from './hooks/use-idle-detector'
 import { useNotificationListener } from './hooks/use-notifications'
 import { useThemeInit } from './hooks/use-theme'
@@ -136,8 +137,10 @@ export function App() {
   return (
     <QueryProvider>
       <ConfigProvider>
-        <AppRouterInner />
-        <PwaUpdatePrompt />
+        <TooltipProvider>
+          <AppRouterInner />
+          <PwaUpdatePrompt />
+        </TooltipProvider>
       </ConfigProvider>
     </QueryProvider>
   )

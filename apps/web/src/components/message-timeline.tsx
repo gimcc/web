@@ -1,4 +1,5 @@
 import type { ReceiptInfo, TimelineItem, TimelineMessageItem } from '@matrix-web/matrix-client'
+import type { MessageLayout } from '../hooks/use-layout-preference'
 import {
   deleteMessage,
   getPinnedEventIds,
@@ -6,6 +7,7 @@ import {
   loadMockTimeline,
   loadRoomHistory,
   resendMessage,
+  resendUpload,
   sendReadReceipt,
   toggleMockReaction,
   toggleReaction,
@@ -16,14 +18,15 @@ import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useLayoutPreference } from '../hooks/use-layout-preference'
 import { useRoomTimeline } from '../hooks/use-room-timeline'
-import { useLayoutPreference, type MessageLayout } from '../hooks/use-layout-preference'
 import { MessageBubble } from './message-bubble'
 import { MessageCompact } from './message-compact'
 import { MessageModern } from './message-modern'
 import { ReportDialog } from './report-dialog'
 import { DayDivider, UnreadDivider } from './timeline-divider'
 import { MemberEventRow, StateEventRow } from './timeline-event-item'
+import { Button } from './ui/button'
 
 const EMPTY_RECEIPTS = new Map<string, ReceiptInfo[]>()
 
@@ -178,7 +181,12 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
   }, [virtualizer, items.length])
 
   const handleResend = useCallback((eventId: string) => {
-    void resendMessage(roomId, eventId)
+    if (eventId.startsWith('~upload-')) {
+      void resendUpload(roomId, eventId)
+    }
+    else {
+      void resendMessage(roomId, eventId)
+    }
   }, [roomId])
 
   const handleReaction = useCallback((eventId: string, emoji: string) => {
@@ -207,7 +215,8 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
 
   // Jump to date: find the first message at or after the target timestamp
   useEffect(() => {
-    if (!jumpToTimestamp) return
+    if (!jumpToTimestamp)
+      return
     const targetIndex = items.findIndex(
       item => item.kind === 'message' && item.timestamp >= jumpToTimestamp,
     )
@@ -216,7 +225,8 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
       const targetItem = items[targetIndex]!
       if (targetItem.kind === 'message') {
         setHighlightedEventId(targetItem.eventId)
-        if (highlightTimerRef.current) clearTimeout(highlightTimerRef.current)
+        if (highlightTimerRef.current)
+          clearTimeout(highlightTimerRef.current)
         highlightTimerRef.current = setTimeout(setHighlightedEventId, 1500, null)
       }
     }
@@ -331,14 +341,15 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
 
       {/* Scroll to bottom button */}
       {showScrollButton && (
-        <button
-          type="button"
-          className="absolute bottom-4 right-4 flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background shadow-lg transition-colors hover:bg-accent"
+        <Button
+          variant="outline"
+          size="icon"
+          className="absolute bottom-4 right-4 rounded-full shadow-lg"
           onClick={scrollToBottom}
           aria-label={t('chat.scroll_to_bottom')}
         >
-          <ArrowDown className="h-5 w-5 text-foreground" />
-        </button>
+          <ArrowDown className="h-5 w-5" />
+        </Button>
       )}
     </div>
   )
@@ -410,8 +421,10 @@ function TimelineRow({
         onJumpToEvent,
       }
 
-      if (layout === 'compact') return <MessageCompact {...messageProps} />
-      if (layout === 'modern') return <MessageModern {...messageProps} />
+      if (layout === 'compact')
+        return <MessageCompact {...messageProps} />
+      if (layout === 'modern')
+        return <MessageModern {...messageProps} />
       return <MessageBubble {...messageProps} />
     }
   }

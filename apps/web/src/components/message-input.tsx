@@ -1,5 +1,6 @@
 import type { RoomMemberInfo, TimelineMessageItem } from '@matrix-web/matrix-client'
 import type { CommandDefinition } from '../lib/commands'
+import type { CustomEmoji, CustomEmojiPack } from './custom-emoji-types'
 import type { PendingUpload } from './upload-preview'
 import {
   editMessage,
@@ -26,10 +27,11 @@ import { addRecentEmoji } from '../hooks/use-recent-emojis'
 import { filterCommands, findCommand, parseCommandInput } from '../lib/commands'
 import { renderMarkdown } from '../lib/markdown'
 import { CommandPanel } from './command-panel'
-import type { CustomEmoji, CustomEmojiPack } from './custom-emoji-types'
 import { EmojiPicker } from './emoji-picker'
 import { MentionPanel } from './mention-panel'
 import { StickerPicker } from './sticker-picker'
+import { Button } from './ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 import { UploadPreview } from './upload-preview'
 import { VoiceRecorder } from './voice-recorder'
 
@@ -199,29 +201,23 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
         return
       }
 
-      // Handle pending uploads
-      const completedIds: string[] = []
-      try {
-        for (const upload of pendingUploads) {
+      // Handle pending uploads — clear from input immediately, show progress in timeline
+      if (pendingUploads.length > 0) {
+        const uploadsToSend = [...pendingUploads]
+        setPendingUploads([])
+        for (const upload of uploadsToSend) {
+          URL.revokeObjectURL(upload.previewUrl)
           if (mockMode) {
-            await uploadMockFile(roomId, upload.file, upload.caption || undefined)
+            void uploadMockFile(roomId, upload.file, upload.caption || undefined)
           }
           else {
-            await uploadAndSendFile({
+            void uploadAndSendFile({
               roomId,
               file: upload.file,
               caption: upload.caption || undefined,
             })
           }
-          URL.revokeObjectURL(upload.previewUrl)
-          completedIds.push(upload.id)
         }
-        setPendingUploads([])
-      }
-      catch {
-        setPendingUploads(prev => prev.filter(u => !completedIds.includes(u.id)))
-        setCommandError(t('chat.upload_failed'))
-        return
       }
 
       // Handle text message
@@ -491,7 +487,8 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   const handleReplaceFile = useCallback((id: string, file: File) => {
     setPendingUploads(prev =>
       prev.map((u) => {
-        if (u.id !== id) return u
+        if (u.id !== id)
+          return u
         URL.revokeObjectURL(u.previewUrl)
         return { ...u, file, previewUrl: URL.createObjectURL(file) }
       }),
@@ -565,7 +562,8 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   // Sticker sending handler
   const handleStickerSelect = useCallback(async (sticker: { shortcode: string, url: string, body?: string }) => {
     setShowStickerPicker(false)
-    if (mockMode) return
+    if (mockMode)
+      return
     try {
       const mxcUrl = getStickerMxcUrl(sticker.shortcode, roomId)
       if (mxcUrl) {
@@ -579,7 +577,8 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
 
   // Close emoji/sticker picker on outside click
   useEffect(() => {
-    if (!showEmojiPicker && !showStickerPicker) return
+    if (!showEmojiPicker && !showStickerPicker)
+      return
 
     function handleClickOutside(e: MouseEvent) {
       if (showEmojiPicker) {
@@ -606,7 +605,8 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
 
   // Get custom emoji packs
   const customEmojiPacks = useMemo((): CustomEmojiPack[] => {
-    if (mockMode) return []
+    if (mockMode)
+      return []
     try {
       const packs = getAllEmojiPacks(roomId)
       return packs.map(pack => ({
@@ -622,7 +622,8 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
   }, [roomId, mockMode])
 
   const stickerPacks = useMemo((): CustomEmojiPack[] => {
-    if (mockMode) return []
+    if (mockMode)
+      return []
     try {
       const packs = getStickerPacks(roomId)
       return packs.map(pack => ({
@@ -647,14 +648,6 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      {/* Upload previews */}
-      <UploadPreview
-        uploads={pendingUploads}
-        onRemove={handleRemoveUpload}
-        onCaptionChange={handleCaptionChange}
-        onReplaceFile={handleReplaceFile}
-      />
-
       {/* Drag overlay */}
       {isDragging && (
         <div className="mb-2 flex items-center justify-center rounded-xl border-2 border-dashed border-primary bg-primary/5 px-4 py-3">
@@ -662,183 +655,215 @@ export function MessageInput({ roomId, editingMessage, replyingTo, onCancelEdit,
         </div>
       )}
 
-      {/* Card container */}
-      <div className="relative overflow-hidden rounded-xl border border-border bg-background shadow-sm">
-        {/* Edit mode indicator */}
-        {editingMessage && (
-          <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
-            <Pencil className="h-4 w-4 text-primary" />
-            <span className="flex-1 truncate text-sm text-muted-foreground">
-              {t('message.editing_message')}
-            </span>
-            <button
-              type="button"
-              onClick={() => {
-                onCancelEdit?.()
-                setText('')
-              }}
-              className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
+      {/* Card wrapper - relative for picker positioning */}
+      <div className="relative">
+        {/* Emoji picker - outside overflow-hidden card to avoid clipping */}
+        {showEmojiPicker && (
+          <div ref={emojiPickerRef} className="absolute bottom-full left-0 z-50 mb-2">
+            <EmojiPicker
+              onSelect={handleEmojiSelect}
+              onClose={() => setShowEmojiPicker(false)}
+              customPacks={customEmojiPacks}
+              onSelectCustom={handleCustomEmojiSelect}
+            />
           </div>
         )}
-
-        {/* Reply mode indicator */}
-        {replyingTo && !editingMessage && (
-          <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
-            <CornerUpLeft className="h-4 w-4 text-primary" />
-            <div className="min-w-0 flex-1">
-              <span className="text-xs font-medium text-primary">{replyingTo.senderName}</span>
-              <p className="truncate text-sm text-muted-foreground">{replyingTo.body}</p>
-            </div>
-            <button
-              type="button"
-              onClick={onCancelReply}
-              className="rounded p-0.5 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-4 w-4" />
-            </button>
+        {/* Sticker picker - outside overflow-hidden card to avoid clipping */}
+        {showStickerPicker && (
+          <div ref={stickerPickerRef} className="absolute bottom-full left-0 z-50 mb-2">
+            <StickerPicker
+              packs={stickerPacks}
+              onSelect={sticker => void handleStickerSelect(sticker)}
+              onClose={() => setShowStickerPicker(false)}
+            />
           </div>
         )}
-
-        {/* Command error */}
-        {commandError && (
-          <div className="px-4 py-1">
-            <p className="text-xs text-destructive">{commandError}</p>
-          </div>
-        )}
-
-        {/* Mention panel */}
-        <MentionPanel
-          members={matchedMembers}
-          selectedIndex={selectedMemberIndex}
-          onSelect={insertMention}
-        />
-
-        {/* Command panel */}
-        <CommandPanel
-          commands={matchedCommands}
-          selectedIndex={selectedCommandIndex}
-          onSelect={handleCommandSelect}
-        />
-
-        {/* Text input area */}
-        <textarea
-          ref={textareaRef}
-          value={text}
-          onChange={(e) => {
-            handleTextChange(e.target.value, e.target.selectionStart)
-            adjustHeight()
-          }}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          placeholder={editingMessage ? t('message.edit_placeholder') : t('chat.message_placeholder')}
-          rows={1}
-          disabled={isSending}
-          className="max-h-[200px] min-h-[80px] w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
-        />
-
-        <input
-          ref={fileInputRef}
-          type="file"
-          multiple
-          className="hidden"
-          onChange={handleFileInputChange}
-        />
-
-        {/* Bottom toolbar */}
-        <div className="flex items-center justify-between px-3 pb-2">
-          {/* Left: action buttons */}
-          <div className="flex items-center gap-0.5">
-            {/* File upload button */}
-            {!editingMessage && (
-              <button
-                type="button"
-                onClick={handleFileSelect}
-                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                aria-label={t('chat.attach_file')}
-              >
-                <Paperclip className="h-5 w-5" />
-              </button>
-            )}
-
-            {/* Emoji picker button */}
-            <div className="relative">
-              <button
-                ref={emojiButtonRef}
-                type="button"
+        {/* Card container */}
+        <div className="relative overflow-hidden rounded-xl border border-border bg-background shadow-sm">
+          {/* Edit mode indicator */}
+          {editingMessage && (
+            <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
+              <Pencil className="h-4 w-4 text-primary" />
+              <span className="flex-1 truncate text-sm text-muted-foreground">
+                {t('message.editing_message')}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="h-6 w-6"
                 onClick={() => {
-                  setShowEmojiPicker(v => !v)
-                  setShowStickerPicker(false)
+                  onCancelEdit?.()
+                  setText('')
                 }}
-                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                aria-label={t('emoji.picker')}
               >
-                <Smile className="h-5 w-5" />
-              </button>
-              {showEmojiPicker && (
-                <div ref={emojiPickerRef} className="absolute bottom-full left-0 z-50 mb-2">
-                  <EmojiPicker
-                    onSelect={handleEmojiSelect}
-                    onClose={() => setShowEmojiPicker(false)}
-                    customPacks={customEmojiPacks}
-                    onSelectCustom={handleCustomEmojiSelect}
-                  />
-                </div>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Reply mode indicator */}
+          {replyingTo && !editingMessage && (
+            <div className="flex items-center gap-2 border-b border-border bg-accent/30 px-4 py-2">
+              <CornerUpLeft className="h-4 w-4 text-primary" />
+              <div className="min-w-0 flex-1">
+                <span className="text-xs font-medium text-primary">{replyingTo.senderName}</span>
+                <p className="truncate text-sm text-muted-foreground">{replyingTo.body}</p>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                className="h-6 w-6"
+                onClick={onCancelReply}
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
+
+          {/* Command error */}
+          {commandError && (
+            <div className="px-4 py-1">
+              <p className="text-xs text-destructive">{commandError}</p>
+            </div>
+          )}
+
+          {/* Mention panel */}
+          <MentionPanel
+            members={matchedMembers}
+            selectedIndex={selectedMemberIndex}
+            onSelect={insertMention}
+          />
+
+          {/* Command panel */}
+          <CommandPanel
+            commands={matchedCommands}
+            selectedIndex={selectedCommandIndex}
+            onSelect={handleCommandSelect}
+          />
+
+          {/* Text input area */}
+          <textarea
+            ref={textareaRef}
+            value={text}
+            onChange={(e) => {
+              handleTextChange(e.target.value, e.target.selectionStart)
+              adjustHeight()
+            }}
+            onKeyDown={handleKeyDown}
+            onPaste={handlePaste}
+            placeholder={editingMessage ? t('message.edit_placeholder') : t('chat.message_placeholder')}
+            rows={1}
+            disabled={isSending}
+            className="max-h-[200px] min-h-[80px] w-full resize-none bg-transparent px-4 pt-3 pb-2 text-sm placeholder:text-muted-foreground focus:outline-none disabled:opacity-50"
+          />
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={handleFileInputChange}
+          />
+
+          {/* Upload previews (inside card) */}
+          {pendingUploads.length > 0 && (
+            <UploadPreview
+              uploads={pendingUploads}
+              onRemove={handleRemoveUpload}
+              onCaptionChange={handleCaptionChange}
+              onReplaceFile={handleReplaceFile}
+            />
+          )}
+
+          {/* Bottom toolbar */}
+          <div className="flex items-center justify-between px-3 pb-2">
+            {/* Left: action buttons */}
+            <div className="flex items-center gap-0.5">
+              {/* File upload button */}
+              {!editingMessage && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={handleFileSelect}
+                      aria-label={t('chat.attach_file')}
+                    >
+                      <Paperclip className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('chat.attach_file')}</TooltipContent>
+                </Tooltip>
+              )}
+
+              {/* Emoji picker button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    ref={emojiButtonRef}
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={() => {
+                      setShowEmojiPicker(v => !v)
+                      setShowStickerPicker(false)
+                    }}
+                    aria-label={t('emoji.picker')}
+                  >
+                    <Smile className="h-5 w-5" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('emoji.picker')}</TooltipContent>
+              </Tooltip>
+
+              {/* Sticker picker button */}
+              {!editingMessage && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      ref={stickerButtonRef}
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => {
+                        setShowStickerPicker(v => !v)
+                        setShowEmojiPicker(false)
+                      }}
+                      aria-label={t('sticker.picker')}
+                    >
+                      <Sticker className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('sticker.picker')}</TooltipContent>
+                </Tooltip>
+              )}
+
+              {/* Voice record button (shown when input is empty) */}
+              {!editingMessage && text.trim() === '' && pendingUploads.length === 0 && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      onClick={() => setIsRecording(true)}
+                      aria-label={t('voice.record')}
+                    >
+                      <Mic className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{t('voice.record')}</TooltipContent>
+                </Tooltip>
               )}
             </div>
 
-            {/* Sticker picker button */}
-            {!editingMessage && (
-              <div className="relative">
-                <button
-                  ref={stickerButtonRef}
-                  type="button"
-                  onClick={() => {
-                    setShowStickerPicker(v => !v)
-                    setShowEmojiPicker(false)
-                  }}
-                  className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                  aria-label={t('sticker.picker')}
-                >
-                  <Sticker className="h-5 w-5" />
-                </button>
-                {showStickerPicker && (
-                  <div ref={stickerPickerRef} className="absolute bottom-full left-0 z-50 mb-2">
-                    <StickerPicker
-                      packs={stickerPacks}
-                      onSelect={sticker => void handleStickerSelect(sticker)}
-                      onClose={() => setShowStickerPicker(false)}
-                    />
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Voice record button (shown when input is empty) */}
-            {!editingMessage && text.trim() === '' && pendingUploads.length === 0 && (
-              <button
-                type="button"
-                onClick={() => setIsRecording(true)}
-                className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-                aria-label={t('voice.record')}
-              >
-                <Mic className="h-5 w-5" />
-              </button>
-            )}
+            {/* Right: send button */}
+            <Button
+              size="sm"
+              onClick={() => void sendCurrentMessage()}
+              disabled={isSending || (text.trim() === '' && pendingUploads.length === 0)}
+              aria-label={editingMessage ? t('common.save') : t('chat.send_message')}
+            >
+              <Send className="h-4 w-4" />
+            </Button>
           </div>
-
-          {/* Right: send button */}
-          <button
-            type="button"
-            onClick={() => void sendCurrentMessage()}
-            disabled={isSending || (text.trim() === '' && pendingUploads.length === 0)}
-            className="shrink-0 rounded-lg bg-primary px-3 py-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-            aria-label={editingMessage ? t('common.save') : t('chat.send_message')}
-          >
-            <Send className="h-4 w-4" />
-          </button>
         </div>
       </div>
     </div>

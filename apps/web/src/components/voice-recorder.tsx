@@ -1,6 +1,7 @@
 import { Send, Square } from 'lucide-react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Button } from './ui/button'
 
 interface VoiceRecorderProps {
   onSend: (blob: Blob, durationMs: number) => void
@@ -144,14 +145,15 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
 
   return (
     <div className="flex items-center gap-3 border-t border-border px-4 py-3">
-      <button
-        type="button"
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="shrink-0 text-destructive hover:bg-destructive/10 hover:text-destructive"
         onClick={stopAndCancel}
-        className="shrink-0 rounded-md p-1.5 text-destructive transition-colors hover:bg-destructive/10"
         aria-label={t('voice.cancel')}
       >
         <Square className="h-5 w-5" />
-      </button>
+      </Button>
 
       <div className="flex min-w-0 flex-1 items-center gap-2">
         {isRecording && (
@@ -173,15 +175,14 @@ export function VoiceRecorder({ onSend, onCancel }: VoiceRecorderProps) {
         </span>
       </div>
 
-      <button
-        type="button"
+      <Button
+        size="icon-sm"
         onClick={stopAndSend}
         disabled={!isRecording}
-        className="shrink-0 rounded-md bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
         aria-label={t('voice.send')}
       >
         <Send className="h-5 w-5" />
-      </button>
+      </Button>
     </div>
   )
 }

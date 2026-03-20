@@ -10,6 +10,8 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { renderMarkdown } from '../lib/markdown'
 import { MessageBubble } from './message-bubble'
+import { Button } from './ui/button'
+import { Textarea } from './ui/textarea'
 
 interface ThreadPanelProps {
   roomId: string
@@ -70,14 +72,14 @@ export function ThreadPanel({ roomId, threadRootId, onClose, onReaction }: Threa
       {/* Header */}
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
         <h3 className="text-sm font-semibold text-foreground">{t('chat.thread')}</h3>
-        <button
-          type="button"
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={onClose}
-          className="rounded-md p-1 text-muted-foreground hover:bg-accent hover:text-foreground"
           aria-label={t('common.close')}
         >
           <X className="h-4 w-4" />
-        </button>
+        </Button>
       </div>
 
       {/* Thread messages */}
@@ -110,24 +112,23 @@ export function ThreadPanel({ roomId, threadRootId, onClose, onReaction }: Threa
       {/* Thread input */}
       <div className="border-t border-border px-3 py-2">
         <div className="flex items-end gap-2">
-          <textarea
+          <Textarea
             value={text}
             onChange={e => setText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={t('chat.thread_reply_placeholder')}
             rows={1}
             disabled={isSending}
-            className="max-h-[100px] min-h-[36px] flex-1 resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
+            className="max-h-[100px] min-h-[36px] flex-1 resize-none"
           />
-          <button
-            type="button"
+          <Button
+            size="icon-sm"
             onClick={() => void handleSend()}
             disabled={isSending || text.trim() === ''}
-            className="shrink-0 rounded-md bg-primary p-1.5 text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
             aria-label={t('chat.send_message')}
           >
             <Send className="h-4 w-4" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

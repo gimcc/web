@@ -1,16 +1,15 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
-import { Compass, DoorOpen, LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
+import { LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
-import { CreateRoomDialog } from './compose/create-room-dialog'
-import { JoinRoomDialog } from './compose/join-room-dialog'
 import { NewChatDialog } from './compose/new-chat-dialog'
-import { RoomDirectoryDialog } from './compose/room-directory-dialog'
 import { ContactsDialog } from './contacts/contacts-dialog'
-import { InviteBell } from './invite-panel'
+import { InviteBell, InviteDialog } from './invite-panel'
 import { RoomList } from './room-list'
 import { SettingsDialog } from './settings/settings-dialog'
+import { Button } from './ui/button'
+import { Tooltip, TooltipContent, TooltipTrigger } from './ui/tooltip'
 
 interface SidebarProps {
   isOpen: boolean
@@ -46,9 +45,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [contactsOpen, setContactsOpen] = useState(false)
   const [newChatOpen, setNewChatOpen] = useState(false)
-  const [createRoomOpen, setCreateRoomOpen] = useState(false)
-  const [joinRoomOpen, setJoinRoomOpen] = useState(false)
-  const [exploreOpen, setExploreOpen] = useState(false)
+  const [inviteOpen, setInviteOpen] = useState(false)
 
   return (
     <>
@@ -73,39 +70,29 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         <div className="flex items-center justify-between border-b border-border px-4 py-3">
           <h1 className="text-lg font-semibold text-foreground">{t('app.name')}</h1>
           <div className="flex items-center gap-1">
-            <InviteBell />
-            <button
-              type="button"
-              onClick={() => setNewChatOpen(true)}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label={t('sidebar.new_chat')}
-            >
-              <Plus className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setExploreOpen(true)}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label={t('room.explore_title')}
-            >
-              <Compass className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setJoinRoomOpen(true)}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-              aria-label={t('room.join_title')}
-            >
-              <DoorOpen className="h-5 w-5" />
-            </button>
-            <button
-              type="button"
+            <InviteBell onClick={() => setInviteOpen(true)} />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => setNewChatOpen(true)}
+                  aria-label={t('sidebar.new_chat')}
+                >
+                  <Plus className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>{t('sidebar.new_chat')}</TooltipContent>
+            </Tooltip>
+            <Button
+              variant="ghost"
+              size="icon-sm"
               onClick={onToggle}
-              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
+              className="md:hidden"
               aria-label={t('sidebar.close')}
             >
               <X className="h-5 w-5" />
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -124,38 +111,45 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               <ConnectionIndicator />
             </div>
             <div className="flex items-center gap-1">
-              <button
-                type="button"
-                onClick={() => setContactsOpen(true)}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label={t('sidebar.contacts')}
-              >
-                <Users className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setCreateRoomOpen(true)}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label={t('room.create_title')}
-              >
-                <Plus className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setSettingsOpen(true)}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label={t('sidebar.settings')}
-              >
-                <Settings className="h-4 w-4" />
-              </button>
-              <button
-                type="button"
-                onClick={logout}
-                className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                aria-label={t('sidebar.logout')}
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => setContactsOpen(true)}
+                    aria-label={t('sidebar.contacts')}
+                  >
+                    <Users className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('sidebar.contacts')}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={() => setSettingsOpen(true)}
+                    aria-label={t('sidebar.settings')}
+                  >
+                    <Settings className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('sidebar.settings')}</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="icon-xs"
+                    onClick={logout}
+                    aria-label={t('sidebar.logout')}
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{t('sidebar.logout')}</TooltipContent>
+              </Tooltip>
             </div>
           </div>
         </div>
@@ -165,9 +159,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} />
       <ContactsDialog open={contactsOpen} onClose={() => setContactsOpen(false)} />
       <NewChatDialog open={newChatOpen} onClose={() => setNewChatOpen(false)} />
-      <CreateRoomDialog open={createRoomOpen} onClose={() => setCreateRoomOpen(false)} />
-      <JoinRoomDialog open={joinRoomOpen} onClose={() => setJoinRoomOpen(false)} />
-      <RoomDirectoryDialog open={exploreOpen} onClose={() => setExploreOpen(false)} />
+      <InviteDialog open={inviteOpen} onClose={() => setInviteOpen(false)} />
     </>
   )
 }
@@ -175,13 +167,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 export function SidebarToggle({ onToggle }: { onToggle: () => void }) {
   const { t } = useTranslation()
   return (
-    <button
-      type="button"
+    <Button
+      variant="ghost"
+      size="icon-sm"
       onClick={onToggle}
-      className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground md:hidden"
+      className="md:hidden"
       aria-label={t('sidebar.open')}
     >
       <Menu className="h-5 w-5" />
-    </button>
+    </Button>
   )
 }

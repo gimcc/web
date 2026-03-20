@@ -1,9 +1,11 @@
 import { getMatrixClient, reportEvent } from '@matrix-web/matrix-client'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Alert, AlertDescription } from './ui/alert'
 import { Button } from './ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog'
 import { Label } from './ui/label'
+import { Textarea } from './ui/textarea'
 
 interface ReportDialogProps {
   open: boolean
@@ -71,8 +73,7 @@ export function ReportDialog({ open, roomId, eventId, onClose }: ReportDialogPro
               <div className="space-y-4">
                 <div>
                   <Label className="mb-1">{t('report.reason_label')}</Label>
-                  <textarea
-                    className="w-full rounded-md border border-border bg-background p-2 text-sm text-foreground placeholder:text-muted-foreground"
+                  <Textarea
                     rows={4}
                     value={reason}
                     onChange={e => setReason(e.target.value)}
@@ -81,7 +82,9 @@ export function ReportDialog({ open, roomId, eventId, onClose }: ReportDialogPro
                 </div>
 
                 {error && (
-                  <p className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{error}</p>
+                  <Alert variant="destructive">
+                    <AlertDescription>{error}</AlertDescription>
+                  </Alert>
                 )}
 
                 <Button

@@ -1,5 +1,5 @@
-import type { FormEvent } from 'react'
 import type { UiaChallenge } from '@matrix-web/matrix-client'
+import type { FormEvent } from 'react'
 import {
   buildPasswordAuth,
   getRemainingStages,
@@ -7,6 +7,11 @@ import {
 } from '@matrix-web/matrix-client'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Alert, AlertDescription } from './ui/alert'
+import { Button } from './ui/button'
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './ui/dialog'
+import { Input } from './ui/input'
+import { Label } from './ui/label'
 
 interface UiaDialogProps {
   challenge: UiaChallenge
@@ -34,69 +39,56 @@ export function UiaDialog({ challenge, onSubmit, onCancel, isLoading, error }: U
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="w-full max-w-sm rounded-lg bg-background p-6 shadow-lg">
-        <h2 className="text-lg font-semibold text-foreground">{t('uia.title')}</h2>
-        <p className="mt-1 text-sm text-muted-foreground">{t('uia.description')}</p>
+    <Dialog open onOpenChange={v => !v && onCancel()}>
+      <DialogContent className="sm:max-w-sm" showCloseButton={false}>
+        <DialogHeader>
+          <DialogTitle>{t('uia.title')}</DialogTitle>
+          <DialogDescription>{t('uia.description')}</DialogDescription>
+        </DialogHeader>
 
         {currentStage === 'm.login.password' && (
-          <form onSubmit={handleSubmit} className="mt-4 space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col gap-2">
-              <label className="text-sm font-medium text-foreground" htmlFor="uia-password">
-                {t('uia.password_label')}
-              </label>
-              <input
+              <Label htmlFor="uia-password">{t('uia.password_label')}</Label>
+              <Input
                 id="uia-password"
                 type="password"
                 required
                 autoComplete="current-password"
                 placeholder={t('uia.password_placeholder')}
-                className="rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground"
                 value={password}
                 onChange={e => setPassword(e.target.value)}
               />
             </div>
 
             {(error || challenge.error) && (
-              <div className="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">
-                {error || challenge.error}
-              </div>
+              <Alert variant="destructive">
+                <AlertDescription>{error || challenge.error}</AlertDescription>
+              </Alert>
             )}
 
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={onCancel}
-                className="flex-1 rounded-md border border-input px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-              >
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={onCancel}>
                 {t('common.cancel')}
-              </button>
-              <button
-                type="submit"
-                disabled={isLoading || !password}
-                className="flex-1 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-              >
+              </Button>
+              <Button type="submit" disabled={isLoading || !password}>
                 {isLoading ? t('uia.verifying') : t('uia.verify')}
-              </button>
-            </div>
+              </Button>
+            </DialogFooter>
           </form>
         )}
 
         {currentStage && currentStage !== 'm.login.password' && (
-          <div className="mt-4">
+          <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
               {t('uia.unsupported_stage', { stage: currentStage })}
             </p>
-            <button
-              type="button"
-              onClick={onCancel}
-              className="mt-4 w-full rounded-md border border-input px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-            >
+            <Button variant="outline" className="w-full" onClick={onCancel}>
               {t('common.cancel')}
-            </button>
+            </Button>
           </div>
         )}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   )
 }
