@@ -13,6 +13,7 @@ import { RoomNotificationToggle } from '../../components/room-notification-toggl
 import { RoomSettingsDialog } from '../../components/room/room-settings-dialog'
 import { Sidebar, SidebarToggle } from '../../components/sidebar'
 import { ThreadPanel } from '../../components/thread-panel'
+import { useDeepLinkHandler } from '../../hooks/use-deep-link'
 import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
@@ -186,6 +187,7 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
 
 export function ChatLayout() {
   useMatrixClientLifecycle()
+  useDeepLinkHandler()
 
   const handleIdle = useCallback(() => {
     getPresenceService()?.setUnavailable()

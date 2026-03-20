@@ -1,11 +1,12 @@
 import { useAuthStore, useConnectionStore } from '@matrix-web/matrix-client'
-import { DoorOpen, LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
+import { Compass, DoorOpen, LogOut, Menu, Plus, Settings, Users, X } from 'lucide-react'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../lib/utils'
 import { CreateRoomDialog } from './compose/create-room-dialog'
 import { JoinRoomDialog } from './compose/join-room-dialog'
 import { NewChatDialog } from './compose/new-chat-dialog'
+import { RoomDirectoryDialog } from './compose/room-directory-dialog'
 import { ContactsDialog } from './contacts/contacts-dialog'
 import { InviteBell } from './invite-panel'
 import { RoomList } from './room-list'
@@ -47,6 +48,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const [newChatOpen, setNewChatOpen] = useState(false)
   const [createRoomOpen, setCreateRoomOpen] = useState(false)
   const [joinRoomOpen, setJoinRoomOpen] = useState(false)
+  const [exploreOpen, setExploreOpen] = useState(false)
 
   return (
     <>
@@ -79,6 +81,14 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               aria-label={t('sidebar.new_chat')}
             >
               <Plus className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setExploreOpen(true)}
+              className="rounded-md p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
+              aria-label={t('room.explore_title')}
+            >
+              <Compass className="h-5 w-5" />
             </button>
             <button
               type="button"
@@ -157,6 +167,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <NewChatDialog open={newChatOpen} onClose={() => setNewChatOpen(false)} />
       <CreateRoomDialog open={createRoomOpen} onClose={() => setCreateRoomOpen(false)} />
       <JoinRoomDialog open={joinRoomOpen} onClose={() => setJoinRoomOpen(false)} />
+      <RoomDirectoryDialog open={exploreOpen} onClose={() => setExploreOpen(false)} />
     </>
   )
 }

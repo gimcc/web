@@ -204,19 +204,24 @@ export {
 // Services — receipts
 export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
 export {
+  addRoomAlias,
+  browsePublicRooms,
   createDmRoom,
   createGroupRoom,
   createRoom,
   extractNewRoomSummary,
   getKnownUsers,
+  getRoomAliases,
   joinRoom,
   leaveRoom,
+  removeRoomAlias,
   searchPublicRooms,
   searchUsers,
+  setCanonicalAlias,
   updateRoomName,
   updateRoomTopic,
 } from './services/room-service'
-export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, UserSearchResult } from './services/room-service'
+export type { BrowsePublicRoomsResult, CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, PublicRoomInfo, UserSearchResult } from './services/room-service'
 // Services — search
 export { searchMessages } from './services/search-service'
 export type { SearchResult } from './services/search-service'
@@ -286,6 +291,16 @@ export {
   resolveUserId,
 } from './utils/user-id'
 export type { ParsedUserId } from './utils/user-id'
+
+// Utils — matrix.to links
+export {
+  buildMatrixToUrl,
+  isMatrixToUrl,
+  isRoomIdentifier,
+  isUserIdentifier,
+  parseMatrixToUrl,
+} from './utils/matrix-link'
+export type { MatrixLink, MatrixLinkType } from './utils/matrix-link'
 
 // Re-export crypto verification types for UI consumers
 export type {
