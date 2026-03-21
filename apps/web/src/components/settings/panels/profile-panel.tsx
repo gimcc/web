@@ -3,6 +3,7 @@ import {
   getMyProfile,
   mxcToThumbnailUrl,
   removeAvatar,
+  setDisplayName as updateDisplayName,
   uploadAvatar,
   useAuthStore,
 } from '@matrix-web/matrix-client'
@@ -55,7 +56,7 @@ export function ProfilePanel() {
     setError(null)
     setSuccess(null)
     try {
-      await setDisplayName(client, displayName.trim())
+      await updateDisplayName(client, displayName.trim())
       setOriginalName(displayName.trim())
       setSuccess(t('profile.success_name'))
     }

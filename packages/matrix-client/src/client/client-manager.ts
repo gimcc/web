@@ -12,7 +12,7 @@ import { usePresenceStore } from '../stores/presence-store'
 import { useRoomsStore } from '../stores/rooms-store'
 import { useTimelineStore } from '../stores/timeline-store'
 import { useTypingStore } from '../stores/typing-store'
-import { cacheSecretStorageKey, getSecretStorageKey } from '../services/secret-storage-service'
+import { cryptoCallbacks } from '../services/secret-storage-keys'
 import { createCryptoBridge } from '../sync/crypto-bridge'
 import { createPresenceBridge } from '../sync/presence-bridge'
 import { createSyncBridge } from '../sync/sync-bridge'
@@ -61,10 +61,7 @@ export async function startMatrixClient(options: StartClientOptions): Promise<Ma
       userId: session.userId,
       deviceId: session.deviceId,
       timelineSupport: true,
-      cryptoCallbacks: {
-        getSecretStorageKey,
-        cacheSecretStorageKey,
-      },
+      cryptoCallbacks: cryptoCallbacks as Record<string, unknown>,
     })
 
     matrixClient = client

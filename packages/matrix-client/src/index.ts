@@ -135,12 +135,14 @@ export type {
 
 // Crypto — secret storage service
 export {
-  clearCachedSecretStorageKey,
   refreshSecretStorageStatus,
-  resetSecretStorage,
-  setupSecretStorage,
-  setupSecretStorageWithPassphrase,
 } from './services/secret-storage-service'
+
+// Crypto — secret storage keys
+export {
+  clearSecretStorageKeys,
+  storePrivateKey,
+} from './services/secret-storage-keys'
 
 // Crypto — wipe service
 export { silentWipe } from './crypto/wipe-service'
@@ -354,7 +356,7 @@ export type { OptimisticReaction, TimelineStoreState } from './stores/timeline-s
 export { useTypingStore } from './stores/typing-store'
 export type { TypingState } from './stores/typing-store'
 // Sync bridges
-export { createCryptoBridge } from './sync/crypto-bridge'
+export { createCryptoBridge, refreshCryptoStatus } from './sync/crypto-bridge'
 // Timeline (new SDK-backed reading)
 export { paginateBackward, readTimeline, roomHasMoreHistory } from './timeline/reader'
 
@@ -406,3 +408,9 @@ export {
   decodeRecoveryKey,
   encodeRecoveryKey,
 } from 'matrix-js-sdk/lib/crypto-api/recovery-key'
+
+export {
+  deriveRecoveryKeyFromPassphrase,
+} from 'matrix-js-sdk/lib/crypto-api/key-passphrase'
+
+export { MatrixError } from 'matrix-js-sdk'

@@ -1,24 +1,90 @@
-import { useCryptoStore } from '@matrix-web/matrix-client'
-import { Shield, ShieldCheck, ShieldX } from 'lucide-react'
-import { useState } from 'react'
+import { getMatrixClient, useCryptoStore } from '@matrix-web/matrix-client'
+import { Shield, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react'
+import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../../ui/button'
-import { CrossSigningSetupDialog } from '../../crypto/cross-signing-setup-dialog'
-import { KeyBackupSetup } from '../../crypto/key-backup-setup'
-import { SecretStorageSetupDialog } from '../../crypto/secret-storage-setup-dialog'
+import { DeviceVerificationSetup } from '../../crypto/device-verification-setup'
+import { ManualVerification } from '../../crypto/manual-verification'
 
 function CryptoStatusRow({ label, enabled }: { label: string, enabled: boolean }) {
-  const { t } = useTranslation()
   const Icon = enabled ? ShieldCheck : ShieldX
   return (
     <div className="flex items-center justify-between">
       <span className="text-xs text-muted-foreground">{label}</span>
       <span className="inline-flex items-center gap-1.5 text-xs">
         <Icon className={`h-3.5 w-3.5 ${enabled ? 'text-green-500' : 'text-muted-foreground'}`} />
-        {enabled ? t('common.enabled') : t('common.disabled')}
+        {enabled ? 'On' : 'Off'}
       </span>
     </div>
   )
+}
+
+interface SecretStorageKeyInfo {
+  keyId?: string
+  content?: {
+    passphrase?: {
+      algorithm: string
+      salt: string
+      iterations: number
+      bits: number
+    }
+  }
+}
+
+function useSecretStorageKeyInfo(): SecretStorageKeyInfo {
+  const [info, setInfo] = useState<SecretStorageKeyInfo>({})
+
+  useEffect(() => {
+    const client = getMatrixClient()
+    if (!client) return
+
+    const defaultKeyEvent = client.getAccountData('m.secret_storage.default_key')
+    const keyId = defaultKeyEvent?.getContent()?.key as string | undefined
+    if (!keyId) return
+
+    const keyEvent = client.getAccountData(`m.secret_storage.key.${keyId}`)
+    const content = keyEvent?.getContent() as SecretStorageKeyInfo['content']
+
+    setInfo({ keyId, content })
+  }, [])
+
+  return info
+}
+
+function useCrossSigningActive(): boolean {
+  const [active, setActive] = useState(false)
+
+  useEffect(() => {
+    const client = getMatrixClient()
+    if (!client) return
+
+    const masterEvent = client.getAccountData('m.cross_signing.master')
+    setActive(!!masterEvent?.getContent())
+  }, [])
+
+  return active
+}
+
+function useDeviceVerified(): boolean | null {
+  const [verified, setVerified] = useState<boolean | null>(null)
+
+  useEffect(() => {
+    const client = getMatrixClient()
+    if (!client) return
+
+    const crypto = client.getCrypto()
+    if (!crypto) return
+
+    const userId = client.getUserId()
+    const deviceId = client.getDeviceId()
+    if (!userId || !deviceId) return
+
+    crypto.getDeviceVerificationStatus(userId, deviceId).then((status) => {
+      setVerified(status?.crossSigningVerified ?? false)
+    }).catch(() => setVerified(null))
+  }, [])
+
+  return verified
 }
 
 export function EncryptionPanel() {
@@ -27,8 +93,21 @@ export function EncryptionPanel() {
   const crossSigningReady = useCryptoStore(s => s.crossSigningReady)
   const keyBackupEnabled = useCryptoStore(s => s.keyBackupEnabled)
   const secretStorageReady = useCryptoStore(s => s.secretStorageReady)
-  const [crossSigningDialog, setCrossSigningDialog] = useState<{ open: boolean, mode: 'setup' | 'reset' }>({ open: false, mode: 'setup' })
-  const [secretStorageDialog, setSecretStorageDialog] = useState<{ open: boolean, mode: 'setup' | 'reset' }>({ open: false, mode: 'setup' })
+
+  const crossSigningActive = useCrossSigningActive()
+  const deviceVerified = useDeviceVerified()
+  const ssssKeyInfo = useSecretStorageKeyInfo()
+
+  const [setupDialog, setSetupDialog] = useState<{ open: boolean, mode: 'setup' | 'reset' }>({ open: false, mode: 'setup' })
+  const [manualVerifyOpen, setManualVerifyOpen] = useState(false)
+
+  // Determine the overall state
+  const needsSetup = !crossSigningActive
+  const needsVerification = crossSigningActive && deviceVerified === false
+
+  const handleSetupClose = useCallback(() => {
+    setSetupDialog(prev => ({ ...prev, open: false }))
+  }, [])
 
   return (
     <div className="space-y-6">
@@ -52,81 +131,74 @@ export function EncryptionPanel() {
         <CryptoStatusRow label={t('encryption.secret_storage')} enabled={secretStorageReady} />
       </div>
 
-      {/* Cross-signing setup */}
+      {/* Setup / Verify / Reset section */}
       <div className="space-y-3 rounded-lg border border-border p-4">
-        <div>
-          <h3 className="text-sm font-semibold">{t('cross_signing.title')}</h3>
-          <p className="text-xs text-muted-foreground">
-            {crossSigningReady
-              ? t('cross_signing.enabled_message')
-              : t('cross_signing.disabled_message')}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {!crossSigningReady && (
+        {needsSetup && (
+          <>
+            <div>
+              <h3 className="text-sm font-semibold">{t('verification_setup.section_title')}</h3>
+              <p className="text-xs text-muted-foreground">
+                {t('verification_setup.section_not_setup')}
+              </p>
+            </div>
             <Button
               size="sm"
-              onClick={() => setCrossSigningDialog({ open: true, mode: 'setup' })}
+              onClick={() => setSetupDialog({ open: true, mode: 'setup' })}
             >
-              {t('cross_signing.setup_button')}
+              {t('verification_setup.enable_button')}
             </Button>
-          )}
-          {crossSigningReady && (
+          </>
+        )}
+
+        {needsVerification && (
+          <>
+            <div className="flex items-center gap-2">
+              <ShieldAlert className="h-4 w-4 text-yellow-500" />
+              <h3 className="text-sm font-semibold">{t('manual_verification.section_title')}</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t('manual_verification.section_description')}
+            </p>
+            <Button
+              size="sm"
+              onClick={() => setManualVerifyOpen(true)}
+            >
+              {t('manual_verification.verify_button')}
+            </Button>
+          </>
+        )}
+
+        {!needsSetup && !needsVerification && (
+          <>
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="h-4 w-4 text-green-500" />
+              <h3 className="text-sm font-semibold">{t('verification_setup.section_verified')}</h3>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {t('verification_setup.section_verified_description')}
+            </p>
             <Button
               size="sm"
               variant="outline"
-              onClick={() => setCrossSigningDialog({ open: true, mode: 'reset' })}
+              onClick={() => setSetupDialog({ open: true, mode: 'reset' })}
             >
-              {t('cross_signing.reset_button')}
+              {t('verification_setup.reset_button')}
             </Button>
-          )}
-        </div>
+          </>
+        )}
       </div>
 
-      {/* Secret storage setup */}
-      <div className="space-y-3 rounded-lg border border-border p-4">
-        <div>
-          <h3 className="text-sm font-semibold">{t('secret_storage.title')}</h3>
-          <p className="text-xs text-muted-foreground">
-            {secretStorageReady
-              ? t('secret_storage.enabled_message')
-              : t('secret_storage.disabled_message')}
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {!secretStorageReady && (
-            <Button
-              size="sm"
-              onClick={() => setSecretStorageDialog({ open: true, mode: 'setup' })}
-            >
-              {t('secret_storage.setup_button')}
-            </Button>
-          )}
-          {secretStorageReady && (
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => setSecretStorageDialog({ open: true, mode: 'reset' })}
-            >
-              {t('secret_storage.reset_button')}
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Key backup setup */}
-      <KeyBackupSetup />
-
-      <CrossSigningSetupDialog
-        open={crossSigningDialog.open}
-        onClose={() => setCrossSigningDialog(prev => ({ ...prev, open: false }))}
-        mode={crossSigningDialog.mode}
+      <DeviceVerificationSetup
+        open={setupDialog.open}
+        onClose={handleSetupClose}
+        mode={setupDialog.mode}
       />
 
-      <SecretStorageSetupDialog
-        open={secretStorageDialog.open}
-        onClose={() => setSecretStorageDialog(prev => ({ ...prev, open: false }))}
-        mode={secretStorageDialog.mode}
+      <ManualVerification
+        open={manualVerifyOpen}
+        onClose={() => setManualVerifyOpen(false)}
+        secretStorageKeyId={ssssKeyInfo.keyId}
+        secretStorageKeyContent={ssssKeyInfo.content}
       />
     </div>
   )

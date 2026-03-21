@@ -1,6 +1,6 @@
 # FEAT-088 实现 SSSS（安全秘密存储与共享）
 
-- **status**: in_progress
+- **status**: closed
 - **priority**: P1
 - **owner**: claude
 - **createdAt**: 2026-03-21 10:00
