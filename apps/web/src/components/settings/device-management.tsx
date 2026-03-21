@@ -1,14 +1,17 @@
-import type { DeviceInfo } from '@matrix-web/matrix-client'
+import type { DeviceInfo, DeviceTrustInfo, VerificationRequest } from '@matrix-web/matrix-client'
 import {
   deleteDevice,
+  getDeviceTrust,
   getDevices,
   getMatrixClient,
   renameDevice,
+  requestDeviceVerification,
   useAuthStore,
 } from '@matrix-web/matrix-client'
-import { Monitor, Pencil, Trash2 } from 'lucide-react'
+import { CheckCircle, Monitor, Pencil, ShieldCheck, ShieldX, Trash2 } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DeviceVerificationDialog } from '../crypto/device-verification-dialog'
 import { Button } from '../ui/button'
 import {
   Dialog,
@@ -41,6 +44,9 @@ export function DeviceManagement() {
   const [uiaPassword, setUiaPassword] = useState('')
   const [uiaSession, setUiaSession] = useState<string | null>(null)
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false)
+  const [verifyingId, setVerifyingId] = useState<string | null>(null)
+  const [verificationRequest, setVerificationRequest] = useState<VerificationRequest | null>(null)
+  const [trustStatus, setTrustStatus] = useState<Map<string, DeviceTrustInfo>>(new Map())
 
   const setSuccessWithAutoClear = (msg: string) => {
     setSuccess(msg)
@@ -54,6 +60,26 @@ export function DeviceManagement() {
     try {
       const devs = await getDevices(client)
       setDevices(devs)
+
+      // Load verification status for all devices
+      const userId = session?.userId
+      if (userId) {
+        const trustMap = new Map<string, DeviceTrustInfo>()
+        await Promise.all(
+          devs.map(async (dev) => {
+            try {
+              const trust = await getDeviceTrust(client, userId, dev.deviceId)
+              if (trust) {
+                trustMap.set(dev.deviceId, trust)
+              }
+            }
+            catch {
+              // Device may not have encryption keys
+            }
+          }),
+        )
+        setTrustStatus(trustMap)
+      }
     }
     catch {
       setError(t('devices.error_load'))
@@ -61,7 +87,7 @@ export function DeviceManagement() {
     finally {
       setLoading(false)
     }
-  }, [t])
+  }, [t, session?.userId])
 
   useEffect(() => {
     loadDevices()
@@ -138,6 +164,32 @@ export function DeviceManagement() {
     setUiaSession(null)
   }
 
+  const handleVerifyDevice = async (deviceId: string) => {
+    const client = getMatrixClient()
+    const userId = session?.userId
+    if (!client || !userId)
+      return
+
+    setError(null)
+    setVerifyingId(deviceId)
+    try {
+      const request = await requestDeviceVerification(client, userId, deviceId)
+      setVerificationRequest(request)
+    }
+    catch {
+      setError(t('device_verification.error_start'))
+    }
+    finally {
+      setVerifyingId(null)
+    }
+  }
+
+  const handleVerificationClose = () => {
+    setVerificationRequest(null)
+    // Reload devices to refresh verification status
+    loadDevices()
+  }
+
   const currentDeviceId = session?.deviceId
 
   return (
@@ -172,6 +224,8 @@ export function DeviceManagement() {
                 {devices.map((device) => {
                   const isCurrent = device.deviceId === currentDeviceId
                   const isEditing = editingId === device.deviceId
+                  const trust = trustStatus.get(device.deviceId)
+                  const isVerified = trust?.verified ?? false
 
                   return (
                     <div
@@ -224,6 +278,22 @@ export function DeviceManagement() {
                                       {t('devices.current')}
                                     </span>
                                   )}
+                                  {/* Verification status badge */}
+                                  {trust && (
+                                    isVerified
+                                      ? (
+                                          <span className="inline-flex items-center gap-0.5 rounded-full bg-green-500/10 px-1.5 py-0.5 text-[10px] font-medium text-green-600 dark:text-green-400">
+                                            <ShieldCheck className="h-3 w-3" />
+                                            {t('device_verification.status_verified')}
+                                          </span>
+                                        )
+                                      : (
+                                          <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-0.5 text-[10px] font-medium text-amber-600 dark:text-amber-400">
+                                            <ShieldX className="h-3 w-3" />
+                                            {t('device_verification.status_unverified')}
+                                          </span>
+                                        )
+                                  )}
                                 </div>
                               )}
                           <div className="mt-0.5 space-y-0.5">
@@ -249,6 +319,22 @@ export function DeviceManagement() {
 
                         {!isEditing && (
                           <div className="flex shrink-0 gap-1">
+                            {/* Verify button — only for non-current, unverified devices */}
+                            {!isCurrent && !isVerified && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                disabled={verifyingId === device.deviceId}
+                                onClick={() => handleVerifyDevice(device.deviceId)}
+                              >
+                                <CheckCircle className="h-3.5 w-3.5 text-primary" />
+                                <span className="ml-1 text-xs">{
+                                  verifyingId === device.deviceId
+                                    ? t('device_verification.verifying')
+                                    : t('device_verification.verify_button')
+                                }</span>
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -279,6 +365,14 @@ export function DeviceManagement() {
                 })}
               </div>
             )}
+
+      {/* Verification dialog */}
+      {verificationRequest && (
+        <DeviceVerificationDialog
+          request={verificationRequest}
+          onClose={handleVerificationClose}
+        />
+      )}
 
       {/* Confirm delete dialog */}
       <Dialog

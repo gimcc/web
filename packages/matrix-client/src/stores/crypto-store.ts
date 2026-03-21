@@ -1,3 +1,4 @@
+import type { VerificationRequest } from 'matrix-js-sdk/lib/crypto-api'
 import { create } from 'zustand'
 
 export interface KeyBackupProgress {
@@ -10,13 +11,13 @@ export interface CryptoState {
   crossSigningReady: boolean
   keyBackupEnabled: boolean
   keyBackupProgress: KeyBackupProgress | null
-  verificationRequest: unknown | null
+  verificationRequest: VerificationRequest | null
 
   setInitialized: (ready: boolean) => void
   setCrossSigningReady: (ready: boolean) => void
   setKeyBackupEnabled: (enabled: boolean) => void
   setKeyBackupProgress: (progress: KeyBackupProgress | null) => void
-  setVerificationRequest: (request: unknown | null) => void
+  setVerificationRequest: (request: VerificationRequest | null) => void
   reset: () => void
 }
 
@@ -25,7 +26,7 @@ const initialState = {
   crossSigningReady: false,
   keyBackupEnabled: false,
   keyBackupProgress: null as KeyBackupProgress | null,
-  verificationRequest: null as unknown | null,
+  verificationRequest: null as VerificationRequest | null,
 }
 
 export const useCryptoStore = create<CryptoState>(set => ({

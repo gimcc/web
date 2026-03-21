@@ -1,6 +1,8 @@
-import type { ShowSasCallbacks, VerificationRequest } from '@matrix-web/matrix-client'
-import { VerifierEvent } from '@matrix-web/matrix-client'
-import { useCallback, useEffect, useState } from 'react'
+import type { ShowQrCodeCallbacks, ShowSasCallbacks, VerificationRequest } from '@matrix-web/matrix-client'
+import { VerificationPhase, VerificationRequestEvent, VerifierEvent } from '@matrix-web/matrix-client'
+import { Loader2 } from 'lucide-react'
+import QRCode from 'qrcode'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
 import {
@@ -12,7 +14,7 @@ import {
   DialogTitle,
 } from '../ui/dialog'
 
-type VerificationPhase = 'request' | 'sas' | 'done' | 'cancelled'
+type DialogPhase = 'waiting' | 'request' | 'qr' | 'qr-scanned' | 'sas' | 'done' | 'cancelled'
 
 interface EmojiItem {
   emoji: string
@@ -26,10 +28,69 @@ interface DeviceVerificationDialogProps {
 
 export function DeviceVerificationDialog({ request, onClose }: DeviceVerificationDialogProps) {
   const { t } = useTranslation()
-  const [phase, setPhase] = useState<VerificationPhase>('request')
+  const [phase, setPhase] = useState<DialogPhase>(() => {
+    if (request.initiatedByMe) {
+      return request.phase === VerificationPhase.Ready ? 'qr' : 'waiting'
+    }
+    return 'request'
+  })
   const [emojis, setEmojis] = useState<EmojiItem[]>([])
   const [sasCallbacks, setSasCallbacks] = useState<ShowSasCallbacks | null>(null)
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null)
+  const [qrCallbacks, setQrCallbacks] = useState<ShowQrCodeCallbacks | null>(null)
+  const verifyPromiseRef = useRef<Promise<void> | null>(null)
 
+  // Listen for verification request phase changes (e.g. other side accepts)
+  useEffect(() => {
+    function onRequestChange() {
+      const p = request.phase
+      if (p === VerificationPhase.Ready && phase === 'waiting') {
+        setPhase('qr')
+      }
+      else if (p === VerificationPhase.Done) {
+        setPhase('done')
+      }
+      else if (p === VerificationPhase.Cancelled) {
+        setPhase('cancelled')
+      }
+    }
+
+    request.on(VerificationRequestEvent.Change, onRequestChange)
+    return () => {
+      request.off(VerificationRequestEvent.Change, onRequestChange)
+    }
+  }, [request, phase])
+
+  // Generate QR code when entering the QR phase
+  useEffect(() => {
+    if (phase !== 'qr')
+      return
+
+    let cancelled = false
+
+    async function generateQr() {
+      try {
+        const qrData = await request.generateQRCode()
+        if (cancelled || !qrData)
+          return
+        const dataUrl = await QRCode.toDataURL(
+          [{ data: qrData, mode: 'byte' }],
+          { errorCorrectionLevel: 'L', width: 256, margin: 2 },
+        )
+        if (!cancelled) {
+          setQrCodeDataUrl(dataUrl)
+        }
+      }
+      catch {
+        // QR code generation not supported — user can fall back to emoji
+      }
+    }
+
+    generateQr()
+    return () => { cancelled = true }
+  }, [phase, request])
+
+  // Listen for verifier events (SAS emojis, QR reciprocate, cancel)
   useEffect(() => {
     const verifier = request.verifier
     if (!verifier)
@@ -45,34 +106,60 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
       setPhase('sas')
     }
 
+    function onShowReciprocateQr(qr: ShowQrCodeCallbacks): void {
+      setQrCallbacks(qr)
+      setPhase('qr-scanned')
+    }
+
     function onCancel(): void {
       setPhase('cancelled')
     }
 
     verifier.on(VerifierEvent.ShowSas, onShowSas)
+    verifier.on(VerifierEvent.ShowReciprocateQr, onShowReciprocateQr)
     verifier.on(VerifierEvent.Cancel, onCancel)
 
     return () => {
       verifier.off(VerifierEvent.ShowSas, onShowSas)
+      verifier.off(VerifierEvent.ShowReciprocateQr, onShowReciprocateQr)
       verifier.off(VerifierEvent.Cancel, onCancel)
     }
-  }, [request])
+  }, [request, request.verifier])
 
   const handleAccept = useCallback(async () => {
     try {
       const verifier = request.verifier
       if (verifier) {
-        await verifier.verify()
+        verifyPromiseRef.current = verifier.verify()
+        await verifyPromiseRef.current
         setPhase('done')
       }
       else {
         await request.accept()
+        // After accepting, transition to QR/ready phase
+        if (request.phase === VerificationPhase.Ready) {
+          setPhase('qr')
+        }
       }
     }
     catch {
       setPhase('cancelled')
     }
   }, [request])
+
+  const handleStartSas = useCallback(async () => {
+    try {
+      const verifier = await request.startVerification('m.sas.v1')
+      verifyPromiseRef.current = verifier.verify()
+      await verifyPromiseRef.current
+      setPhase('done')
+    }
+    catch {
+      if (phase !== 'sas' && phase !== 'done') {
+        setPhase('cancelled')
+      }
+    }
+  }, [request, phase])
 
   const handleConfirmSas = useCallback(async () => {
     try {
@@ -83,6 +170,16 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
       setPhase('cancelled')
     }
   }, [sasCallbacks])
+
+  const handleConfirmQr = useCallback(async () => {
+    try {
+      qrCallbacks?.confirm()
+      setPhase('done')
+    }
+    catch {
+      setPhase('cancelled')
+    }
+  }, [qrCallbacks])
 
   const handleReject = useCallback(async () => {
     try {
@@ -103,6 +200,23 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
       }}
     >
       <DialogContent className="sm:max-w-md">
+        {/* Waiting for other device to accept (outgoing request) */}
+        {phase === 'waiting' && (
+          <>
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.outgoing_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.outgoing_message')}</DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-center py-4">
+              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleReject}>{t('common.cancel')}</Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {/* Incoming request — accept or decline */}
         {phase === 'request' && (
           <>
             <DialogHeader>
@@ -116,6 +230,52 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
           </>
         )}
 
+        {/* QR code display — ready phase */}
+        {phase === 'qr' && (
+          <>
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.qr_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.qr_message')}</DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center gap-4 py-2">
+              {qrCodeDataUrl
+                ? (
+                    <img
+                      src={qrCodeDataUrl}
+                      alt="Verification QR Code"
+                      className="h-64 w-64 rounded-lg border border-border bg-white p-2"
+                    />
+                  )
+                : (
+                    <div className="flex h-64 w-64 items-center justify-center rounded-lg border border-border bg-muted">
+                      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+              <Button variant="outline" onClick={handleStartSas}>
+                {t('device_verification.qr_or_emoji')}
+              </Button>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleReject}>{t('common.cancel')}</Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {/* QR code scanned by other device — confirm */}
+        {phase === 'qr-scanned' && (
+          <>
+            <DialogHeader>
+              <DialogTitle>{t('device_verification.qr_scanned_title')}</DialogTitle>
+              <DialogDescription>{t('device_verification.qr_scanned_message')}</DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={handleReject}>{t('common.cancel')}</Button>
+              <Button onClick={handleConfirmQr}>{t('device_verification.qr_confirm')}</Button>
+            </DialogFooter>
+          </>
+        )}
+
+        {/* SAS emoji comparison */}
         {phase === 'sas' && (
           <>
             <DialogHeader>
@@ -137,6 +297,7 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
           </>
         )}
 
+        {/* Verification complete */}
         {phase === 'done' && (
           <>
             <DialogHeader>
@@ -149,6 +310,7 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
           </>
         )}
 
+        {/* Verification cancelled */}
         {phase === 'cancelled' && (
           <>
             <DialogHeader>

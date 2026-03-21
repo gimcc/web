@@ -1,9 +1,10 @@
 import type { MatrixClient } from 'matrix-js-sdk'
+import type { VerificationRequest } from 'matrix-js-sdk/lib/crypto-api'
 import { CryptoEvent } from 'matrix-js-sdk/lib/crypto-api'
 import { useCryptoStore } from '../stores/crypto-store'
 
 export function createCryptoBridge(client: MatrixClient): () => void {
-  function onVerificationRequest(request: unknown): void {
+  function onVerificationRequest(request: VerificationRequest): void {
     useCryptoStore.getState().setVerificationRequest(request)
   }
 

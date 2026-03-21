@@ -90,6 +90,37 @@ export {
 export { hasNormalPassword, verifyPasswordInput } from './crypto/password-verifier'
 export type { VerificationResult } from './crypto/password-verifier'
 
+// Crypto — E2EE service
+export {
+  bootstrapCrossSigning,
+  bootstrapSecretStorage,
+  checkAndEnableKeyBackup,
+  createKeyBackup,
+  createRecoveryKey,
+  crossSignDevice,
+  disableKeyStorage,
+  getActiveBackupVersion,
+  getCrossSigningInfo,
+  getDeviceTrust,
+  getInProgressVerifications,
+  getSecretStorageInfo,
+  getUserTrust,
+  isRoomEncrypted,
+  loadBackupKeyFromSecretStorage,
+  pinUserIdentity,
+  requestDeviceVerification,
+  requestSelfVerification,
+  requestUserVerificationDM,
+  resetEncryption,
+  setDeviceVerified,
+} from './services/crypto-service'
+export type {
+  CrossSigningInfo,
+  DeviceTrustInfo,
+  SecretStorageInfo,
+  UserTrustInfo,
+} from './services/crypto-service'
+
 // Crypto — wipe service
 export { silentWipe } from './crypto/wipe-service'
 
@@ -335,7 +366,22 @@ export type { ParsedUserId } from './utils/user-id'
 
 // Re-export crypto verification types for UI consumers
 export type {
+  ShowQrCodeCallbacks,
   ShowSasCallbacks,
   VerificationRequest,
 } from 'matrix-js-sdk/lib/crypto-api'
-export { VerifierEvent } from 'matrix-js-sdk/lib/crypto-api'
+export {
+  VerificationPhase,
+  VerificationRequestEvent,
+  VerifierEvent,
+} from 'matrix-js-sdk/lib/crypto-api'
+
+export type {
+  CreateSecretStorageOpts,
+  GeneratedSecretStorageKey,
+} from 'matrix-js-sdk/lib/crypto-api'
+
+export {
+  decodeRecoveryKey,
+  encodeRecoveryKey,
+} from 'matrix-js-sdk/lib/crypto-api/recovery-key'

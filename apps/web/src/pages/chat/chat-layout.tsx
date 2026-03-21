@@ -1,8 +1,9 @@
 import type { TimelineMessageItem } from '@matrix-web/matrix-client'
-import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
+import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useCryptoStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
 import { Bell, LogOut, MessageSquare, Search, Settings, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { DeviceVerificationDialog } from '../../components/crypto/device-verification-dialog'
 import { JumpToDate } from '../../components/chat/jump-to-date'
 import { MessageSearch } from '../../components/chat/message-search'
 import { TypingIndicator } from '../../components/chat/typing-indicator'
@@ -297,6 +298,14 @@ export function ChatLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
 
+  // Incoming verification requests from crypto store
+  const incomingVerificationRequest = useCryptoStore(s => s.verificationRequest)
+  const clearVerificationRequest = useCryptoStore(s => s.setVerificationRequest)
+
+  const handleVerificationClose = useCallback(() => {
+    clearVerificationRequest(null)
+  }, [clearVerificationRequest])
+
   return (
     <div className="flex h-screen bg-background">
       <Sidebar
@@ -332,6 +341,14 @@ export function ChatLayout() {
           )}
         </div>
       </main>
+
+      {/* Incoming device verification dialog */}
+      {incomingVerificationRequest && (
+        <DeviceVerificationDialog
+          request={incomingVerificationRequest}
+          onClose={handleVerificationClose}
+        />
+      )}
     </div>
   )
 }

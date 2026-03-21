@@ -3,14 +3,18 @@ import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Button } from '../ui/button'
 import { Progress } from '../ui/progress'
+import { RecoveryKeyDisplayDialog } from './recovery-key-display-dialog'
+import { RecoveryKeyInputDialog } from './recovery-key-input-dialog'
 
-type SetupPhase = 'idle' | 'creating' | 'restoring' | 'error'
+type SetupPhase = 'idle' | 'creating' | 'restoring' | 'resetting' | 'error'
 
 export function KeyBackupSetup() {
   const { t } = useTranslation()
   const { keyBackupEnabled, keyBackupProgress } = useCryptoStore()
   const [phase, setPhase] = useState<SetupPhase>('idle')
   const [error, setError] = useState<string | null>(null)
+  const [recoveryKey, setRecoveryKey] = useState<string | null>(null)
+  const [showInputDialog, setShowInputDialog] = useState(false)
 
   const handleCreateBackup = useCallback(async () => {
     const client = getMatrixClient()
@@ -22,7 +26,21 @@ export function KeyBackupSetup() {
     setError(null)
 
     try {
-      await crypto.resetKeyBackup()
+      let generatedRecoveryKey: string | undefined
+
+      await crypto.bootstrapSecretStorage({
+        createSecretStorageKey: async () => {
+          const key = await crypto.createRecoveryKeyFromPassphrase()
+          generatedRecoveryKey = key.encodedPrivateKey
+          return key
+        },
+        setupNewSecretStorage: true,
+        setupNewKeyBackup: true,
+      })
+
+      if (generatedRecoveryKey) {
+        setRecoveryKey(generatedRecoveryKey)
+      }
       setPhase('idle')
     }
     catch (err) {
@@ -30,6 +48,11 @@ export function KeyBackupSetup() {
       setPhase('error')
     }
   }, [t])
+
+  const handleSetupWithPassphrase = useCallback(() => {
+    setError(null)
+    setShowInputDialog(true)
+  }, [])
 
   const handleRestoreBackup = useCallback(async () => {
     const client = getMatrixClient()
@@ -56,49 +79,119 @@ export function KeyBackupSetup() {
     }
   }, [t])
 
-  return (
-    <div className="space-y-4 rounded-lg border border-border p-4">
-      <div>
-        <h3 className="text-sm font-semibold">{t('key_backup.title')}</h3>
-        <p className="text-xs text-muted-foreground">
-          {keyBackupEnabled
-            ? t('key_backup.enabled_message')
-            : t('key_backup.disabled_message')}
-        </p>
-      </div>
+  const handleResetBackup = useCallback(async () => {
+    const client = getMatrixClient()
+    const crypto = client?.getCrypto()
+    if (!crypto)
+      return
 
-      {keyBackupProgress && (
-        <div className="space-y-1">
-          <Progress value={Math.round((keyBackupProgress.current / keyBackupProgress.total) * 100)} />
+    setPhase('resetting')
+    setError(null)
+
+    try {
+      let generatedRecoveryKey: string | undefined
+
+      await crypto.bootstrapSecretStorage({
+        createSecretStorageKey: async () => {
+          const key = await crypto.createRecoveryKeyFromPassphrase()
+          generatedRecoveryKey = key.encodedPrivateKey
+          return key
+        },
+        setupNewSecretStorage: true,
+        setupNewKeyBackup: true,
+      })
+
+      if (generatedRecoveryKey) {
+        setRecoveryKey(generatedRecoveryKey)
+      }
+      setPhase('idle')
+    }
+    catch (err) {
+      setError(err instanceof Error ? err.message : t('key_backup.error_reset'))
+      setPhase('error')
+    }
+  }, [t])
+
+  const isBusy = phase === 'creating' || phase === 'restoring' || phase === 'resetting'
+
+  return (
+    <>
+      <div className="space-y-4 rounded-lg border border-border p-4">
+        <div>
+          <h3 className="text-sm font-semibold">{t('key_backup.title')}</h3>
           <p className="text-xs text-muted-foreground">
-            {t('key_backup.progress', { current: keyBackupProgress.current, total: keyBackupProgress.total })}
+            {keyBackupEnabled
+              ? t('key_backup.enabled_message')
+              : t('key_backup.disabled_message')}
           </p>
         </div>
-      )}
 
-      {phase === 'error' && error && (
-        <p className="text-xs text-destructive">{error}</p>
-      )}
+        {keyBackupProgress && (
+          <div className="space-y-1">
+            <Progress value={Math.round((keyBackupProgress.current / keyBackupProgress.total) * 100)} />
+            <p className="text-xs text-muted-foreground">
+              {t('key_backup.progress', { current: keyBackupProgress.current, total: keyBackupProgress.total })}
+            </p>
+          </div>
+        )}
 
-      <div className="flex gap-2">
-        {!keyBackupEnabled && (
+        {phase === 'error' && error && (
+          <p className="text-xs text-destructive">{error}</p>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {!keyBackupEnabled && (
+            <>
+              <Button
+                size="sm"
+                onClick={handleCreateBackup}
+                disabled={isBusy}
+              >
+                {phase === 'creating' ? t('key_backup.creating') : t('recovery_key.setup_with_key')}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleSetupWithPassphrase}
+                disabled={isBusy}
+              >
+                {t('recovery_key.setup_with_passphrase')}
+              </Button>
+            </>
+          )}
           <Button
             size="sm"
-            onClick={handleCreateBackup}
-            disabled={phase === 'creating' || phase === 'restoring'}
+            variant="outline"
+            onClick={() => setShowInputDialog(true)}
+            disabled={isBusy}
           >
-            {phase === 'creating' ? t('key_backup.creating') : t('key_backup.setup')}
+            {t('key_backup.restore')}
           </Button>
-        )}
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={handleRestoreBackup}
-          disabled={phase === 'creating' || phase === 'restoring'}
-        >
-          {phase === 'restoring' ? t('key_backup.restoring') : t('key_backup.restore')}
-        </Button>
+          {keyBackupEnabled && (
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleResetBackup}
+              disabled={isBusy}
+            >
+              {phase === 'resetting' ? t('key_backup.resetting') : t('key_backup.reset')}
+            </Button>
+          )}
+        </div>
       </div>
-    </div>
+
+      {recoveryKey && (
+        <RecoveryKeyDisplayDialog
+          recoveryKey={recoveryKey}
+          onClose={() => setRecoveryKey(null)}
+        />
+      )}
+
+      <RecoveryKeyInputDialog
+        open={showInputDialog}
+        onClose={() => setShowInputDialog(false)}
+        onRecovered={handleRestoreBackup}
+      />
+    </>
   )
 }
