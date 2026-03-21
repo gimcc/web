@@ -4,6 +4,7 @@ import type { PresenceService } from '../services/presence-service'
 import type { TypingService } from '../services/typing-service'
 import type { RoomSummary } from '../stores/rooms-store'
 import { ClientEvent, createClient, NotificationCountType } from 'matrix-js-sdk'
+import { isRoomDirectViaAccountData } from '../services/room-service'
 import { createPresenceService } from '../services/presence-service'
 import { createTypingService } from '../services/typing-service'
 import { useConnectionStore } from '../stores/connection-store'
@@ -61,7 +62,7 @@ export async function startMatrixClient(options: StartClientOptions): Promise<Ma
       userId: session.userId,
       deviceId: session.deviceId,
       timelineSupport: true,
-      cryptoCallbacks: cryptoCallbacks as Record<string, unknown>,
+      cryptoCallbacks,
     })
 
     matrixClient = client
@@ -192,7 +193,8 @@ export function extractRoomSummaryFromClient(client: MatrixClient): RoomSummary[
 
 export function extractSingleRoomSummary(client: MatrixClient, room: Room): RoomSummary {
   const lastEvent = room.timeline.at(-1)
-  const dmUserId = room.getDMInviter() ?? guessDmUserId(room, client.getUserId() ?? '')
+  const isDirect = isRoomDirectViaAccountData(client, room.roomId)
+    || !!(room.getDMInviter() ?? guessDmUserId(room, client.getUserId() ?? ''))
 
   return {
     roomId: room.roomId,
@@ -200,7 +202,7 @@ export function extractSingleRoomSummary(client: MatrixClient, room: Room): Room
     topic: room.currentState.getStateEvents('m.room.topic', '')?.getContent()?.topic ?? null,
     avatarUrl: room.getAvatarUrl(client.baseUrl, 48, 48, 'crop') ?? null,
     isEncrypted: room.hasEncryptionStateEvent(),
-    isDirect: !!dmUserId,
+    isDirect,
     membership: room.getMyMembership() === 'invite' ? 'invite' : 'join',
     memberCount: room.getJoinedMemberCount(),
     lastMessage: lastEvent

@@ -1,5 +1,6 @@
 import type { EmittedEvents, MatrixClient, MatrixEvent, Room, RoomMember } from 'matrix-js-sdk'
 import { ClientEvent, MatrixEventEvent, NotificationCountType, RoomEvent, RoomMemberEvent } from 'matrix-js-sdk'
+import { getMDirectContent } from '../services/room-service'
 import { extractRoomSummaryFromClient, extractSingleRoomSummary } from '../client/client-manager'
 import { matrixEventToTimelineMessage } from '../services/message-service'
 import { syncRoomReceipts } from '../services/receipt-service'
@@ -174,6 +175,34 @@ export function createSyncBridge(
   }
 
   // -----------------------------------------------------------------------
+  // Account data — m.direct changes
+  // -----------------------------------------------------------------------
+  function onAccountData(event: MatrixEvent): void {
+    if (event.getType() !== 'm.direct')
+      return
+
+    // m.direct changed — refresh isDirect flags for all rooms
+    const mDirect = getMDirectContent(client)
+    const directRoomIds = new Set<string>()
+    for (const roomIds of Object.values(mDirect)) {
+      if (Array.isArray(roomIds)) {
+        for (const id of roomIds) directRoomIds.add(id)
+      }
+    }
+
+    const roomsStore = useRoomsStore.getState()
+    const rooms = roomsStore.rooms
+    for (const [roomId, summary] of rooms) {
+      const shouldBeDirect = directRoomIds.has(roomId)
+      if (summary.isDirect !== shouldBeDirect) {
+        roomsStore.upsertRoom({ ...summary, isDirect: shouldBeDirect })
+      }
+    }
+
+    onQueryInvalidation?.('account_data.m_direct')
+  }
+
+  // -----------------------------------------------------------------------
   // Register all listeners
   // -----------------------------------------------------------------------
   // RoomEvent.TimelineRefresh and RoomEvent.UnreadNotifications are re-emitted by
@@ -191,6 +220,7 @@ export function createSyncBridge(
   client.on(UnreadNotifications, onUnreadNotifications)
   client.on(ClientEvent.Room, onRoom)
   client.on(RoomEvent.MyMembership, onMyMembership)
+  client.on(ClientEvent.AccountData, onAccountData)
 
   return () => {
     client.removeListener(ClientEvent.Sync, onSync)
@@ -202,6 +232,7 @@ export function createSyncBridge(
     client.removeListener(UnreadNotifications, onUnreadNotifications)
     client.removeListener(ClientEvent.Room, onRoom)
     client.removeListener(RoomEvent.MyMembership, onMyMembership)
+    client.removeListener(ClientEvent.AccountData, onAccountData)
   }
 }
 

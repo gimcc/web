@@ -66,15 +66,49 @@ export function getKnownUsers(client: MatrixClient): KnownUser[] {
 }
 
 /**
+ * Get the m.direct account data content: { "@user:server": ["!roomId1", ...] }
+ */
+export function getMDirectContent(client: MatrixClient): Record<string, string[]> {
+  const event = client.getAccountData('m.direct' as Parameters<MatrixClient['getAccountData']>[0])
+  return (event?.getContent() as Record<string, string[]>) ?? {}
+}
+
+/**
+ * Check if a room is marked as a DM in m.direct account data.
+ */
+export function isRoomDirectViaAccountData(client: MatrixClient, roomId: string): boolean {
+  const mDirect = getMDirectContent(client)
+  for (const roomIds of Object.values(mDirect)) {
+    if (Array.isArray(roomIds) && roomIds.includes(roomId))
+      return true
+  }
+  return false
+}
+
+/**
  * Find existing DM room with a user (including rooms where invite is pending).
+ * Checks m.direct account data first, then falls back to heuristics.
  */
 function findExistingDm(client: MatrixClient, userId: string): Room | null {
   const myUserId = client.getUserId()
+  const mDirect = getMDirectContent(client)
 
+  // First: check m.direct account data for rooms with this user
+  const directRoomIds = mDirect[userId]
+  if (Array.isArray(directRoomIds)) {
+    for (const roomId of directRoomIds) {
+      const room = client.getRoom(roomId)
+      if (!room)
+        continue
+      const membership = room.getMyMembership()
+      if (membership === 'join' || membership === 'invite')
+        return room
+    }
+  }
+
+  // Fallback: heuristic detection for rooms not yet in m.direct
   for (const room of client.getRooms()) {
-    // Check the m.direct account data or is_direct flag
     const isDirect = room.getDMInviter() != null
-      || room.getMyMembership() === 'join'
 
     const joinedMembers = room.getJoinedMembers()
     const hasMe = joinedMembers.some(m => m.userId === myUserId)
@@ -114,6 +148,14 @@ export async function createDmRoom(
       ? [{ type: 'm.room.encryption', state_key: '', content: { algorithm: 'm.megolm.v1.aes-sha2' } }]
       : [],
   })
+
+  // Update m.direct account data with the new DM room
+  const mDirect = getMDirectContent(client)
+  const userRooms = mDirect[options.userId] ?? []
+  if (!userRooms.includes(result.room_id)) {
+    mDirect[options.userId] = [...userRooms, result.room_id]
+    await client.setAccountData('m.direct' as Parameters<MatrixClient['setAccountData']>[0], mDirect)
+  }
 
   return result.room_id
 }
