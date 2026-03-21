@@ -2,7 +2,7 @@
 
 // Auth
 export type { AuthCredentials, AuthSession, RegistrationComplete, RegistrationNeedsAuth, RegistrationResult } from './auth/auth-service'
-export { registerContinue } from './auth/auth-service'
+export { isSessionEncrypted, reEncryptSession, registerContinue } from './auth/auth-service'
 export { useAuthStore } from './auth/auth-store'
 export type { AuthState } from './auth/auth-store'
 

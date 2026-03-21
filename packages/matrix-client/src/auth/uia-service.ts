@@ -34,7 +34,41 @@ export interface UiaDummyAuth {
   session: string
 }
 
-export type UiaAuth = UiaPasswordAuth | UiaDummyAuth
+export interface UiaTermsAuth {
+  type: 'm.login.terms'
+  session: string
+}
+
+export interface UiaRecaptchaAuth {
+  type: 'm.login.recaptcha'
+  session: string
+  response: string
+}
+
+export interface UiaEmailIdentityAuth {
+  type: 'm.login.email.identity'
+  session: string
+  threepid_creds: {
+    sid: string
+    client_secret: string
+  }
+}
+
+export type UiaAuth =
+  | UiaPasswordAuth
+  | UiaDummyAuth
+  | UiaTermsAuth
+  | UiaRecaptchaAuth
+  | UiaEmailIdentityAuth
+
+/** Known UIA stage types */
+export const UIA_STAGE = {
+  DUMMY: 'm.login.dummy',
+  PASSWORD: 'm.login.password',
+  TERMS: 'm.login.terms',
+  RECAPTCHA: 'm.login.recaptcha',
+  EMAIL_IDENTITY: 'm.login.email.identity',
+} as const
 
 /**
  * Check if an error response is a UIA challenge (HTTP 401 with flows).
@@ -96,4 +130,57 @@ export function buildDummyAuth(session: string): UiaDummyAuth {
     type: 'm.login.dummy',
     session,
   }
+}
+
+/**
+ * Build a terms auth object for UIA (user accepted terms of service).
+ */
+export function buildTermsAuth(session: string): UiaTermsAuth {
+  return {
+    type: 'm.login.terms',
+    session,
+  }
+}
+
+/**
+ * Build a recaptcha auth object for UIA.
+ */
+export function buildRecaptchaAuth(session: string, response: string): UiaRecaptchaAuth {
+  return {
+    type: 'm.login.recaptcha',
+    session,
+    response,
+  }
+}
+
+/**
+ * Build an email identity auth object for UIA.
+ */
+export function buildEmailIdentityAuth(
+  session: string,
+  sid: string,
+  clientSecret: string,
+): UiaEmailIdentityAuth {
+  return {
+    type: 'm.login.email.identity',
+    session,
+    threepid_creds: {
+      sid,
+      client_secret: clientSecret,
+    },
+  }
+}
+
+/**
+ * Find the best flow from available flows that the client can complete.
+ * Prefers flows with fewer stages and flows containing only known stage types.
+ */
+export function selectBestFlow(
+  challenge: UiaChallenge,
+): { stages: string[] } | null {
+  const knownStages = new Set<string>(Object.values(UIA_STAGE))
+  const completable = challenge.flows
+    .filter(flow => flow.stages.every(s => knownStages.has(s)))
+    .sort((a, b) => a.stages.length - b.stages.length)
+  return completable[0] ?? challenge.flows[0] ?? null
 }
