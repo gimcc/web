@@ -25,6 +25,8 @@ tmp/
 
 # Test
 coverage/
+tests/
+e2e-screenshots/
 
 # Build
 *.log
