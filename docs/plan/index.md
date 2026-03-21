@@ -41,3 +41,5 @@
 - [x] [**PLAN-010 i18n internationalization and custom theme system**](PLAN-010.md) `2026-03-17`
 - [-] [**PLAN-011 Phase 7-8: Core Chat Completion & UX Enhancements**](PLAN-011.md) `2026-03-18`
 - [x] [**PLAN-012 重构消息处理体系（参考 Cinny）**](PLAN-012.md) `2026-03-20`
+- [ ] [**PLAN-013 E2EE Trust Model UI**](PLAN-013.md) `2026-03-21`
+- [ ] [**PLAN-014 实现 SSSS（安全秘密存储与共享）**](PLAN-014.md) `2026-03-21`
