@@ -5,13 +5,14 @@ import {
   getMyPowerLevel,
   getRoomMembers,
   inviteUser,
+  isUserFullyVerified,
   kickUser,
   parseUserId,
   resolveUserId,
   searchUsers,
   useAuthStore,
 } from '@matrix-web/matrix-client'
-import { Ban, Crown, Search, Shield, UserMinus, UserPlus, X } from 'lucide-react'
+import { Ban, Crown, Search, Shield, ShieldAlert, ShieldCheck, UserMinus, UserPlus, X } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { cn } from '../../lib/utils'
@@ -47,13 +48,34 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   const [inviteQuery, setInviteQuery] = useState('')
   const [inviteResults, setInviteResults] = useState<{ userId: string, displayName: string | null }[]>([])
   const [profileCardUserId, setProfileCardUserId] = useState<string | null>(null)
+  const [memberTrust, setMemberTrust] = useState<Map<string, boolean>>(new Map())
 
   useEffect(() => {
     const client = getMatrixClient()
     if (!client)
       return
-    setMembers(getRoomMembers(client, roomId))
+    const roomMembers = getRoomMembers(client, roomId)
+    setMembers(roomMembers)
     setMyPower(getMyPowerLevel(client, roomId))
+
+    // Lazy-load trust status for each member
+    let cancelled = false
+    const trustMap = new Map<string, boolean>()
+    Promise.all(
+      roomMembers.map(async (m) => {
+        try {
+          const verified = await isUserFullyVerified(client, m.userId)
+          if (!cancelled) {
+            trustMap.set(m.userId, verified)
+          }
+        } catch {
+          // Crypto may not be ready for this user
+        }
+      }),
+    ).then(() => {
+      if (!cancelled) setMemberTrust(new Map(trustMap))
+    })
+    return () => { cancelled = true }
   }, [roomId])
 
   // Search for invite
@@ -148,14 +170,23 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
     }
   }, [roomId, t])
 
-  const renderMember = (member: RoomMemberInfo) => (
+  const renderMember = (member: RoomMemberInfo) => {
+    const trustVerified = memberTrust.get(member.userId)
+    return (
     <div key={member.userId} className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-accent/50">
       <button
         type="button"
         className="flex min-w-0 flex-1 items-center gap-2 text-left"
         onClick={() => setProfileCardUserId(member.userId)}
       >
-        <Avatar name={member.displayName} src={member.avatarUrl ?? undefined} size="sm" />
+        <div className="relative shrink-0">
+          <Avatar name={member.displayName} src={member.avatarUrl ?? undefined} size="sm" />
+          {trustVerified !== undefined && (
+            trustVerified
+              ? <ShieldCheck className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-background text-green-500" aria-label={t('trust.verified')} />
+              : <ShieldAlert className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-background text-yellow-500" aria-label={t('trust.unverified')} />
+          )}
+        </div>
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1">
             <span className="truncate text-sm font-medium text-foreground">{member.displayName}</span>
@@ -175,7 +206,8 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
         </div>
       )}
     </div>
-  )
+    )
+  }
 
   const renderProfileCard = () => {
     if (!profileCardUserId)

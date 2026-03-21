@@ -1,9 +1,10 @@
 import type { TimelineMessageItem } from '@matrix-web/matrix-client'
 import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useCryptoStore, useRoomsStore, useThreadsStore } from '@matrix-web/matrix-client'
-import { Bell, LogOut, MessageSquare, Search, Settings, Users } from 'lucide-react'
+import { Bell, LogOut, MessageSquare, Search, Settings, ShieldAlert, ShieldCheck, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { DeviceVerificationDialog } from '../../components/crypto/device-verification-dialog'
+import { useRoomTrust } from '../../hooks/use-device-trust'
 import { JumpToDate } from '../../components/chat/jump-to-date'
 import { MessageSearch } from '../../components/chat/message-search'
 import { TypingIndicator } from '../../components/chat/typing-indicator'
@@ -50,6 +51,8 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
   const setActiveRoom = useRoomsStore(s => s.setActiveRoom)
   const activeThreadId = useThreadsStore(s => s.activeThreadId)
   const setActiveThread = useThreadsStore(s => s.setActiveThread)
+
+  const { summary: roomTrust } = useRoomTrust(roomId)
 
   const [showMembers, setShowMembers] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
@@ -111,9 +114,30 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
             size="sm"
           />
           <div className="min-w-0 flex-1">
-            <h2 className="truncate text-sm font-semibold text-foreground sm:text-base">
-              {roomName}
-            </h2>
+            <div className="flex items-center gap-1.5">
+              <h2 className="truncate text-sm font-semibold text-foreground sm:text-base">
+                {roomName}
+              </h2>
+              {roomTrust?.encrypted && (
+                roomTrust.allVerified
+                  ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <ShieldCheck className="h-4 w-4 shrink-0 text-green-500" />
+                      </TooltipTrigger>
+                      <TooltipContent>{t('trust.all_verified')}</TooltipContent>
+                    </Tooltip>
+                  )
+                  : (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <ShieldAlert className="h-4 w-4 shrink-0 text-yellow-500" />
+                      </TooltipTrigger>
+                      <TooltipContent>{t('trust.some_unverified')}</TooltipContent>
+                    </Tooltip>
+                  )
+              )}
+            </div>
             <p className="hidden truncate text-xs text-muted-foreground sm:block">
               {room?.topic
                 ? room.topic

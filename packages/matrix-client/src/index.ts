@@ -121,6 +121,18 @@ export type {
   UserTrustInfo,
 } from './services/crypto-service'
 
+// Crypto — verification service (trust model)
+export {
+  getRoomTrustSummary,
+  getUserDevicesWithTrust,
+  isUserFullyVerified,
+} from './services/verification-service'
+export type {
+  RoomTrustSummary,
+  UserDeviceInfo,
+  UserTrustSummary,
+} from './services/verification-service'
+
 // Crypto — secret storage service
 export {
   clearCachedSecretStorageKey,

@@ -355,6 +355,15 @@
     "verified": "Encrypted and verified",
     "unverified": "Encrypted but unverified"
   },
+  "trust": {
+    "verified": "Verified",
+    "unverified": "Unverified",
+    "all_verified": "All devices verified",
+    "some_unverified": "Some devices are unverified",
+    "unverified_warning": "{{count}} unverified device(s) in this room. Messages may not be fully secure.",
+    "unverified_warning_one": "1 unverified device in this room. Messages may not be fully secure.",
+    "unverified_warning_other": "{{count}} unverified devices in this room. Messages may not be fully secure."
+  },
   "lightbox": {
     "close": "Close",
     "close_backdrop": "Close lightbox"

@@ -355,6 +355,15 @@
     "verified": "已加密并验证",
     "unverified": "已加密但未验证"
   },
+  "trust": {
+    "verified": "已验证",
+    "unverified": "未验证",
+    "all_verified": "所有设备已验证",
+    "some_unverified": "部分设备未验证",
+    "unverified_warning": "此房间有 {{count}} 个未验证设备，消息可能不完全安全。",
+    "unverified_warning_one": "此房间有 1 个未验证设备，消息可能不完全安全。",
+    "unverified_warning_other": "此房间有 {{count}} 个未验证设备，消息可能不完全安全。"
+  },
   "lightbox": {
     "close": "关闭",
     "close_backdrop": "关闭灯箱"
