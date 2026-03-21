@@ -6,6 +6,7 @@ import {
   loadInitialTimeline,
   loadMockTimeline,
   loadRoomHistory,
+  ReceiptType,
   resendMessage,
   resendUpload,
   sendReadReceipt,
@@ -14,6 +15,7 @@ import {
   useAuthStore,
   useReceiptsStore,
 } from '@matrix-web/matrix-client'
+import { useNotificationStore } from '../lib/notifications'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
@@ -123,6 +125,9 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
   }, [items, virtualizer])
 
   // Send read receipt when at bottom and new messages arrive
+  const privateReceipts = useNotificationStore(s => s.privateReadReceipts)
+  const currentReceiptType = privateReceipts ? ReceiptType.ReadPrivate : ReceiptType.Read
+
   useEffect(() => {
     if (mockMode || items.length === 0 || !isAtBottomRef.current)
       return
@@ -133,11 +138,11 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
         if (item.eventId === lastSentReceiptRef.current)
           break
         lastSentReceiptRef.current = item.eventId
-        void sendReadReceipt(roomId, item.eventId)
+        void sendReadReceipt(roomId, item.eventId, currentReceiptType)
         break
       }
     }
-  }, [items, roomId, mockMode])
+  }, [items, roomId, mockMode, currentReceiptType])
 
   // Track scroll position for auto-scroll and show/hide button
   const handleScroll = useCallback(() => {
@@ -157,7 +162,7 @@ export function MessageTimeline({ roomId, onEditMessage, onReplyMessage, onThrea
         if (item.kind === 'message' && !item.eventId.startsWith('~')) {
           if (item.eventId !== lastSentReceiptRef.current) {
             lastSentReceiptRef.current = item.eventId
-            void sendReadReceipt(roomId, item.eventId)
+            void sendReadReceipt(roomId, item.eventId, currentReceiptType)
           }
           break
         }

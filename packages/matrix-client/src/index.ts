@@ -297,6 +297,7 @@ export {
 } from './services/reaction-service'
 
 // Services — receipts
+export { ReceiptType } from 'matrix-js-sdk'
 export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
 // Services — report
 export { reportEvent } from './services/report-service'

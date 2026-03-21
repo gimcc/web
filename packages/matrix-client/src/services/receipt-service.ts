@@ -6,8 +6,13 @@ import { useReceiptsStore } from '../stores/receipts-store'
 
 /**
  * Send a read receipt for the given event in a room.
+ * @param receiptType - 'm.read' for public or 'm.read.private' for private (hidden from other users)
  */
-export async function sendReadReceipt(roomId: string, eventId: string): Promise<void> {
+export async function sendReadReceipt(
+  roomId: string,
+  eventId: string,
+  receiptType: ReceiptType.Read | ReceiptType.ReadPrivate = ReceiptType.Read,
+): Promise<void> {
   const client = getMatrixClient()
   if (!client)
     return
@@ -21,7 +26,7 @@ export async function sendReadReceipt(roomId: string, eventId: string): Promise<
     return
 
   try {
-    await client.sendReadReceipt(event, ReceiptType.Read)
+    await client.sendReadReceipt(event, receiptType)
   }
   catch {
     // Silently ignore receipt send failures
@@ -49,26 +54,30 @@ export function syncRoomReceipts(room: Room): void {
     if (!eventId)
       continue
 
-    const receipts = room.getReceiptsForEvent(event)
-    if (!receipts || receipts.length === 0)
-      continue
-
-    for (const receipt of receipts) {
-      const userId = receipt.userId
-      // Skip own receipts
-      if (userId === myUserId)
-        continue
-      // Skip if we already have a newer receipt for this user
-      if (userReceipts.has(userId))
+    // Check both public and private receipt types
+    for (const type of [ReceiptType.Read, ReceiptType.ReadPrivate]) {
+      const receipts = room.getReceiptsForEvent(event)
+      if (!receipts || receipts.length === 0)
         continue
 
-      const member = room.getMember(userId)
-      userReceipts.set(userId, {
-        userId,
-        userName: member?.name ?? userId,
-        eventId,
-        ts: receipt.data?.ts ?? 0,
-      })
+      for (const receipt of receipts) {
+        const userId = receipt.userId
+        // Skip own receipts
+        if (userId === myUserId)
+          continue
+        // Skip if we already have a newer receipt for this user
+        if (userReceipts.has(userId))
+          continue
+
+        const member = room.getMember(userId)
+        userReceipts.set(userId, {
+          userId,
+          userName: member?.name ?? userId,
+          eventId,
+          ts: receipt.data?.ts ?? 0,
+          isPrivate: type === ReceiptType.ReadPrivate,
+        })
+      }
     }
   }
 

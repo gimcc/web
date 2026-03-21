@@ -5,6 +5,7 @@ export interface ReceiptInfo {
   userName: string
   eventId: string
   ts: number
+  isPrivate?: boolean
 }
 
 export interface ReceiptsState {

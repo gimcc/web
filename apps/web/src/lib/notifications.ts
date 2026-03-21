@@ -6,10 +6,12 @@ export interface NotificationSettings {
   enabled: boolean
   soundEnabled: boolean
   soundVolume: number
+  privateReadReceipts: boolean
   mutedRooms: Set<string>
   setEnabled: (enabled: boolean) => void
   setSoundEnabled: (soundEnabled: boolean) => void
   setSoundVolume: (volume: number) => void
+  setPrivateReadReceipts: (privateReadReceipts: boolean) => void
   muteRoom: (roomId: string) => void
   unmuteRoom: (roomId: string) => void
   isRoomMuted: (roomId: string) => boolean
@@ -21,11 +23,13 @@ export const useNotificationStore = create<NotificationSettings>()(
       enabled: false,
       soundEnabled: true,
       soundVolume: 0.7,
+      privateReadReceipts: false,
       mutedRooms: new Set<string>(),
 
       setEnabled: enabled => set({ enabled }),
       setSoundEnabled: soundEnabled => set({ soundEnabled }),
       setSoundVolume: volume => set({ soundVolume: Math.max(0, Math.min(1, volume)) }),
+      setPrivateReadReceipts: privateReadReceipts => set({ privateReadReceipts }),
 
       muteRoom: (roomId) => {
         const muted = new Set(get().mutedRooms)
@@ -47,15 +51,17 @@ export const useNotificationStore = create<NotificationSettings>()(
         enabled: state.enabled,
         soundEnabled: state.soundEnabled,
         soundVolume: state.soundVolume,
+        privateReadReceipts: state.privateReadReceipts,
         mutedRooms: [...state.mutedRooms],
       }),
       merge: (persisted, current) => {
-        const p = persisted as { enabled?: boolean, soundEnabled?: boolean, soundVolume?: number, mutedRooms?: string[] } | null
+        const p = persisted as { enabled?: boolean, soundEnabled?: boolean, soundVolume?: number, privateReadReceipts?: boolean, mutedRooms?: string[] } | null
         return {
           ...current,
           enabled: p?.enabled ?? false,
           soundEnabled: p?.soundEnabled ?? true,
           soundVolume: p?.soundVolume ?? 0.7,
+          privateReadReceipts: p?.privateReadReceipts ?? false,
           mutedRooms: new Set(p?.mutedRooms ?? []),
         }
       },

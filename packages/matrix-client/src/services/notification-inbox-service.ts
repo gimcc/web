@@ -1,5 +1,5 @@
 import type { MatrixClient } from 'matrix-js-sdk'
-import { NotificationCountType } from 'matrix-js-sdk'
+import { NotificationCountType, ReceiptType } from 'matrix-js-sdk'
 
 export interface NotificationItem {
   eventId: string
@@ -70,6 +70,7 @@ export function getNotifications(client: MatrixClient): NotificationItem[] {
 export async function markRoomNotificationsRead(
   client: MatrixClient,
   roomId: string,
+  receiptType: ReceiptType.Read | ReceiptType.ReadPrivate = ReceiptType.Read,
 ): Promise<void> {
   const room = client.getRoom(roomId)
   if (!room)
@@ -78,6 +79,6 @@ export async function markRoomNotificationsRead(
   const events = room.getLiveTimeline().getEvents()
   const lastEvent = events.at(-1)
   if (lastEvent) {
-    await client.sendReadReceipt(lastEvent)
+    await client.sendReadReceipt(lastEvent, receiptType)
   }
 }

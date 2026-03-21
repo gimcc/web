@@ -17,6 +17,8 @@ export function NotificationsPanel() {
   const setSoundEnabled = useNotificationStore(s => s.setSoundEnabled)
   const soundVolume = useNotificationStore(s => s.soundVolume)
   const setSoundVolume = useNotificationStore(s => s.setSoundVolume)
+  const privateReadReceipts = useNotificationStore(s => s.privateReadReceipts)
+  const setPrivateReadReceipts = useNotificationStore(s => s.setPrivateReadReceipts)
   const [permission, setPermission] = useState(getNotificationPermission)
 
   const handleCheckedChange = useCallback(async (checked: boolean) => {
@@ -100,6 +102,18 @@ export function NotificationsPanel() {
             disabled={!isSoundActive}
             onValueChange={handleVolumeChange}
             onValueCommit={handleVolumeCommit}
+          />
+        </div>
+
+        {/* Private read receipts toggle */}
+        <div className="flex items-center justify-between rounded-lg border border-border p-4">
+          <div>
+            <p className="text-sm font-medium text-foreground">{t('notifications.private_read_receipts')}</p>
+            <p className="text-xs text-muted-foreground">{t('notifications.private_read_receipts_desc')}</p>
+          </div>
+          <Switch
+            checked={privateReadReceipts}
+            onCheckedChange={setPrivateReadReceipts}
           />
         </div>
 
