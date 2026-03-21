@@ -390,6 +390,13 @@
     "error_invalid_key": "恢复密钥无效，请检查后重试。",
     "error_invalid_passphrase": "口令无效，请检查后重试。"
   },
+  "uia_auth": {
+    "title": "需要身份验证",
+    "description": "输入您的账户密码以上传设备签名密钥。",
+    "password_placeholder": "账户密码",
+    "confirm": "验证",
+    "error": "身份验证失败。"
+  },
   "encryption_badge": {
     "verified": "已加密并验证",
     "unverified": "已加密但未验证"
@@ -420,7 +427,9 @@
     "unsupported": "浏览器不支持",
     "sound": "通知提示音",
     "sound_desc": "收到新消息时播放提示音",
-    "volume": "提示音音量"
+    "volume": "提示音音量",
+    "private_read_receipts": "私密已读回执",
+    "private_read_receipts_desc": "私密发送已读回执，其他用户无法看到你已读消息"
   },
   "appearance": {
     "title": "外观",

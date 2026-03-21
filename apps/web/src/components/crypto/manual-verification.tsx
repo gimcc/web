@@ -8,6 +8,7 @@ import {
 import { Loader2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useUiaAuth } from '../../hooks/use-uia-auth'
 import { Button } from '../ui/button'
 import {
   Dialog,
@@ -52,6 +53,7 @@ export function ManualVerification({
   secretStorageKeyContent,
 }: ManualVerificationProps) {
   const { t } = useTranslation()
+  const { authUploadDeviceSigningKeys, UiaDialog } = useUiaAuth()
   const [tab, setTab] = useState<string>(
     secretStorageKeyContent?.passphrase ? 'passphrase' : 'key',
   )
@@ -83,8 +85,8 @@ export function ManualVerification({
     // Cache the decoded recovery key
     storePrivateKey(secretStorageKeyId, decodedKey)
 
-    // Load existing cross-signing keys from SSSS (no auth needed)
-    await crypto.bootstrapCrossSigning({})
+    // Load existing cross-signing keys from SSSS
+    await crypto.bootstrapCrossSigning({ authUploadDeviceSigningKeys })
 
     // Load existing secret storage keys from SSSS
     await crypto.bootstrapSecretStorage({})
@@ -94,7 +96,7 @@ export function ManualVerification({
 
     // Refresh crypto status in the store
     await refreshCryptoStatus(client)
-  }, [secretStorageKeyId, t])
+  }, [secretStorageKeyId, t, authUploadDeviceSigningKeys])
 
   const handleRecoverWithKey = useCallback(async () => {
     if (!recoveryKeyInput.trim()) return
@@ -149,6 +151,8 @@ export function ManualVerification({
   }, [onClose])
 
   return (
+    <>
+    <UiaDialog />
     <Dialog open={open} onOpenChange={v => !v && handleClose()}>
       <DialogContent className="sm:max-w-md">
         {success
@@ -238,5 +242,6 @@ export function ManualVerification({
             )}
       </DialogContent>
     </Dialog>
+    </>
   )
 }

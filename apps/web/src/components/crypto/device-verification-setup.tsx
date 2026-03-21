@@ -1,7 +1,8 @@
-import { clearSecretStorageKeys, getMatrixClient, MatrixError, refreshCryptoStatus } from '@matrix-web/matrix-client'
+import { clearSecretStorageKeys, getMatrixClient, refreshCryptoStatus } from '@matrix-web/matrix-client'
 import { Loader2 } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { useUiaAuth } from '../../hooks/use-uia-auth'
 import { Button } from '../ui/button'
 import {
   Dialog,
@@ -14,7 +15,7 @@ import {
 import { Input } from '../ui/input'
 import { RecoveryKeyDisplayDialog } from './recovery-key-display-dialog'
 
-type Phase = 'form' | 'uia' | 'in-progress' | 'done'
+type Phase = 'form' | 'in-progress' | 'done'
 
 interface DeviceVerificationSetupProps {
   open: boolean
@@ -34,17 +35,11 @@ interface DeviceVerificationSetupProps {
  */
 export function DeviceVerificationSetup({ open, onClose, mode = 'setup' }: DeviceVerificationSetupProps) {
   const { t } = useTranslation()
+  const { authUploadDeviceSigningKeys, UiaDialog, cancelUia } = useUiaAuth()
   const [phase, setPhase] = useState<Phase>('form')
   const [passphrase, setPassphrase] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [recoveryKey, setRecoveryKey] = useState<string | null>(null)
-  const [uiaPassword, setUiaPassword] = useState('')
-  const [uiaSession, setUiaSession] = useState<string | null>(null)
-  const [pendingMakeRequest, setPendingMakeRequest] = useState<{
-    makeRequest: (authDict: Record<string, unknown>) => Promise<void>
-    resolve: () => void
-    reject: (err: unknown) => void
-  } | null>(null)
 
   const isReset = mode === 'reset'
 
@@ -78,26 +73,7 @@ export function DeviceVerificationSetup({ open, onClose, mode = 'setup' }: Devic
 
       // 4. Bootstrap cross-signing with UIA handling
       await crypto.bootstrapCrossSigning({
-        authUploadDeviceSigningKeys: async (makeRequest) => {
-          // Try without auth first
-          try {
-            await makeRequest(null as unknown as Record<string, unknown>)
-          }
-          catch (err) {
-            if (err instanceof MatrixError && err.httpStatus === 401) {
-              const authData = err.data as { session?: string }
-              if (authData.session) {
-                // Show UIA password prompt and wait for user to submit
-                return new Promise<void>((resolve, reject) => {
-                  setUiaSession(authData.session ?? null)
-                  setPendingMakeRequest({ makeRequest: makeRequest as (authDict: Record<string, unknown>) => Promise<void>, resolve, reject })
-                  setPhase('uia')
-                })
-              }
-            }
-            throw err
-          }
-        },
+        authUploadDeviceSigningKeys,
         setupNewCrossSigning: isReset || true,
       })
 
@@ -112,58 +88,19 @@ export function DeviceVerificationSetup({ open, onClose, mode = 'setup' }: Devic
       setPhase('done')
     }
     catch (err) {
-      if (phase !== 'uia') {
-        setError(err instanceof Error ? err.message : t('verification_setup.error_generic'))
-        setPhase('form')
-      }
-    }
-  }, [passphrase, isReset, t, phase])
-
-  const handleUiaSubmit = useCallback(async () => {
-    if (!pendingMakeRequest || !uiaSession) return
-
-    const client = getMatrixClient()
-    const userId = client?.getUserId()
-    if (!userId) return
-
-    setPhase('in-progress')
-    try {
-      await pendingMakeRequest.makeRequest({
-        type: 'm.login.password',
-        session: uiaSession,
-        identifier: {
-          type: 'm.id.user',
-          user: userId,
-        },
-        password: uiaPassword,
-      })
-      pendingMakeRequest.resolve()
-    }
-    catch (err) {
-      pendingMakeRequest.reject(err)
-      setError(err instanceof Error ? err.message : t('verification_setup.error_uia'))
+      setError(err instanceof Error ? err.message : t('verification_setup.error_generic'))
       setPhase('form')
     }
-    finally {
-      setPendingMakeRequest(null)
-      setUiaSession(null)
-      setUiaPassword('')
-    }
-  }, [pendingMakeRequest, uiaSession, uiaPassword, t])
+  }, [passphrase, isReset, t, authUploadDeviceSigningKeys])
 
   const handleClose = useCallback(() => {
-    if (pendingMakeRequest) {
-      pendingMakeRequest.reject(new Error('Cancelled'))
-    }
+    cancelUia()
     setPhase('form')
     setPassphrase('')
     setError(null)
     setRecoveryKey(null)
-    setUiaPassword('')
-    setUiaSession(null)
-    setPendingMakeRequest(null)
     onClose()
-  }, [onClose, pendingMakeRequest])
+  }, [onClose, cancelUia])
 
   const handleRecoveryKeySaved = useCallback(() => {
     setRecoveryKey(null)
@@ -227,39 +164,6 @@ export function DeviceVerificationSetup({ open, onClose, mode = 'setup' }: Devic
             </>
           )}
 
-          {phase === 'uia' && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{t('verification_setup.uia_title')}</DialogTitle>
-                <DialogDescription>{t('verification_setup.uia_description')}</DialogDescription>
-              </DialogHeader>
-
-              <div className="space-y-2">
-                <Input
-                  type="password"
-                  value={uiaPassword}
-                  onChange={e => setUiaPassword(e.target.value)}
-                  placeholder={t('verification_setup.uia_password_placeholder')}
-                  onKeyDown={e => e.key === 'Enter' && handleUiaSubmit()}
-                  autoFocus
-                />
-              </div>
-
-              {error && (
-                <p className="text-xs text-destructive">{error}</p>
-              )}
-
-              <DialogFooter>
-                <Button variant="outline" onClick={handleClose}>
-                  {t('common.cancel')}
-                </Button>
-                <Button onClick={handleUiaSubmit} disabled={!uiaPassword.trim()}>
-                  {t('verification_setup.uia_confirm')}
-                </Button>
-              </DialogFooter>
-            </>
-          )}
-
           {phase === 'in-progress' && (
             <>
               <DialogHeader>
@@ -273,6 +177,8 @@ export function DeviceVerificationSetup({ open, onClose, mode = 'setup' }: Devic
           )}
         </DialogContent>
       </Dialog>
+
+      <UiaDialog />
 
       {recoveryKey && (
         <RecoveryKeyDisplayDialog

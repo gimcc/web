@@ -390,6 +390,13 @@
     "error_invalid_key": "Invalid recovery key. Please check and try again.",
     "error_invalid_passphrase": "Invalid passphrase. Please check and try again."
   },
+  "uia_auth": {
+    "title": "Authentication Required",
+    "description": "Enter your account password to upload device signing keys.",
+    "password_placeholder": "Account password",
+    "confirm": "Authenticate",
+    "error": "Authentication failed."
+  },
   "encryption_badge": {
     "verified": "Encrypted and verified",
     "unverified": "Encrypted but unverified"
@@ -420,7 +427,9 @@
     "unsupported": "Not supported by browser",
     "sound": "Notification Sound",
     "sound_desc": "Play a sound when a new message arrives",
-    "volume": "Sound Volume"
+    "volume": "Sound Volume",
+    "private_read_receipts": "Private Read Receipts",
+    "private_read_receipts_desc": "Send read receipts privately so other users cannot see when you have read messages"
   },
   "appearance": {
     "title": "Appearance",
