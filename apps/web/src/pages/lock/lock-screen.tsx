@@ -1,8 +1,10 @@
 import type { FormEvent } from 'react'
 import {
   clearAllLocalData,
+  isSessionEncrypted,
   loadDekWithPassword,
   silentWipe,
+  useAuthStore,
   useLockStore,
   verifyPasswordInput,
 } from '@matrix-web/matrix-client'
@@ -44,6 +46,10 @@ export function LockScreen() {
         const dek = await loadDekWithPassword(password)
         attemptCountRef.current = 0
         unlock(dek)
+        // Restore encrypted session now that DEK is available
+        if (isSessionEncrypted()) {
+          await useAuthStore.getState().restoreSession()
+        }
         return
       }
 

@@ -1,6 +1,7 @@
 import type { FormEvent } from 'react'
 import {
   changePassword,
+  reEncryptSession,
   removePassword,
   setPassword as setDekPassword,
   useLockStore,
@@ -65,6 +66,8 @@ export function PasswordSettings() {
     try {
       await setDekPassword(dek, newPassword)
       setHasPassword(true)
+      // Re-encrypt session data with the new password-protected DEK
+      await reEncryptSession(dek)
       setSuccess(t('password.success_set'))
       resetForm()
     }
@@ -109,6 +112,11 @@ export function PasswordSettings() {
     try {
       await removePassword(currentPassword)
       setHasPassword(false)
+      // Decrypt session back to plaintext since password is removed
+      const currentDek = useLockStore.getState().dek
+      if (currentDek) {
+        await reEncryptSession(currentDek)
+      }
       setSuccess(t('password.success_removed'))
       resetForm()
     }

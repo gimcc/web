@@ -3,8 +3,10 @@ import {
   generateDek,
   hasDekStored,
   hasPasswordSet,
+  isSessionEncrypted,
   loadDekPlaintext,
   persistDekPlaintext,
+  reEncryptSession,
   useAuthStore,
   useLockStore,
 } from '@matrix-web/matrix-client'
@@ -92,9 +94,20 @@ function AppRouterInner() {
     const urlMock = import.meta.env.DEV
       && new URLSearchParams(window.location.search).get('mock') === '1'
     setMockMode(import.meta.env.DEV && (config.mockMode || urlMock))
-    restoreSession()
-    initializeDek().catch((err) => {
-      console.error('Failed to initialize DEK:', err)
+
+    async function startup() {
+      // Attempt session restore first (works for plaintext sessions)
+      await restoreSession()
+      // Initialize DEK — may lock screen if password is set
+      await initializeDek()
+      // If DEK is now available and session was plaintext, encrypt it
+      const dek = useLockStore.getState().dek
+      if (dek) {
+        await reEncryptSession(dek)
+      }
+    }
+    startup().catch((err) => {
+      console.error('Failed to initialize:', err)
     })
   }, [config, restoreSession, setMockMode])
 
