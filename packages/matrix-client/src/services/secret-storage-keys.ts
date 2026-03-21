@@ -5,11 +5,13 @@
  * them when `bootstrapSecretStorage` or `bootstrapCrossSigning` needs access
  * to secret storage.
  */
+import type { CryptoCallbacks } from 'matrix-js-sdk/lib/crypto-api'
+import type { SecretStorageKeyDescription } from 'matrix-js-sdk/lib/secret-storage'
 
-const secretStorageKeys = new Map<string, Uint8Array>()
+const secretStorageKeys = new Map<string, Uint8Array<ArrayBuffer>>()
 
 /** Cache a decoded private key for use by SDK crypto callbacks. */
-export function storePrivateKey(keyId: string, privateKey: Uint8Array): void {
+export function storePrivateKey(keyId: string, privateKey: Uint8Array<ArrayBuffer>): void {
   if (!(privateKey instanceof Uint8Array)) {
     throw new Error('Unable to store, privateKey is invalid.')
   }
@@ -20,7 +22,7 @@ export function hasPrivateKey(keyId: string): boolean {
   return secretStorageKeys.get(keyId) instanceof Uint8Array
 }
 
-function getPrivateKey(keyId: string): Uint8Array | undefined {
+function getPrivateKey(keyId: string): Uint8Array<ArrayBuffer> | undefined {
   return secretStorageKeys.get(keyId)
 }
 
@@ -36,13 +38,14 @@ export function clearSecretStorageKeys(): void {
  * If no key is cached, returns undefined so the SDK can prompt via other means.
  */
 async function getSecretStorageKey(
-  opts: { keys: Record<string, unknown> },
-): Promise<[string, Uint8Array] | undefined> {
+  opts: { keys: Record<string, SecretStorageKeyDescription> },
+  _name: string,
+): Promise<[string, Uint8Array<ArrayBuffer>] | null> {
   const keyIds = Object.keys(opts.keys)
   const keyId = keyIds.find(hasPrivateKey)
-  if (!keyId) return undefined
+  if (!keyId) return null
   const privateKey = getPrivateKey(keyId)
-  if (!privateKey) return undefined
+  if (!privateKey) return null
   return [keyId, privateKey]
 }
 
@@ -51,13 +54,13 @@ async function getSecretStorageKey(
  */
 function cacheSecretStorageKey(
   keyId: string,
-  _keyInfo: unknown,
-  privateKey: Uint8Array,
+  _keyInfo: SecretStorageKeyDescription,
+  privateKey: Uint8Array<ArrayBuffer>,
 ): void {
   secretStorageKeys.set(keyId, privateKey)
 }
 
-export const cryptoCallbacks = {
+export const cryptoCallbacks: CryptoCallbacks = {
   getSecretStorageKey,
   cacheSecretStorageKey,
 }

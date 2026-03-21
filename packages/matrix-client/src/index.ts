@@ -1,7 +1,8 @@
 // @matrix-web/matrix-client — Matrix SDK wrapper and state management
 
 // Auth
-export type { AuthCredentials, AuthSession } from './auth/auth-service'
+export type { AuthCredentials, AuthSession, RegistrationComplete, RegistrationNeedsAuth, RegistrationResult } from './auth/auth-service'
+export { registerContinue } from './auth/auth-service'
 export { useAuthStore } from './auth/auth-store'
 export type { AuthState } from './auth/auth-store'
 
@@ -24,12 +25,26 @@ export type { LoginFlowsResult, SsoIdentityProvider } from './auth/sso-service'
 // Auth — UIA
 export {
   buildDummyAuth,
+  buildEmailIdentityAuth,
   buildPasswordAuth,
+  buildRecaptchaAuth,
+  buildTermsAuth,
   extractUiaChallenge,
   getRemainingStages,
   isUiaChallenge,
+  selectBestFlow,
+  UIA_STAGE,
 } from './auth/uia-service'
-export type { UiaAuth, UiaChallenge, UiaDummyAuth, UiaPasswordAuth, UiaStage } from './auth/uia-service'
+export type {
+  UiaAuth,
+  UiaChallenge,
+  UiaDummyAuth,
+  UiaEmailIdentityAuth,
+  UiaPasswordAuth,
+  UiaRecaptchaAuth,
+  UiaStage,
+  UiaTermsAuth,
+} from './auth/uia-service'
 
 // Auth — well-known discovery
 export { discoverHomeserver, isDomainInput } from './auth/well-known-service'
@@ -141,6 +156,7 @@ export {
 // Crypto — secret storage keys
 export {
   clearSecretStorageKeys,
+  cryptoCallbacks,
   storePrivateKey,
 } from './services/secret-storage-keys'
 
