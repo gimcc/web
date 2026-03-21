@@ -378,7 +378,10 @@
     "permission_granted": "Allowed",
     "permission_denied": "Blocked",
     "permission_default": "Not yet requested",
-    "unsupported": "Not supported by browser"
+    "unsupported": "Not supported by browser",
+    "sound": "Notification Sound",
+    "sound_desc": "Play a sound when a new message arrives",
+    "volume": "Sound Volume"
   },
   "appearance": {
     "title": "Appearance",
