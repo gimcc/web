@@ -4,6 +4,9 @@ import { CryptoEvent } from 'matrix-js-sdk/lib/crypto-api'
 import { useCryptoStore } from '../stores/crypto-store'
 
 export function createCryptoBridge(client: MatrixClient): () => void {
+  // Check initial secret storage status on bridge creation
+  checkSecretStorageStatus(client)
+
   function onVerificationRequest(request: VerificationRequest): void {
     useCryptoStore.getState().setVerificationRequest(request)
   }
@@ -28,6 +31,7 @@ export function createCryptoBridge(client: MatrixClient): () => void {
 
   function onKeysChanged(): void {
     checkCrossSigningStatus(client)
+    checkSecretStorageStatus(client)
   }
 
   client.on(CryptoEvent.VerificationRequestReceived, onVerificationRequest)
@@ -40,6 +44,20 @@ export function createCryptoBridge(client: MatrixClient): () => void {
     client.removeListener(CryptoEvent.KeyBackupStatus, onKeyBackupStatus)
     client.removeListener(CryptoEvent.KeyBackupSessionsRemaining, onKeyBackupSessionsRemaining)
     client.removeListener(CryptoEvent.KeysChanged, onKeysChanged)
+  }
+}
+
+async function checkSecretStorageStatus(client: MatrixClient): Promise<void> {
+  try {
+    const crypto = client.getCrypto()
+    if (!crypto)
+      return
+
+    const status = await crypto.getSecretStorageStatus()
+    useCryptoStore.getState().setSecretStorageReady(status.ready)
+  }
+  catch {
+    // Secret storage status check failed, keep current state
   }
 }
 

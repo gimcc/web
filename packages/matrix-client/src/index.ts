@@ -121,6 +121,15 @@ export type {
   UserTrustInfo,
 } from './services/crypto-service'
 
+// Crypto — secret storage service
+export {
+  clearCachedSecretStorageKey,
+  refreshSecretStorageStatus,
+  resetSecretStorage,
+  setupSecretStorage,
+  setupSecretStorageWithPassphrase,
+} from './services/secret-storage-service'
+
 // Crypto — wipe service
 export { silentWipe } from './crypto/wipe-service'
 
@@ -313,7 +322,7 @@ export { useConnectionStore } from './stores/connection-store'
 export type { ConnectionState, ConnectionStatus } from './stores/connection-store'
 
 export { useCryptoStore } from './stores/crypto-store'
-export type { CryptoState, KeyBackupProgress } from './stores/crypto-store'
+export type { CryptoState, KeyBackupProgress, SecretStorageKeyRequest } from './stores/crypto-store'
 export { useDraftsStore } from './stores/drafts-store'
 export type { DraftsState } from './stores/drafts-store'
 export { useLockStore } from './stores/lock-store'
