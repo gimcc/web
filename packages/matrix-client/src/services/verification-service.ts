@@ -33,11 +33,13 @@ export async function getUserDevicesWithTrust(
   userId: string,
 ): Promise<UserDeviceInfo[]> {
   const crypto = client.getCrypto()
-  if (!crypto) return []
+  if (!crypto)
+    return []
 
   const deviceMap = await crypto.getUserDeviceInfo([userId])
   const devices = deviceMap.get(userId)
-  if (!devices) return []
+  if (!devices)
+    return []
 
   const result: UserDeviceInfo[] = []
   for (const [deviceId, device] of devices) {
@@ -93,7 +95,8 @@ export async function getRoomTrustSummary(
       const trust = await getDeviceTrust(client, userId, deviceId)
       if (trust?.verified) {
         verifiedDevices++
-      } else {
+      }
+      else {
         userHasUnverified = true
       }
     }

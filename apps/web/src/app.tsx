@@ -3,7 +3,6 @@ import {
   generateDek,
   hasDekStored,
   hasPasswordSet,
-  isSessionEncrypted,
   loadDekPlaintext,
   persistDekPlaintext,
   reEncryptSession,

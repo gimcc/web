@@ -87,7 +87,9 @@ export function DeviceVerificationDialog({ request, onClose }: DeviceVerificatio
     }
 
     generateQr()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [phase, request])
 
   // Listen for verifier events (SAS emojis, QR reciprocate, cancel)

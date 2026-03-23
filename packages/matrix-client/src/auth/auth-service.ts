@@ -1,3 +1,4 @@
+import type { UiaAuth, UiaChallenge } from './uia-service'
 import { createClient } from 'matrix-js-sdk'
 import { z } from 'zod'
 import {
@@ -7,7 +8,6 @@ import {
   encrypt,
   hasPasswordSet,
 } from '../crypto/dek-manager'
-import type { UiaAuth, UiaChallenge } from './uia-service'
 import { extractUiaChallenge, getRemainingStages, selectBestFlow, UIA_STAGE } from './uia-service'
 
 export interface AuthCredentials {

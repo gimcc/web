@@ -22,23 +22,30 @@ export function useUserDeviceTrust(userId: string | null): UseUserDeviceTrustRes
 
   const load = useCallback(async () => {
     const client = getMatrixClient()
-    if (!client || !userId) return
+    if (!client || !userId)
+      return
 
     setLoading(true)
     try {
       const result = await getUserDevicesWithTrust(client, userId)
-      if (mountedRef.current) setDevices(result)
-    } catch {
+      if (mountedRef.current)
+        setDevices(result)
+    }
+    catch {
       // Crypto may not be ready
-    } finally {
-      if (mountedRef.current) setLoading(false)
+    }
+    finally {
+      if (mountedRef.current)
+        setLoading(false)
     }
   }, [userId])
 
   useEffect(() => {
     mountedRef.current = true
     load()
-    return () => { mountedRef.current = false }
+    return () => {
+      mountedRef.current = false
+    }
   }, [load])
 
   return { devices, loading, refresh: load }
@@ -52,13 +59,22 @@ export function useUserVerified(userId: string | null): boolean | null {
   useEffect(() => {
     let cancelled = false
     const client = getMatrixClient()
-    if (!client || !userId) return
+    if (!client || !userId)
+      return
 
     isUserFullyVerified(client, userId)
-      .then((v) => { if (!cancelled) setVerified(v) })
-      .catch(() => { if (!cancelled) setVerified(null) })
+      .then((v) => {
+        if (!cancelled)
+          setVerified(v)
+      })
+      .catch(() => {
+        if (!cancelled)
+          setVerified(null)
+      })
 
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [userId])
 
   return verified
@@ -79,23 +95,30 @@ export function useRoomTrust(roomId: string | null): UseRoomTrustResult {
 
   const load = useCallback(async () => {
     const client = getMatrixClient()
-    if (!client || !roomId) return
+    if (!client || !roomId)
+      return
 
     setLoading(true)
     try {
       const result = await getRoomTrustSummary(client, roomId)
-      if (mountedRef.current) setSummary(result)
-    } catch {
+      if (mountedRef.current)
+        setSummary(result)
+    }
+    catch {
       // Crypto may not be ready
-    } finally {
-      if (mountedRef.current) setLoading(false)
+    }
+    finally {
+      if (mountedRef.current)
+        setLoading(false)
     }
   }, [roomId])
 
   useEffect(() => {
     mountedRef.current = true
     load()
-    return () => { mountedRef.current = false }
+    return () => {
+      mountedRef.current = false
+    }
   }, [load])
 
   return { summary, loading, refresh: load }

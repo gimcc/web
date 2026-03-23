@@ -2,9 +2,9 @@ import { getMatrixClient, useCryptoStore } from '@matrix-web/matrix-client'
 import { Shield, ShieldAlert, ShieldCheck, ShieldX } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Button } from '../../ui/button'
 import { DeviceVerificationSetup } from '../../crypto/device-verification-setup'
 import { ManualVerification } from '../../crypto/manual-verification'
+import { Button } from '../../ui/button'
 
 function CryptoStatusRow({ label, enabled }: { label: string, enabled: boolean }) {
   const Icon = enabled ? ShieldCheck : ShieldX
@@ -36,11 +36,13 @@ function useSecretStorageKeyInfo(): SecretStorageKeyInfo {
 
   useEffect(() => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     const defaultKeyEvent = client.getAccountData('m.secret_storage.default_key')
     const keyId = defaultKeyEvent?.getContent()?.key as string | undefined
-    if (!keyId) return
+    if (!keyId)
+      return
 
     const keyEvent = client.getAccountData(`m.secret_storage.key.${keyId}`)
     const content = keyEvent?.getContent() as SecretStorageKeyInfo['content']
@@ -56,7 +58,8 @@ function useCrossSigningActive(): boolean {
 
   useEffect(() => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     const masterEvent = client.getAccountData('m.cross_signing.master')
     setActive(!!masterEvent?.getContent())
@@ -70,14 +73,17 @@ function useDeviceVerified(): boolean | null {
 
   useEffect(() => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     const crypto = client.getCrypto()
-    if (!crypto) return
+    if (!crypto)
+      return
 
     const userId = client.getUserId()
     const deviceId = client.getDeviceId()
-    if (!userId || !deviceId) return
+    if (!userId || !deviceId)
+      return
 
     crypto.getDeviceVerificationStatus(userId, deviceId).then((status) => {
       setVerified(status?.crossSigningVerified ?? false)

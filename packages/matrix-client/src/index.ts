@@ -105,64 +105,8 @@ export {
 export { hasNormalPassword, verifyPasswordInput } from './crypto/password-verifier'
 export type { VerificationResult } from './crypto/password-verifier'
 
-// Crypto — E2EE service
-export {
-  bootstrapCrossSigning,
-  bootstrapSecretStorage,
-  checkAndEnableKeyBackup,
-  createKeyBackup,
-  createRecoveryKey,
-  crossSignDevice,
-  disableKeyStorage,
-  getActiveBackupVersion,
-  getCrossSigningInfo,
-  getDeviceTrust,
-  getInProgressVerifications,
-  getSecretStorageInfo,
-  getUserTrust,
-  isRoomEncrypted,
-  loadBackupKeyFromSecretStorage,
-  pinUserIdentity,
-  requestDeviceVerification,
-  requestSelfVerification,
-  requestUserVerificationDM,
-  resetEncryption,
-  setDeviceVerified,
-} from './services/crypto-service'
-export type {
-  CrossSigningInfo,
-  DeviceTrustInfo,
-  SecretStorageInfo,
-  UserTrustInfo,
-} from './services/crypto-service'
-
-// Crypto — verification service (trust model)
-export {
-  getRoomTrustSummary,
-  getUserDevicesWithTrust,
-  isUserFullyVerified,
-} from './services/verification-service'
-export type {
-  RoomTrustSummary,
-  UserDeviceInfo,
-  UserTrustSummary,
-} from './services/verification-service'
-
-// Crypto — secret storage service
-export {
-  refreshSecretStorageStatus,
-} from './services/secret-storage-service'
-
-// Crypto — secret storage keys
-export {
-  clearSecretStorageKeys,
-  cryptoCallbacks,
-  storePrivateKey,
-} from './services/secret-storage-keys'
-
 // Crypto — wipe service
 export { silentWipe } from './crypto/wipe-service'
-
 // Query helpers
 export {
   invalidateAll,
@@ -198,7 +142,40 @@ export {
   requestMsisdnToken,
   unignoreUser,
 } from './services/account-service'
+
 export type { DeviceInfo, ThreePid } from './services/account-service'
+
+// Crypto — E2EE service
+export {
+  bootstrapCrossSigning,
+  bootstrapSecretStorage,
+  checkAndEnableKeyBackup,
+  createKeyBackup,
+  createRecoveryKey,
+  crossSignDevice,
+  disableKeyStorage,
+  getActiveBackupVersion,
+  getCrossSigningInfo,
+  getDeviceTrust,
+  getInProgressVerifications,
+  getSecretStorageInfo,
+  getUserTrust,
+  isRoomEncrypted,
+  loadBackupKeyFromSecretStorage,
+  pinUserIdentity,
+  requestDeviceVerification,
+  requestSelfVerification,
+  requestUserVerificationDM,
+  resetEncryption,
+  setDeviceVerified,
+} from './services/crypto-service'
+
+export type {
+  CrossSigningInfo,
+  DeviceTrustInfo,
+  SecretStorageInfo,
+  UserTrustInfo,
+} from './services/crypto-service'
 
 // Services — custom emoji
 export {
@@ -213,9 +190,11 @@ export type {
   EmojiPackImage,
   ResolvedEmojiPack,
 } from './services/custom-emoji-service'
+
 // Services — join rules
 export { getRoomJoinRule, setRoomJoinRule } from './services/join-rules-service'
 export type { JoinRule } from './services/join-rules-service'
+
 // Services — members
 export {
   banUser,
@@ -289,15 +268,11 @@ export {
   togglePushRule,
 } from './services/push-rules-service'
 export type { PushRule, PushRuleKind, PushRulesSet } from './services/push-rules-service'
-
 export {
   redactReaction,
   sendReaction,
   toggleReaction,
 } from './services/reaction-service'
-
-// Services — receipts
-export { ReceiptType } from 'matrix-js-sdk'
 export { sendReadReceipt, syncRoomReceipts } from './services/receipt-service'
 // Services — report
 export { reportEvent } from './services/report-service'
@@ -318,25 +293,36 @@ export {
   updateRoomName,
   updateRoomTopic,
 } from './services/room-service'
+
 export type { CreateDmOptions, CreateGroupOptions, CreateRoomOptions, KnownUser, UserSearchResult } from './services/room-service'
+
 // Services — search
 export { searchMessages } from './services/search-service'
 export type { SearchResult } from './services/search-service'
+// Crypto — secret storage keys
+export {
+  clearSecretStorageKeys,
+  cryptoCallbacks,
+  storePrivateKey,
+} from './services/secret-storage-keys'
+// Crypto — secret storage service
+export {
+  refreshSecretStorageStatus,
+} from './services/secret-storage-service'
 // Services — sticker
 export { sendSticker } from './services/sticker-service'
-
 export type { SendStickerOptions } from './services/sticker-service'
 export {
   handleThreadEvent,
   loadThreadTimeline,
   sendThreadMessage,
 } from './services/thread-service'
-
 // Services — tombstone
 export { followTombstone, getRoomTombstone } from './services/tombstone-service'
-export type { TombstoneInfo } from './services/tombstone-service'
 
+export type { TombstoneInfo } from './services/tombstone-service'
 export type { TypingService } from './services/typing-service'
+
 export {
   mxcToHttpUrl,
   mxcToThumbnailUrl,
@@ -344,15 +330,27 @@ export {
   uploadAndSendFile,
 } from './services/upload-service'
 export type { UploadOptions, UploadResult } from './services/upload-service'
+
 // Services — URL preview
 export { extractUrls, fetchUrlPreview } from './services/url-preview-service'
 export type { UrlPreview } from './services/url-preview-service'
-
+// Crypto — verification service (trust model)
+export {
+  getRoomTrustSummary,
+  getUserDevicesWithTrust,
+  isUserFullyVerified,
+} from './services/verification-service'
+export type {
+  RoomTrustSummary,
+  UserDeviceInfo,
+  UserTrustSummary,
+} from './services/verification-service'
 // Stores
 export { useConnectionStore } from './stores/connection-store'
-export type { ConnectionState, ConnectionStatus } from './stores/connection-store'
 
+export type { ConnectionState, ConnectionStatus } from './stores/connection-store'
 export { useCryptoStore } from './stores/crypto-store'
+
 export type { CryptoState, KeyBackupProgress, SecretStorageKeyRequest } from './stores/crypto-store'
 export { useDraftsStore } from './stores/drafts-store'
 export type { DraftsState } from './stores/drafts-store'
@@ -376,7 +374,6 @@ export type { TypingState } from './stores/typing-store'
 export { createCryptoBridge, refreshCryptoStatus } from './sync/crypto-bridge'
 // Timeline (new SDK-backed reading)
 export { paginateBackward, readTimeline, roomHasMoreHistory } from './timeline/reader'
-
 export type {
   DayDividerItem,
   TimelineItem,
@@ -394,22 +391,27 @@ export {
   isUserIdentifier,
   parseMatrixToUrl,
 } from './utils/matrix-link'
-export type { MatrixLink, MatrixLinkType } from './utils/matrix-link'
 
+export type { MatrixLink, MatrixLinkType } from './utils/matrix-link'
 // Utils
 export {
   formatUserId,
   parseUserId,
   resolveUserId,
 } from './utils/user-id'
-export type { ParsedUserId } from './utils/user-id'
 
+export type { ParsedUserId } from './utils/user-id'
+// Services — receipts
+export { ReceiptType } from 'matrix-js-sdk'
+
+export { MatrixError } from 'matrix-js-sdk'
 // Re-export crypto verification types for UI consumers
 export type {
   ShowQrCodeCallbacks,
   ShowSasCallbacks,
   VerificationRequest,
 } from 'matrix-js-sdk/lib/crypto-api'
+
 export {
   VerificationPhase,
   VerificationRequestEvent,
@@ -422,12 +424,10 @@ export type {
 } from 'matrix-js-sdk/lib/crypto-api'
 
 export {
-  decodeRecoveryKey,
-  encodeRecoveryKey,
-} from 'matrix-js-sdk/lib/crypto-api/recovery-key'
-
-export {
   deriveRecoveryKeyFromPassphrase,
 } from 'matrix-js-sdk/lib/crypto-api/key-passphrase'
 
-export { MatrixError } from 'matrix-js-sdk'
+export {
+  decodeRecoveryKey,
+  encodeRecoveryKey,
+} from 'matrix-js-sdk/lib/crypto-api/recovery-key'

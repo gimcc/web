@@ -3,11 +3,10 @@ import { getMatrixClient, getPresenceService, leaveRoom, useAuthStore, useCrypto
 import { Bell, LogOut, MessageSquare, Search, Settings, ShieldAlert, ShieldCheck, Users } from 'lucide-react'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { DeviceVerificationDialog } from '../../components/crypto/device-verification-dialog'
-import { useRoomTrust } from '../../hooks/use-device-trust'
 import { JumpToDate } from '../../components/chat/jump-to-date'
 import { MessageSearch } from '../../components/chat/message-search'
 import { TypingIndicator } from '../../components/chat/typing-indicator'
+import { DeviceVerificationDialog } from '../../components/crypto/device-verification-dialog'
 import { MemberListPanel } from '../../components/members/member-list-panel'
 import { MessageInput } from '../../components/message-input'
 import { MessageTimeline } from '../../components/message-timeline'
@@ -23,6 +22,7 @@ import { Avatar } from '../../components/ui/avatar'
 import { Button } from '../../components/ui/button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/ui/tooltip'
 import { useDeepLinkHandler } from '../../hooks/use-deep-link'
+import { useRoomTrust } from '../../hooks/use-device-trust'
 import { useIdleDetector } from '../../hooks/use-idle-detector'
 import { useMatrixClientLifecycle } from '../../hooks/use-matrix-client'
 
@@ -121,21 +121,21 @@ function ActiveRoomView({ roomId }: { roomId: string }) {
               {roomTrust?.encrypted && (
                 roomTrust.allVerified
                   ? (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <ShieldCheck className="h-4 w-4 shrink-0 text-green-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>{t('trust.all_verified')}</TooltipContent>
-                    </Tooltip>
-                  )
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ShieldCheck className="h-4 w-4 shrink-0 text-green-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>{t('trust.all_verified')}</TooltipContent>
+                      </Tooltip>
+                    )
                   : (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <ShieldAlert className="h-4 w-4 shrink-0 text-yellow-500" />
-                      </TooltipTrigger>
-                      <TooltipContent>{t('trust.some_unverified')}</TooltipContent>
-                    </Tooltip>
-                  )
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <ShieldAlert className="h-4 w-4 shrink-0 text-yellow-500" />
+                        </TooltipTrigger>
+                        <TooltipContent>{t('trust.some_unverified')}</TooltipContent>
+                      </Tooltip>
+                    )
               )}
             </div>
             <p className="hidden truncate text-xs text-muted-foreground sm:block">

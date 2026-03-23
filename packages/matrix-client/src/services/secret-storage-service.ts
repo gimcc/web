@@ -1,5 +1,5 @@
-import { useCryptoStore } from '../stores/crypto-store'
 import { getMatrixClient } from '../client/client-manager'
+import { useCryptoStore } from '../stores/crypto-store'
 
 // ─── Status ────────────────────────────────────────────────────────
 
@@ -8,10 +8,12 @@ import { getMatrixClient } from '../client/client-manager'
  */
 export async function refreshSecretStorageStatus(): Promise<boolean> {
   const client = getMatrixClient()
-  if (!client) return false
+  if (!client)
+    return false
 
   const crypto = client.getCrypto()
-  if (!crypto) return false
+  if (!crypto)
+    return false
 
   try {
     const ready = await crypto.isSecretStorageReady()
