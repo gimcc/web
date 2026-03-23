@@ -208,7 +208,7 @@ export function MessageBubble({
           isSelf ? 'left-0 -translate-x-full pl-2' : 'right-0 translate-x-full pr-2',
         )}
         >
-          <MessageReactionButton onReaction={handleReaction} onOpenChange={setEmojiPickerOpen} />
+          <MessageReactionButton onReaction={handleReaction} onOpenChange={setEmojiPickerOpen} align={isSelf ? 'end' : 'start'} />
         </div>
       )
     : null

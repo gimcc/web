@@ -155,7 +155,7 @@ export function MessageActionChevron({
  * Emoji quick-reaction button — sits outside the bubble.
  * Click opens a quick-reaction panel (6 emojis + "+" for full picker).
  */
-export function MessageReactionButton({ onReaction, onOpenChange }: { onReaction: (emoji: string) => void, onOpenChange?: (open: boolean) => void }) {
+export function MessageReactionButton({ onReaction, onOpenChange, align = 'end' }: { onReaction: (emoji: string) => void, onOpenChange?: (open: boolean) => void, align?: 'start' | 'end' }) {
   const { t } = useTranslation()
   const [showQuick, setShowQuick] = useState(false)
   const [showFullPicker, setShowFullPicker] = useState(false)
@@ -205,7 +205,7 @@ export function MessageReactionButton({ onReaction, onOpenChange }: { onReaction
 
       {/* Quick reaction panel */}
       {showQuick && !showFullPicker && (
-        <div className="absolute bottom-full right-0 z-50 mb-1.5">
+        <div className={cn('absolute bottom-full z-50 mb-1.5', align === 'start' ? 'left-0' : 'right-0')}>
           <div className="flex items-center gap-0.5 rounded-full border border-border bg-popover px-2 py-1.5 shadow-lg">
             {QUICK_REACTIONS.map(emoji => (
               <button
@@ -240,7 +240,7 @@ export function MessageReactionButton({ onReaction, onOpenChange }: { onReaction
 
       {/* Full emoji picker */}
       {showFullPicker && (
-        <div className="absolute bottom-full right-0 z-50 mb-1.5">
+        <div className={cn('absolute bottom-full z-50 mb-1.5', align === 'start' ? 'left-0' : 'right-0')}>
           <EmojiPicker
             onSelect={(emoji) => {
               addRecentEmoji(emoji)
