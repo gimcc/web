@@ -15,13 +15,13 @@ import {
   useAuthStore,
   useReceiptsStore,
 } from '@matrix-web/matrix-client'
-import { useNotificationStore } from '../lib/notifications'
 import { useVirtualizer } from '@tanstack/react-virtual'
 import { ArrowDown } from 'lucide-react'
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useLayoutPreference } from '../hooks/use-layout-preference'
 import { useRoomTimeline } from '../hooks/use-room-timeline'
+import { useNotificationStore } from '../lib/notifications'
 import { MessageBubble } from './message-bubble'
 import { MessageCompact } from './message-compact'
 import { MessageModern } from './message-modern'

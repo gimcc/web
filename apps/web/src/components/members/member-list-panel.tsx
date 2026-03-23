@@ -48,7 +48,7 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   const [inviteQuery, setInviteQuery] = useState('')
   const [inviteResults, setInviteResults] = useState<{ userId: string, displayName: string | null }[]>([])
   const [profileCardUserId, setProfileCardUserId] = useState<string | null>(null)
-  const [memberTrust, setMemberTrust] = useState<Map<string, boolean>>(new Map())
+  const [memberTrust, setMemberTrust] = useState<Map<string, boolean>>(() => new Map())
 
   useEffect(() => {
     const client = getMatrixClient()
@@ -68,14 +68,18 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
           if (!cancelled) {
             trustMap.set(m.userId, verified)
           }
-        } catch {
+        }
+        catch {
           // Crypto may not be ready for this user
         }
       }),
     ).then(() => {
-      if (!cancelled) setMemberTrust(new Map(trustMap))
+      if (!cancelled)
+        setMemberTrust(new Map(trustMap))
     })
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [roomId])
 
   // Search for invite
@@ -173,39 +177,39 @@ export function MemberListPanel({ roomId, onClose }: MemberListPanelProps) {
   const renderMember = (member: RoomMemberInfo) => {
     const trustVerified = memberTrust.get(member.userId)
     return (
-    <div key={member.userId} className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-accent/50">
-      <button
-        type="button"
-        className="flex min-w-0 flex-1 items-center gap-2 text-left"
-        onClick={() => setProfileCardUserId(member.userId)}
-      >
-        <div className="relative shrink-0">
-          <Avatar name={member.displayName} src={member.avatarUrl ?? undefined} size="sm" />
-          {trustVerified !== undefined && (
-            trustVerified
-              ? <ShieldCheck className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-background text-green-500" aria-label={t('trust.verified')} />
-              : <ShieldAlert className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-background text-yellow-500" aria-label={t('trust.unverified')} />
-          )}
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-1">
-            <span className="truncate text-sm font-medium text-foreground">{member.displayName}</span>
-            {getRoleIcon(member.powerLevel)}
+      <div key={member.userId} className="group flex items-center gap-2 rounded-md px-3 py-2 hover:bg-accent/50">
+        <button
+          type="button"
+          className="flex min-w-0 flex-1 items-center gap-2 text-left"
+          onClick={() => setProfileCardUserId(member.userId)}
+        >
+          <div className="relative shrink-0">
+            <Avatar name={member.displayName} src={member.avatarUrl ?? undefined} size="sm" />
+            {trustVerified !== undefined && (
+              trustVerified
+                ? <ShieldCheck className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-background text-green-500" aria-label={t('trust.verified')} />
+                : <ShieldAlert className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-background text-yellow-500" aria-label={t('trust.unverified')} />
+            )}
           </div>
-          <p className="truncate text-xs text-muted-foreground">{member.userId}</p>
-        </div>
-      </button>
-      {myPower >= 50 && member.powerLevel < myPower && (
-        <div className="hidden items-center gap-0.5 group-hover:flex">
-          <button type="button" onClick={() => handleKick(member.userId)} className="rounded p-1 text-muted-foreground hover:text-destructive" title={t('member.kick')}>
-            <UserMinus className="h-3.5 w-3.5" />
-          </button>
-          <button type="button" onClick={() => handleBan(member.userId)} className="rounded p-1 text-muted-foreground hover:text-destructive" title={t('member.ban')}>
-            <Ban className="h-3.5 w-3.5" />
-          </button>
-        </div>
-      )}
-    </div>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1">
+              <span className="truncate text-sm font-medium text-foreground">{member.displayName}</span>
+              {getRoleIcon(member.powerLevel)}
+            </div>
+            <p className="truncate text-xs text-muted-foreground">{member.userId}</p>
+          </div>
+        </button>
+        {myPower >= 50 && member.powerLevel < myPower && (
+          <div className="hidden items-center gap-0.5 group-hover:flex">
+            <button type="button" onClick={() => handleKick(member.userId)} className="rounded p-1 text-muted-foreground hover:text-destructive" title={t('member.kick')}>
+              <UserMinus className="h-3.5 w-3.5" />
+            </button>
+            <button type="button" onClick={() => handleBan(member.userId)} className="rounded p-1 text-muted-foreground hover:text-destructive" title={t('member.ban')}>
+              <Ban className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        )}
+      </div>
     )
   }
 

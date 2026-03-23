@@ -1,8 +1,8 @@
 import type { DeviceInfo, DeviceTrustInfo, VerificationRequest } from '@matrix-web/matrix-client'
 import {
   deleteDevice,
-  getDeviceTrust,
   getDevices,
+  getDeviceTrust,
   getMatrixClient,
   renameDevice,
   requestDeviceVerification,
@@ -46,7 +46,7 @@ export function DeviceManagement() {
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false)
   const [verifyingId, setVerifyingId] = useState<string | null>(null)
   const [verificationRequest, setVerificationRequest] = useState<VerificationRequest | null>(null)
-  const [trustStatus, setTrustStatus] = useState<Map<string, DeviceTrustInfo>>(new Map())
+  const [trustStatus, setTrustStatus] = useState<Map<string, DeviceTrustInfo>>(() => new Map())
 
   const setSuccessWithAutoClear = (msg: string) => {
     setSuccess(msg)
@@ -328,11 +328,13 @@ export function DeviceManagement() {
                                 onClick={() => handleVerifyDevice(device.deviceId)}
                               >
                                 <CheckCircle className="h-3.5 w-3.5 text-primary" />
-                                <span className="ml-1 text-xs">{
-                                  verifyingId === device.deviceId
-                                    ? t('device_verification.verifying')
-                                    : t('device_verification.verify_button')
-                                }</span>
+                                <span className="ml-1 text-xs">
+                                  {
+                                    verifyingId === device.deviceId
+                                      ? t('device_verification.verifying')
+                                      : t('device_verification.verify_button')
+                                  }
+                                </span>
                               </Button>
                             )}
                             <Button

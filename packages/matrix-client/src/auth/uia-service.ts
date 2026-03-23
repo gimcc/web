@@ -54,12 +54,12 @@ export interface UiaEmailIdentityAuth {
   }
 }
 
-export type UiaAuth =
-  | UiaPasswordAuth
-  | UiaDummyAuth
-  | UiaTermsAuth
-  | UiaRecaptchaAuth
-  | UiaEmailIdentityAuth
+export type UiaAuth
+  = | UiaPasswordAuth
+    | UiaDummyAuth
+    | UiaTermsAuth
+    | UiaRecaptchaAuth
+    | UiaEmailIdentityAuth
 
 /** Known UIA stage types */
 export const UIA_STAGE = {

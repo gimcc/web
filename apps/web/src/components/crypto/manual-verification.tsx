@@ -75,7 +75,6 @@ export function ManualVerification({
     // Validate the key against secret storage
     const keyContent = client.getAccountData(`m.secret_storage.key.${secretStorageKeyId}`)?.getContent()
     if (keyContent) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const match = await client.secretStorage.checkKey(decodedKey, keyContent as any)
       if (!match) {
         throw new Error(t('manual_verification.error_invalid_key'))
@@ -83,7 +82,7 @@ export function ManualVerification({
     }
 
     // Cache the decoded recovery key
-    storePrivateKey(secretStorageKeyId, decodedKey)
+    storePrivateKey(secretStorageKeyId, new Uint8Array(decodedKey))
 
     // Load existing cross-signing keys from SSSS
     await crypto.bootstrapCrossSigning({ authUploadDeviceSigningKeys })
@@ -99,7 +98,8 @@ export function ManualVerification({
   }, [secretStorageKeyId, t, authUploadDeviceSigningKeys])
 
   const handleRecoverWithKey = useCallback(async () => {
-    if (!recoveryKeyInput.trim()) return
+    if (!recoveryKeyInput.trim())
+      return
 
     setIsVerifying(true)
     setError(null)
@@ -118,7 +118,8 @@ export function ManualVerification({
   }, [recoveryKeyInput, verifyAndRestore, t])
 
   const handleRecoverWithPassphrase = useCallback(async () => {
-    if (!passphraseInput.trim() || !secretStorageKeyContent?.passphrase) return
+    if (!passphraseInput.trim() || !secretStorageKeyContent?.passphrase)
+      return
 
     setIsVerifying(true)
     setError(null)
@@ -152,96 +153,106 @@ export function ManualVerification({
 
   return (
     <>
-    <UiaDialog />
-    <Dialog open={open} onOpenChange={v => !v && handleClose()}>
-      <DialogContent className="sm:max-w-md">
-        {success
-          ? (
-              <>
-                <DialogHeader>
-                  <DialogTitle>{t('manual_verification.success_title')}</DialogTitle>
-                  <DialogDescription>{t('manual_verification.success_message')}</DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <Button onClick={handleClose}>{t('common.done')}</Button>
-                </DialogFooter>
-              </>
-            )
-          : (
-              <>
-                <DialogHeader>
-                  <DialogTitle>{t('manual_verification.title')}</DialogTitle>
-                  <DialogDescription>{t('manual_verification.description')}</DialogDescription>
-                </DialogHeader>
+      <UiaDialog />
+      <Dialog open={open} onOpenChange={v => !v && handleClose()}>
+        <DialogContent className="sm:max-w-md">
+          {success
+            ? (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>{t('manual_verification.success_title')}</DialogTitle>
+                    <DialogDescription>{t('manual_verification.success_message')}</DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button onClick={handleClose}>{t('common.done')}</Button>
+                  </DialogFooter>
+                </>
+              )
+            : (
+                <>
+                  <DialogHeader>
+                    <DialogTitle>{t('manual_verification.title')}</DialogTitle>
+                    <DialogDescription>{t('manual_verification.description')}</DialogDescription>
+                  </DialogHeader>
 
-                <Tabs value={tab} onValueChange={setTab}>
-                  {hasPassphrase && (
-                    <TabsList className="w-full">
-                      <TabsTrigger value="passphrase">{t('recovery_key.tab_passphrase')}</TabsTrigger>
-                      <TabsTrigger value="key">{t('recovery_key.tab_key')}</TabsTrigger>
-                    </TabsList>
-                  )}
+                  <Tabs value={tab} onValueChange={setTab}>
+                    {hasPassphrase && (
+                      <TabsList className="w-full">
+                        <TabsTrigger value="passphrase">{t('recovery_key.tab_passphrase')}</TabsTrigger>
+                        <TabsTrigger value="key">{t('recovery_key.tab_key')}</TabsTrigger>
+                      </TabsList>
+                    )}
 
-                  {hasPassphrase && (
-                    <TabsContent value="passphrase" className="space-y-3 pt-3">
+                    {hasPassphrase && (
+                      <TabsContent value="passphrase" className="space-y-3 pt-3">
+                        <Input
+                          type="password"
+                          value={passphraseInput}
+                          onChange={e => setPassphraseInput(e.target.value)}
+                          placeholder={t('recovery_key.passphrase_placeholder')}
+                          disabled={isVerifying}
+                          onKeyDown={e => e.key === 'Enter' && handleRecoverWithPassphrase()}
+                          autoFocus
+                        />
+                        <DialogFooter>
+                          <Button variant="outline" onClick={handleClose} disabled={isVerifying}>
+                            {t('common.cancel')}
+                          </Button>
+                          <Button
+                            onClick={handleRecoverWithPassphrase}
+                            disabled={isVerifying || !passphraseInput.trim()}
+                          >
+                            {isVerifying
+                              ? (
+                                  <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    {t('manual_verification.verifying')}
+                                  </>
+                                )
+                              : t('manual_verification.verify')}
+                          </Button>
+                        </DialogFooter>
+                      </TabsContent>
+                    )}
+
+                    <TabsContent value="key" className="space-y-3 pt-3">
                       <Input
-                        type="password"
-                        value={passphraseInput}
-                        onChange={e => setPassphraseInput(e.target.value)}
-                        placeholder={t('recovery_key.passphrase_placeholder')}
+                        value={recoveryKeyInput}
+                        onChange={e => setRecoveryKeyInput(e.target.value)}
+                        placeholder={t('recovery_key.input_placeholder')}
+                        className="font-mono text-sm"
                         disabled={isVerifying}
-                        onKeyDown={e => e.key === 'Enter' && handleRecoverWithPassphrase()}
-                        autoFocus
+                        onKeyDown={e => e.key === 'Enter' && handleRecoverWithKey()}
+                        autoFocus={!hasPassphrase}
                       />
                       <DialogFooter>
                         <Button variant="outline" onClick={handleClose} disabled={isVerifying}>
                           {t('common.cancel')}
                         </Button>
                         <Button
-                          onClick={handleRecoverWithPassphrase}
-                          disabled={isVerifying || !passphraseInput.trim()}
+                          onClick={handleRecoverWithKey}
+                          disabled={isVerifying || !recoveryKeyInput.trim()}
                         >
                           {isVerifying
-                            ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('manual_verification.verifying')}</>
+                            ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  {t('manual_verification.verifying')}
+                                </>
+                              )
                             : t('manual_verification.verify')}
                         </Button>
                       </DialogFooter>
                     </TabsContent>
+                  </Tabs>
+
+                  {error && (
+                    <p className="text-xs text-destructive">{error}</p>
                   )}
-
-                  <TabsContent value="key" className="space-y-3 pt-3">
-                    <Input
-                      value={recoveryKeyInput}
-                      onChange={e => setRecoveryKeyInput(e.target.value)}
-                      placeholder={t('recovery_key.input_placeholder')}
-                      className="font-mono text-sm"
-                      disabled={isVerifying}
-                      onKeyDown={e => e.key === 'Enter' && handleRecoverWithKey()}
-                      autoFocus={!hasPassphrase}
-                    />
-                    <DialogFooter>
-                      <Button variant="outline" onClick={handleClose} disabled={isVerifying}>
-                        {t('common.cancel')}
-                      </Button>
-                      <Button
-                        onClick={handleRecoverWithKey}
-                        disabled={isVerifying || !recoveryKeyInput.trim()}
-                      >
-                        {isVerifying
-                          ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('manual_verification.verifying')}</>
-                          : t('manual_verification.verify')}
-                      </Button>
-                    </DialogFooter>
-                  </TabsContent>
-                </Tabs>
-
-                {error && (
-                  <p className="text-xs text-destructive">{error}</p>
-                )}
-              </>
-            )}
-      </DialogContent>
-    </Dialog>
+                </>
+              )}
+        </DialogContent>
+      </Dialog>
     </>
   )
 }

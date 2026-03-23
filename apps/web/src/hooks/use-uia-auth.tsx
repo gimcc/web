@@ -39,8 +39,8 @@ export function useUiaAuth() {
       // First attempt with empty auth dict to let the server decide
       try {
         await makeRequest({})
-        return
-      } catch (err) {
+      }
+      catch (err) {
         if (!(err instanceof MatrixError) || err.httpStatus !== 401) {
           throw err
         }
@@ -68,11 +68,13 @@ export function useUiaAuth() {
 
   const handleSubmit = useCallback(async () => {
     const pending = pendingRef.current
-    if (!pending || !session) return
+    if (!pending || !session)
+      return
 
     const client = getMatrixClient()
     const userId = client?.getUserId()
-    if (!userId) return
+    if (!userId)
+      return
 
     try {
       await pending.makeRequest({
@@ -85,10 +87,12 @@ export function useUiaAuth() {
         session,
       })
       pending.resolve()
-    } catch (err) {
+    }
+    catch (err) {
       pending.reject(err)
       setError(err instanceof Error ? err.message : t('uia_auth.error'))
-    } finally {
+    }
+    finally {
       pendingRef.current = null
       setSession(null)
       setPassword('')
@@ -109,7 +113,8 @@ export function useUiaAuth() {
   }, [])
 
   function UiaDialog() {
-    if (!showDialog) return null
+    if (!showDialog)
+      return null
     return (
       <Dialog open onOpenChange={v => !v && handleCancel()}>
         <DialogContent className="sm:max-w-md">

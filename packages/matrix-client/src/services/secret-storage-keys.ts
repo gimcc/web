@@ -13,7 +13,7 @@ const secretStorageKeys = new Map<string, Uint8Array<ArrayBuffer>>()
 /** Cache a decoded private key for use by SDK crypto callbacks. */
 export function storePrivateKey(keyId: string, privateKey: Uint8Array<ArrayBuffer>): void {
   if (!(privateKey instanceof Uint8Array)) {
-    throw new Error('Unable to store, privateKey is invalid.')
+    throw new TypeError('Unable to store, privateKey is invalid.')
   }
   secretStorageKeys.set(keyId, privateKey)
 }
@@ -43,9 +43,11 @@ async function getSecretStorageKey(
 ): Promise<[string, Uint8Array<ArrayBuffer>] | null> {
   const keyIds = Object.keys(opts.keys)
   const keyId = keyIds.find(hasPrivateKey)
-  if (!keyId) return null
+  if (!keyId)
+    return null
   const privateKey = getPrivateKey(keyId)
-  if (!privateKey) return null
+  if (!privateKey)
+    return null
   return [keyId, privateKey]
 }
 

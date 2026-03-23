@@ -6,6 +6,8 @@ import { useReceiptsStore } from '../stores/receipts-store'
 
 /**
  * Send a read receipt for the given event in a room.
+ * @param roomId - The room ID
+ * @param eventId - The event ID to mark as read
  * @param receiptType - 'm.read' for public or 'm.read.private' for private (hidden from other users)
  */
 export async function sendReadReceipt(

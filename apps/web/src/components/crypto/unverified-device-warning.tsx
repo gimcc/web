@@ -35,7 +35,8 @@ export function UnverifiedDeviceWarning({ roomId, className }: UnverifiedDeviceW
   useEffect(() => {
     let cancelled = false
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     async function load() {
       const members = getRoomMembers(client!, roomId)
@@ -52,29 +53,36 @@ export function UnverifiedDeviceWarning({ roomId, className }: UnverifiedDeviceW
               devices: unverified,
             })
           }
-        } catch {
+        }
+        catch {
           // Skip users where crypto info is unavailable
         }
       }
 
-      if (!cancelled) setUnverifiedUsers(results)
+      if (!cancelled)
+        setUnverifiedUsers(results)
     }
 
     load()
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
   }, [roomId])
 
   const handleVerify = useCallback(async (userId: string, deviceId: string) => {
     const client = getMatrixClient()
-    if (!client) return
+    if (!client)
+      return
 
     setVerifyingDeviceId(deviceId)
     try {
       const request = await requestDeviceVerification(client, userId, deviceId)
       setVerificationRequest(request)
-    } catch {
+    }
+    catch {
       // Verification start failed
-    } finally {
+    }
+    finally {
       setVerifyingDeviceId(null)
     }
   }, [])
@@ -83,7 +91,8 @@ export function UnverifiedDeviceWarning({ roomId, className }: UnverifiedDeviceW
     setVerificationRequest(null)
   }, [])
 
-  if (unverifiedUsers.length === 0) return null
+  if (unverifiedUsers.length === 0)
+    return null
 
   const totalUnverified = unverifiedUsers.reduce((sum, u) => sum + u.devices.length, 0)
 
